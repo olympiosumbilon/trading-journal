@@ -1,0 +1,620 @@
+{% extends "base.html" %}
+
+{% block title %}Dashboard & Edge Analytics — Trading Journal{% endblock %}
+
+{% block content %}
+<div class="dash-header">
+    <div class="dash-header-left">
+        <span class="brand-sub">EXECUTIVE TRADING INTELLIGENCE</span>
+        <h1>Trading Dashboard & Edge Rankings</h1>
+        <div class="dash-meta-badge">
+            <span>PERIOD: <strong>{{ active_year }}</strong></span>
+            <span>&bull;</span>
+            <span>TOTAL TRADES: <strong>{{ stats.total_trades }}</strong></span>
+        </div>
+    </div>
+    <div class="dash-header-actions">
+        <a href="/trades/new" class="btn-primary-action">+ Log New Trade</a>
+        <a href="/analysis/" class="btn-secondary-action">Yearly Analysis &rarr;</a>
+    </div>
+</div>
+
+{% if alerts %}
+<div class="alerts-banner">
+    {% for alert in alerts %}
+    <div class="dash-alert alert-warning">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+        <span>{{ alert }}</span>
+    </div>
+    {% endfor %}
+</div>
+{% endif %}
+
+<!-- 1. Hero Performance KPI Ribbon -->
+<div class="dash-kpi-grid">
+    <div class="dash-kpi-card highlight-card">
+        <div class="kpi-top">
+            <span class="kpi-label">TOTAL RETURN (R)</span>
+            <span class="kpi-tag {% if stats.total_r > 0 %}tag-pos{% else %}tag-neg{% endif %}">
+                {% if stats.total_r > 0 %}+{{ "%.2f"|format(stats.total_r) }}R{% else %}{{ "%.2f"|format(stats.total_r) }}R{% endif %}
+            </span>
+        </div>
+        <div class="kpi-big-val {% if stats.total_r > 0 %}val-pos{% elif stats.total_r < 0 %}val-neg{% endif %}">
+            {{ "%.2f"|format(stats.total_r) }}<span class="kpi-unit">R</span>
+        </div>
+        <div class="kpi-subtext">Peak Return: {{ "%.2f"|format(stats.peak_r) }}R</div>
+    </div>
+
+    <div class="dash-kpi-card">
+        <div class="kpi-top">
+            <span class="kpi-label">STRIKE RATE</span>
+            <span class="kpi-tag tag-blue">{{ stats.win_rate }}%</span>
+        </div>
+        <div class="kpi-big-val text-accent">
+            {{ stats.win_rate }}<span class="kpi-unit">%</span>
+        </div>
+        <div class="kpi-subtext">
+            <span class="val-pos font-bold">{{ stats.wins }}W</span> &bull; <span class="val-neg font-bold">{{ stats.losses }}L</span> ({{ stats.total_trades }} trades)
+        </div>
+    </div>
+
+    <div class="dash-kpi-card">
+        <div class="kpi-top">
+            <span class="kpi-label">PROFIT FACTOR</span>
+            <span class="kpi-tag tag-pos">EV Multiplier</span>
+        </div>
+        <div class="kpi-big-val">
+            {{ "%.2f"|format(stats.profit_factor) }}
+        </div>
+        <div class="kpi-subtext">Gross Wins / Gross Losses</div>
+    </div>
+
+    <div class="dash-kpi-card">
+        <div class="kpi-top">
+            <span class="kpi-label">EXPECTANCY / TRADE</span>
+            <span class="kpi-tag tag-blue">Edge</span>
+        </div>
+        <div class="kpi-big-val {% if stats.expectancy > 0 %}val-pos{% else %}val-neg{% endif %}">
+            {{ "%.2f"|format(stats.expectancy) }}<span class="kpi-unit">R</span>
+        </div>
+        <div class="kpi-subtext">Avg Expected Return Per Execution</div>
+    </div>
+
+    <div class="dash-kpi-card">
+        <div class="kpi-top">
+            <span class="kpi-label">AVG WIN / LOSS</span>
+            <span class="kpi-tag">R:R Profile</span>
+        </div>
+        <div class="kpi-big-val">
+            <span class="val-pos">{{ "%.1f"|format(stats.avg_winner) }}</span> : <span class="val-neg">{{ "%.1f"|format(stats.avg_loser|abs) }}</span>
+        </div>
+        <div class="kpi-subtext">Avg Winner vs Avg Loser (R)</div>
+    </div>
+
+    <div class="dash-kpi-card">
+        <div class="kpi-top">
+            <span class="kpi-label">RISK & DRAWDOWN</span>
+            <span class="kpi-tag tag-gray">Safety</span>
+        </div>
+        <div class="kpi-big-val val-neg">
+            {{ "%.2f"|format(stats.max_drawdown) }}<span class="kpi-unit">R</span>
+        </div>
+        <div class="kpi-subtext">Current Streak: <strong>🔥 {{ stats.win_streak }} Wins</strong></div>
+    </div>
+</div>
+
+<!-- 2. Smart Edge Insights Strip -->
+{% if smart_insights %}
+<div class="smart-insights-strip">
+    {% for ins in smart_insights %}
+    <div class="insight-pill-card pill-{{ ins.type }}">
+        <div class="insight-title">{{ ins.title }}</div>
+        <div class="insight-desc">{{ ins.desc }}</div>
+    </div>
+    {% endfor %}
+</div>
+{% endif %}
+
+<!-- 3. Main Dashboard Layout (Charts + Rankings Grid) -->
+<div class="dash-main-grid">
+
+    <!-- LEFT COLUMN: Charts & Leaderboards -->
+    <div class="dash-left-col">
+        
+        <!-- Cumulative Equity Growth Chart Box -->
+        <div class="dash-panel-box">
+            <div class="dash-panel-header">
+                <div>
+                    <h3>TOTAL RETURN (R) &mdash; CUMULATIVE EQUITY CURVE</h3>
+                    <p class="panel-desc">Visual progression of portfolio R-multiple growth across trades.</p>
+                </div>
+                <span class="count-pill">{{ stats.total_trades }} Executions</span>
+            </div>
+            <div class="dash-chart-container">
+                <canvas id="dashEquityChart"></canvas>
+            </div>
+        </div>
+
+        <!-- 🏆 Side-by-Side Edge Rankings: Coins & Setups -->
+        <div class="rankings-two-col-grid">
+            
+            <!-- COIN / INSTRUMENT PROFITABILITY RANKING -->
+            <div class="dash-panel-box">
+                <div class="dash-panel-header">
+                    <div>
+                        <h3>🥇 Coin Profitability Ranking</h3>
+                        <p class="panel-desc">Where you make the most money.</p>
+                    </div>
+                </div>
+                <div class="table-wrapper">
+                    <table class="ranking-table">
+                        <thead>
+                            <tr>
+                                <th>Rank</th>
+                                <th>Coin</th>
+                                <th>Trades</th>
+                                <th>Win Rate</th>
+                                <th style="text-align: right;">Total Return</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for c in coin_rankings %}
+                            <tr>
+                                <td>
+                                    <span class="rank-badge rank-{{ loop.index }}">#{{ loop.index }}</span>
+                                </td>
+                                <td><strong class="text-accent">{{ c.name }}</strong></td>
+                                <td class="num-cell">{{ c.trades }}</td>
+                                <td class="num-cell">
+                                    <span class="wr-pill {% if c.win_rate >= 60 %}wr-high{% elif c.win_rate >= 50 %}wr-med{% else %}wr-low{% endif %}">
+                                        {{ c.win_rate }}%
+                                    </span>
+                                </td>
+                                <td class="num-cell font-bold {% if c.total_r > 0 %}val-pos{% elif c.total_r < 0 %}val-neg{% endif %}" style="text-align: right;">
+                                    +{{ "%.2f"|format(c.total_r) }}R
+                                </td>
+                            </tr>
+                            {% else %}
+                            <tr><td colspan="5" class="empty-cell">No trade records found for this period</td></tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- STRATEGY & SETUP EDGE RANKING -->
+            <div class="dash-panel-box">
+                <div class="dash-panel-header">
+                    <div>
+                        <h3>🎯 Strategy & Setup Leaderboard</h3>
+                        <p class="panel-desc">Highest edge execution models.</p>
+                    </div>
+                </div>
+                <div class="table-wrapper">
+                    <table class="ranking-table">
+                        <thead>
+                            <tr>
+                                <th>Rank</th>
+                                <th>Setup</th>
+                                <th>Trades</th>
+                                <th>Win Rate</th>
+                                <th style="text-align: right;">Total Return</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for st in strat_rankings %}
+                            <tr>
+                                <td>
+                                    <span class="rank-badge rank-{{ loop.index }}">#{{ loop.index }}</span>
+                                </td>
+                                <td><strong>{{ st.name }}</strong></td>
+                                <td class="num-cell">{{ st.trades }}</td>
+                                <td class="num-cell">
+                                    <span class="wr-pill {% if st.win_rate >= 60 %}wr-high{% elif st.win_rate >= 50 %}wr-med{% else %}wr-low{% endif %}">
+                                        {{ st.win_rate }}%
+                                    </span>
+                                </td>
+                                <td class="num-cell font-bold {% if st.total_r > 0 %}val-pos{% elif st.total_r < 0 %}val-neg{% endif %}" style="text-align: right;">
+                                    +{{ "%.2f"|format(st.total_r) }}R
+                                </td>
+                            </tr>
+                            {% else %}
+                            <tr><td colspan="5" class="empty-cell">No strategy records found for this period</td></tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+        </div>
+
+        <!-- 🚦 EXECUTION EFFICIENCY & MISSED OPPORTUNITY BANNER -->
+        <div class="dash-opportunity-banner" style="background:#fff; border:1px solid #e2e8f0; border-radius:8px; padding:0.9rem 1.25rem; margin-bottom:1.5rem; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:1rem;">
+            <div style="display:flex; align-items:center; gap:1.25rem; flex-wrap:wrap;">
+                <div>
+                    <span style="font-size:0.72rem; font-weight:800; color:#64748b; text-transform:uppercase; letter-spacing:0.05em; display:block;">Execution Discipline</span>
+                    <span style="font-size:1.25rem; font-weight:800; color:#1e293b;">{{ exec_status_stats.execution_rate }}% Live Execution Rate</span>
+                </div>
+                <div style="height:32px; width:1px; background:#e2e8f0;"></div>
+                <div style="display:flex; gap:0.5rem; align-items:center; flex-wrap:wrap;">
+                    <span class="status-pill status-live">🟢 {{ exec_status_stats.live_count }} Live Trades (+{{ "%.2f"|format(exec_status_stats.live_r) }}R)</span>
+                    <span class="status-pill status-front-run">🟡 {{ exec_status_stats.front_run_count }} Front-Run (+{{ "%.2f"|format(exec_status_stats.front_run_missed_r) }}R Missed)</span>
+                    <span class="status-pill status-missed">⚪ {{ exec_status_stats.missed_count }} Missed (+{{ "%.2f"|format(exec_status_stats.missed_trade_r) }}R Missed)</span>
+                    <span class="status-pill status-swept">🪤 {{ exec_status_stats.sl_swept_count }} SL Swept (-{{ "%.2f"|format(exec_status_stats.sl_swept_lost_r) }}R Lost)</span>
+                </div>
+            </div>
+            <div style="text-align:right;">
+                <span style="font-size:0.72rem; font-weight:700; color:#94a3b8; text-transform:uppercase; display:block;">Total Missed Opportunity</span>
+                <span class="font-bold" style="font-size:1.15rem; color:#d97706;">+{{ "%.2f"|format(exec_status_stats.total_missed_r) }}R</span>
+                <small style="color:#64748b; font-size:0.7rem; display:block;">(Theoretical Edge: +{{ "%.2f"|format(exec_status_stats.theoretical_r) }}R)</small>
+            </div>
+        </div>
+
+        <!-- 🎯 EXECUTION OUTCOMES & 🧠 PSYCHOLOGY EDGE -->
+        <div class="rankings-two-col-grid">
+            
+            <!-- 🎯 EXECUTION OUTCOME MATRIX -->
+            <div class="dash-panel-box">
+                <div class="dash-panel-header">
+                    <div>
+                        <h3>🎯 Trade Outcome & Exit Distribution</h3>
+                        <p class="panel-desc">How you exit trades (Full TP, Runner, Break Even, Trail, Cut Loss).</p>
+                    </div>
+                </div>
+                <div class="outcome-matrix-grid">
+                    {% for cat in outcome_stats.categories %}
+                    <div class="outcome-stat-card">
+                        <div class="osc-top">
+                            <span class="osc-icon">{{ cat.icon }}</span>
+                            <span class="osc-title">{{ cat.name }}</span>
+                            <span class="osc-pct font-bold">{{ cat.pct }}%</span>
+                        </div>
+                        <div class="osc-bottom">
+                            <span class="osc-count">{{ cat.count }} trades</span>
+                            <span class="osc-r font-bold {% if cat.total_r > 0 %}val-pos{% elif cat.total_r < 0 %}val-neg{% endif %}">
+                                {{ "+%.2f"|format(cat.total_r) if cat.total_r > 0 else "%.2f"|format(cat.total_r) }}R
+                            </span>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+
+            <!-- 🧠 TRADING PSYCHOLOGY & EMOTIONAL EDGE -->
+            <div class="dash-panel-box">
+                <div class="dash-panel-header">
+                    <div>
+                        <h3>🧠 Psychology & Mindset Edge</h3>
+                        <p class="panel-desc">Win rate and return by pre-trade mindset and post-trade execution.</p>
+                    </div>
+                    <div class="psych-score-badge">
+                        <span class="ps-label">Discipline Score</span>
+                        <span class="ps-val font-bold text-accent">{{ psychology_stats.discipline_score }}%</span>
+                    </div>
+                </div>
+
+                <div class="psych-tab-bar" style="display:flex; gap:0.4rem; margin-bottom: 0.75rem;">
+                    <button type="button" class="news-cat-btn active" id="btnPsychBefore" onclick="switchPsychTab('before')">🧘 Pre-Trade Mindset</button>
+                    <button type="button" class="news-cat-btn" id="btnPsychAfter" onclick="switchPsychTab('after')">🏁 Post-Trade Reflection</button>
+                </div>
+
+                <!-- Pre-trade List -->
+                <div id="psychBeforeList" class="psychology-breakdown-list">
+                    {% for b in psychology_stats.before_stats %}
+                    <div class="psych-row {% if b.is_good %}psych-good{% else %}psych-bad{% endif %}">
+                        <div class="psych-left">
+                            <span class="psych-icon">{{ b.icon }}</span>
+                            <div>
+                                <span class="psych-name font-bold">{{ b.name }}</span>
+                                <span class="psych-count">{{ b.count }} trades</span>
+                            </div>
+                        </div>
+                        <div class="psych-right">
+                            <span class="wr-pill {% if b.win_rate >= 60 %}wr-high{% elif b.win_rate >= 50 %}wr-med{% else %}wr-low{% endif %}">{{ b.win_rate }}% WR</span>
+                            <span class="font-bold {% if b.total_r > 0 %}val-pos{% elif b.total_r < 0 %}val-neg{% endif %}">
+                                {{ "+%.2f"|format(b.total_r) if b.total_r > 0 else "%.2f"|format(b.total_r) }}R
+                            </span>
+                        </div>
+                    </div>
+                    {% else %}
+                    <div class="empty-cell" style="padding: 1.5rem; text-align: center;">
+                        <p style="margin:0 0 0.5rem 0; color:#64748b;">No pre-trade tags logged yet.</p>
+                        <small style="color:#94a3b8;">Tag your mindset in the Trade Form to unlock emotional edge insights!</small>
+                    </div>
+                    {% endfor %}
+                </div>
+
+                <!-- Post-trade List -->
+                <div id="psychAfterList" class="psychology-breakdown-list" style="display: none;">
+                    {% for a in psychology_stats.after_stats %}
+                    <div class="psych-row psych-good">
+                        <div class="psych-left">
+                            <span class="psych-icon">{{ a.icon }}</span>
+                            <div>
+                                <span class="psych-name font-bold">{{ a.name }}</span>
+                                <span class="psych-count">{{ a.count }} trades</span>
+                            </div>
+                        </div>
+                        <div class="psych-right">
+                            <span class="wr-pill {% if a.win_rate >= 60 %}wr-high{% elif a.win_rate >= 50 %}wr-med{% else %}wr-low{% endif %}">{{ a.win_rate }}% WR</span>
+                            <span class="font-bold {% if a.total_r > 0 %}val-pos{% elif a.total_r < 0 %}val-neg{% endif %}">
+                                {{ "+%.2f"|format(a.total_r) if a.total_r > 0 else "%.2f"|format(a.total_r) }}R
+                            </span>
+                        </div>
+                    </div>
+                    {% else %}
+                    <div class="empty-cell" style="padding: 1.5rem; text-align: center;">
+                        <p style="margin:0 0 0.5rem 0; color:#64748b;">No post-trade tags logged yet.</p>
+                        <small style="color:#94a3b8;">Tag your post-trade feeling in the Trade Form to review execution discipline!</small>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+
+        </div>
+
+        <!-- 🕒 BEST TRADING WINDOWS & SESSION EDGE -->
+        <div class="rankings-two-col-grid">
+            
+            <!-- BEST TIME TO TRADE (PHT) -->
+            <div class="dash-panel-box">
+                <div class="dash-panel-header">
+                    <div>
+                        <h3>🕒 Best Time to Trade (PH Time)</h3>
+                        <p class="panel-desc">Your highest profitability execution windows.</p>
+                    </div>
+                </div>
+                <div class="time-windows-list">
+                    {% for w in best_time_windows %}
+                    <div class="time-window-card">
+                        <div class="tw-left">
+                            <span class="tw-medal">{% if loop.index == 1 %}🥇{% elif loop.index == 2 %}🥈{% else %}🥉{% endif %}</span>
+                            <div>
+                                <div class="tw-time">{{ w.interval }}</div>
+                                <div class="tw-meta">{{ w.trades }} trades &bull; {{ w.wins }} Wins</div>
+                            </div>
+                        </div>
+                        <div class="tw-right">
+                            <span class="wr-pill wr-high">{{ w.win_rate }}% WR</span>
+                            <span class="tw-r val-pos font-bold">+{{ "%.2f"|format(w.total_r) }}R</span>
+                        </div>
+                    </div>
+                    {% else %}
+                    <div class="empty-cell" style="padding:1.5rem;">No time data available</div>
+                    {% endfor %}
+                </div>
+            </div>
+
+            <!-- SESSION EDGE RANKING -->
+            <div class="dash-panel-box">
+                <div class="dash-panel-header">
+                    <div>
+                        <h3>⚡ Session Profitability Ranking</h3>
+                        <p class="panel-desc">Performance by market trading session.</p>
+                    </div>
+                </div>
+                <div class="table-wrapper">
+                    <table class="ranking-table">
+                        <thead>
+                            <tr>
+                                <th>Session</th>
+                                <th>Trades</th>
+                                <th>Win Rate</th>
+                                <th>Share %</th>
+                                <th style="text-align: right;">Total R</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for s in session_rankings %}
+                            <tr>
+                                <td><strong>{{ s.name }}</strong></td>
+                                <td class="num-cell">{{ s.trades }}</td>
+                                <td class="num-cell">
+                                    <span class="wr-pill {% if s.win_rate >= 60 %}wr-high{% elif s.win_rate >= 50 %}wr-med{% else %}wr-low{% endif %}">
+                                        {{ s.win_rate }}%
+                                    </span>
+                                </td>
+                                <td class="num-cell">{{ s.share }}%</td>
+                                <td class="num-cell font-bold {% if s.total_r > 0 %}val-pos{% elif s.total_r < 0 %}val-neg{% endif %}" style="text-align: right;">
+                                    {{ "%.2f"|format(s.total_r) }}R
+                                </td>
+                            </tr>
+                            {% else %}
+                            <tr><td colspan="5" class="empty-cell">No session data available</td></tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+        </div>
+
+        <!-- RECENT TRADES STRIP -->
+        <div class="dash-panel-box">
+            <div class="dash-panel-header">
+                <div>
+                    <h3>Recent Trades Quick View</h3>
+                    <p class="panel-desc">Last 5 logged trades.</p>
+                </div>
+                <a href="/trades/" class="btn-text-link">View All Trades &rarr;</a>
+            </div>
+            <div class="table-wrapper">
+                <table class="ranking-table">
+                    <thead>
+                        <tr>
+                            <th>Trade</th>
+                            <th>Date & Time</th>
+                            <th>Instrument</th>
+                            <th>Session</th>
+                            <th>Setup</th>
+                            <th>Outcome</th>
+                            <th style="text-align: right;">P&L (R)</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for t in recent_trades %}
+                        <tr>
+                            <td>
+                                <a href="/trades/{{ t.id }}" class="trade-link font-bold">#{{ t.id }}</a>
+                            </td>
+                            <td>{{ t.entry_date }} &bull; {{ t.entry_time | time_12h }}</td>
+                            <td><strong class="text-accent">{{ t.instrument_obj.name if t.instrument_obj else "—" }}</strong></td>
+                            <td>{{ t.session_obj.name if t.session_obj else "—" }}</td>
+                            <td>{{ t.strategy_obj.name if t.strategy_obj else "—" }}</td>
+                            <td>
+                                <span class="outcome-badge-sm {% if t.is_win %}outcome-win{% elif t.is_loss %}outcome-loss{% else %}outcome-be{% endif %}">
+                                    {% if t.is_win %}WIN{% elif t.is_loss %}LOSS{% else %}BE{% endif %}
+                                </span>
+                            </td>
+                            <td class="num-cell font-bold {% if t.fixed_r_target and t.fixed_r_target > 0 %}val-pos{% elif t.fixed_r_target and t.fixed_r_target < 0 %}val-neg{% endif %}" style="text-align: right;">
+                                {{ "%.2f"|format(t.fixed_r_target) if t.fixed_r_target is not none else "—" }}R
+                            </td>
+                        </tr>
+                        {% else %}
+                        <tr><td colspan="7" class="empty-cell">No trades logged yet.</td></tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- RIGHT COLUMN: Edge Checklists & Day Rankings -->
+    <div class="dash-right-col">
+        
+        <!-- DAY OF WEEK EDGE CARD -->
+        <div class="dash-panel-box">
+            <div class="dash-panel-header">
+                <div>
+                    <h3>📅 Best Days to Trade</h3>
+                    <p class="panel-desc">Ranked by weekly profitability.</p>
+                </div>
+            </div>
+            <div class="days-ranking-list">
+                {% for d in day_rankings %}
+                <div class="day-rank-row">
+                    <div class="day-rank-left">
+                        <span class="day-name font-bold">{{ d.name }}</span>
+                        <span class="day-trades-count">{{ d.trades }} trades</span>
+                    </div>
+                    <div class="day-rank-right">
+                        <span class="wr-pill {% if d.win_rate >= 60 %}wr-high{% elif d.win_rate >= 50 %}wr-med{% else %}wr-low{% endif %}">
+                            {{ d.win_rate }}%
+                        </span>
+                        <span class="day-r-val font-bold {% if d.total_r > 0 %}val-pos{% elif d.total_r < 0 %}val-neg{% endif %}">
+                            {{ "%.2f"|format(d.total_r) }}R
+                        </span>
+                    </div>
+                </div>
+                {% else %}
+                <div class="empty-cell" style="padding:1.5rem;">No day data</div>
+                {% endfor %}
+            </div>
+        </div>
+
+        <!-- TRADING DISCIPLINE & RULES CARD -->
+        <div class="dash-panel-box">
+            <div class="dash-panel-header">
+                <div>
+                    <h3>🛡️ Trading Rules & Discipline</h3>
+                    <p class="panel-desc">Health check of trading rules.</p>
+                </div>
+            </div>
+            <div class="discipline-list">
+                <div class="discipline-item">
+                    <span class="disc-icon">✅</span>
+                    <div>
+                        <div class="disc-title">Fixed Risk Management</div>
+                        <div class="disc-desc">1R standardized stop loss rule is active and monitored.</div>
+                    </div>
+                </div>
+                <div class="discipline-item">
+                    <span class="disc-icon">✅</span>
+                    <div>
+                        <div class="disc-title">Maximum Drawdown Safe</div>
+                        <div class="disc-desc">Current drawdown of {{ "%.2f"|format(stats.max_drawdown) }}R is well within limits.</div>
+                    </div>
+                </div>
+                <div class="discipline-item">
+                    <span class="disc-icon">🎯</span>
+                    <div>
+                        <div class="disc-title">Focus on High-Edge Windows</div>
+                        <div class="disc-desc">Prioritize NY Session & LC-1 models where win rate exceeds 65%.</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+</div>
+
+<!-- Chart.js Script for Equity Growth Curve -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+const cumLabels = {{ cum_labels | tojson }};
+const cumValues = {{ cum_values | tojson }};
+
+const ctx = document.getElementById('dashEquityChart').getContext('2d');
+const gradient = ctx.createLinearGradient(0, 0, 0, 280);
+gradient.addColorStop(0, 'rgba(56, 189, 248, 0.35)');
+gradient.addColorStop(1, 'rgba(56, 189, 248, 0.0)');
+
+new Chart(ctx, {
+    type: 'line',
+    data: {
+        labels: cumLabels,
+        datasets: [{
+            label: 'Total Return (R)',
+            data: cumValues,
+            borderColor: '#38bdf8',
+            borderWidth: 3,
+            backgroundColor: gradient,
+            fill: true,
+            tension: 0.15,
+            pointRadius: 2,
+            pointHoverRadius: 6,
+            pointBackgroundColor: '#38bdf8',
+        }]
+    },
+    options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        interaction: { mode: 'index', intersect: false },
+        plugins: {
+            legend: { display: false },
+            tooltip: {
+                callbacks: {
+                    label: function(context) {
+                        return ` Cumulative Return: ${context.parsed.y.toFixed(2)}R`;
+                    }
+                }
+            }
+        },
+        scales: {
+            x: {
+                grid: { color: '#1e293b' },
+                ticks: { color: '#94a3b8', font: { size: 10 } }
+            },
+            y: {
+                grid: { color: '#1e293b' },
+                ticks: {
+                    color: '#94a3b8',
+                    font: { size: 10 },
+                    callback: (v) => v + 'R'
+                }
+            }
+        }
+    }
+});
+
+function switchPsychTab(type) {
+    const isBefore = (type === 'before');
+    document.getElementById('btnPsychBefore').classList.toggle('active', isBefore);
+    document.getElementById('btnPsychAfter').classList.toggle('active', !isBefore);
+    document.getElementById('psychBeforeList').style.display = isBefore ? 'flex' : 'none';
+    document.getElementById('psychAfterList').style.display = !isBefore ? 'flex' : 'none';
+}
+</script>
+{% endblock %}

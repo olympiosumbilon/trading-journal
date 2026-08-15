@@ -1,0 +1,1074 @@
+{% extends "base.html" %}
+
+{% block title %}{% if trade %}Edit Trade #{{ trade.id }}{% else %}New Trade{% endif %} — Trading Journal{% endblock %}
+
+{% block content %}
+<div class="form-page-header">
+    <div>
+        <span class="brand-sub">TRADE EXECUTION & LOGGING</span>
+        <h1>{% if trade %}Edit Trade #{{ trade.id }}{% else %}Log New Trade{% endif %}</h1>
+    </div>
+    <div class="header-actions">
+        <button type="button" class="btn-calc-toggle" onclick="toggleCalculator()">
+            <span id="calcToggleIcon">⚡</span> <span id="calcToggleText">Hide Risk Calculator</span>
+        </button>
+        <a href="/trades/" class="btn-back">&larr; Back to Trades</a>
+    </div>
+</div>
+
+<!-- ========================================================================= -->
+<!-- ⚡ LIVE RISK, POSITION SIZE & EXCHANGE FEE CALCULATOR (CRYPTO & FOREX) -->
+<!-- ========================================================================= -->
+<div class="calc-wrapper" id="riskCalculatorCard">
+    <div class="calc-header">
+        <div class="calc-header-title">
+            <span class="calc-badge">LIVE PRE-TRADE TOOL</span>
+            <h3>Risk, Position Sizing & Exchange Fee Calculator</h3>
+            <p class="calc-subtext">Calculate exact position size, leverage margin, and exchange taker/maker fee impact before execution.</p>
+        </div>
+        <div class="calc-exchange-picker">
+            <label for="calcExchange">EXCHANGE / FEES:</label>
+            <select id="calcExchange" onchange="updateExchangeFees()">
+                <option value="mexc">MEXC Futures (0.00% / 0.020%)</option>
+                <option value="bybit">Bybit Futures (0.02% / 0.055%)</option>
+                <option value="binance" selected>Binance Futures (0.02% / 0.050%)</option>
+                <option value="okx">OKX Futures (0.02% / 0.050%)</option>
+                <option value="bitget">Bitget Futures (0.02% / 0.060%)</option>
+                <option value="zero">Forex / Zero Fee (0.00%)</option>
+                <option value="custom">Custom Fee %</option>
+            </select>
+        </div>
+    </div>
+
+    <div class="calc-body-grid">
+        <!-- Input Controls -->
+        <div class="calc-inputs-pane">
+            <div class="calc-field-row single-col">
+                <div class="calc-field">
+                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.2rem;">
+                        <label style="margin:0; font-weight:800; color:#38bdf8;">Coin / Trading Pair / Instrument</label>
+                        <span style="font-size:0.68rem; color:#4ade80; font-weight:700;">⚡ Auto-adds to Database</span>
+                    </div>
+                    <input type="text" id="calcCoinInput" placeholder="Type or pick coin (e.g. SOLUSD, BTCUSDT, DOGEUSDT, EURUSD)" list="calcCoinSuggestions" class="form-input" style="background:#1e293b; color:#f8fafc; border:1px solid #334155; font-weight:700; text-transform:uppercase;" oninput="onCalcCoinChange(this.value)">
+                    <datalist id="calcCoinSuggestions">
+                        {% for i in instruments %}
+                        <option value="{{ i.name }}">{{ i.name }}</option>
+                        {% endfor %}
+                    </datalist>
+                </div>
+            </div>
+
+            <div class="calc-field-row three-col">
+                <div class="calc-field">
+                    <label>Account Balance ($)</label>
+                    <input type="number" id="calcBalance" value="10000" step="100" oninput="recalcPositionSize()">
+                </div>
+                <div class="calc-field">
+                    <label>Risk Per Trade</label>
+                    <div class="calc-input-group">
+                        <input type="number" id="calcRiskVal" value="1.0" step="0.1" oninput="recalcPositionSize()">
+                        <select id="calcRiskType" onchange="recalcPositionSize()">
+                            <option value="pct">% Account</option>
+                            <option value="usd">$ Fixed</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="calc-field">
+                    <label>Direction</label>
+                    <select id="calcDirection" onchange="recalcPositionSize()">
+                        <option value="long">LONG (Buy)</option>
+                        <option value="short">SHORT (Sell)</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="calc-field-row three-col">
+                <div class="calc-field">
+                    <label>Entry Price ($)</label>
+                    <input type="number" id="calcEntry" placeholder="e.g. 150.00" step="any" oninput="recalcPositionSize()">
+                </div>
+                <div class="calc-field">
+                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.15rem;">
+                        <label style="margin:0;">Stop Loss</label>
+                        <select id="calcSLMode" onchange="changeSLMode()" style="padding:0.1rem 0.35rem; font-size:0.68rem; background:#0f172a; color:#38bdf8; border:1px solid #475569; border-radius:3px; cursor:pointer;">
+                            <option value="price">By Price ($)</option>
+                            <option value="pct">By Distance (%)</option>
+                        </select>
+                    </div>
+                    <input type="number" id="calcSL" placeholder="e.g. 147.00" step="any" oninput="recalcPositionSize()">
+                </div>
+                <div class="calc-field">
+                    <label>Take Profit Price ($)</label>
+                    <input type="number" id="calcTP" placeholder="e.g. 160.00" step="any" oninput="recalcPositionSize()">
+                </div>
+            </div>
+
+            <div class="calc-field-row two-col">
+                <div class="calc-field">
+                    <label>Leverage (<span id="calcLevLabel" style="color:#38bdf8; font-weight:800;">10x</span>)</label>
+                    <input type="range" id="calcLeverage" min="1" max="100" value="10" step="1" oninput="document.getElementById('calcLevLabel').textContent=this.value+'x'; recalcPositionSize();">
+                </div>
+                <div class="calc-field">
+                    <label>Order Type</label>
+                    <select id="calcOrderType" onchange="recalcPositionSize()">
+                        <option value="market">Market Entry (Taker) + Market Exit</option>
+                        <option value="limit">Limit Entry (Maker) + Limit TP</option>
+                    </select>
+                </div>
+                <div class="calc-field" id="customFeeBox" style="display:none;">
+                    <label>Custom Fee % (Roundtrip)</label>
+                    <input type="number" id="calcCustomFee" value="0.10" step="0.01" oninput="recalcPositionSize()">
+                </div>
+            </div>
+        </div>
+
+        <!-- Live Real-Time Output Pane -->
+        <div class="calc-outputs-pane">
+            <div class="calc-outputs-header">
+                <span>ESTIMATED POSITION & RISK BREAKDOWN</span>
+                <span class="calc-live-pill">• LIVE</span>
+            </div>
+
+            <div class="calc-metrics-grid">
+                <div class="calc-metric-box">
+                    <span class="cm-label">POSITION SIZE (UNITS)</span>
+                    <span class="cm-val mono" id="resUnits">0.00</span>
+                    <span class="cm-sub" id="resNotional">$0.00 Notional</span>
+                </div>
+                <div class="calc-metric-box">
+                    <span class="cm-label">MARGIN REQUIRED</span>
+                    <span class="cm-val mono" id="resMargin">$0.00</span>
+                    <span class="cm-sub" id="resMarginPct">0.0% of Balance</span>
+                </div>
+                <div class="calc-metric-box">
+                    <span class="cm-label">STOP LOSS DISTANCE</span>
+                    <span class="cm-val mono val-neg" id="resSLDist">0.00%</span>
+                    <span class="cm-sub" id="resRiskCash">-$0.00 (1.00R)</span>
+                </div>
+                <div class="calc-metric-box">
+                    <span class="cm-label">TAKE PROFIT DISTANCE</span>
+                    <span class="cm-val mono val-pos" id="resTPDist">0.00%</span>
+                    <span class="cm-sub" id="resProfitCash">+$0.00 Gross</span>
+                </div>
+            </div>
+
+            <div class="calc-fee-box">
+                <div class="calc-fee-row">
+                    <span class="cf-label">ESTIMATED EXCHANGE FEES</span>
+                    <span class="cf-val mono font-bold" id="resFees">-$0.00</span>
+                </div>
+                <span class="cf-sub" id="resFeePct">Entry + Exit Fees</span>
+            </div>
+
+            <div class="calc-rr-banner">
+                <div class="calc-rr-main">
+                    <span class="cm-label">REAL NET R:R (AFTER FEES)</span>
+                    <span class="cm-val val-pos font-bold" id="resNetR">0.00R</span>
+                    <span class="cm-sub" id="resNetCash">+$0.00 Net PnL</span>
+                </div>
+            </div>
+
+            <button type="button" class="btn-apply-calc" onclick="applyCalcToForm()">
+                📥 Apply Values to Trade Form Below
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- ========================================================================= -->
+<!-- MAIN TRADE ENTRY FORM -->
+<!-- ========================================================================= -->
+<form method="post" action="{% if trade %}/trades/{{ trade.id }}/edit{% else %}/trades/{% endif %}" class="trade-form-card">
+    
+    <!-- 0. Execution Status & Quality Tags Banner -->
+    <div class="form-section-block execution-status-block">
+        <div class="exec-status-header">
+            <span class="exec-status-label">🚦 Trade Execution Tag:</span>
+            <div class="exec-status-buttons">
+                <button type="button" class="btn-exec-status {% if (not trade or not trade.execution_status or trade.execution_status == 'LIVE') and not (trade and trade.is_sl_swept) %}active exec-live{% endif %}" onclick="setExecStatus('LIVE', this)">
+                    🟢 Live Trade
+                </button>
+                <button type="button" class="btn-exec-status {% if trade and trade.execution_status == 'FRONT_RUN' %}active exec-front-run{% endif %}" onclick="setExecStatus('FRONT_RUN', this)">
+                    🟡 Front-Run (Unfilled)
+                </button>
+                <button type="button" class="btn-exec-status {% if trade and trade.execution_status == 'MISSED' %}active exec-missed{% endif %}" onclick="setExecStatus('MISSED', this)">
+                    ⚪ Missed Trade
+                </button>
+                <button type="button" class="btn-exec-status {% if trade and trade.is_sl_swept %}active exec-swept{% endif %}" onclick="setExecStatus('SL_SWEPT', this)">
+                    🪤 SL Swept (Stopped & Ran)
+                </button>
+            </div>
+            <input type="hidden" name="execution_status" id="executionStatusInput" value="{{ trade.execution_status if trade and trade.execution_status else 'LIVE' }}">
+            <input type="hidden" name="is_sl_swept" id="isSlSweptInput" value="{{ '1' if trade and trade.is_sl_swept else '' }}">
+        </div>
+        <p id="execStatusHint" class="exec-status-hint-text">
+            {% if trade and trade.execution_status == 'FRONT_RUN' %}
+            🟡 Front-Run: Limit order was unfilled by 1-2 ticks. Tracked for opportunity cost without impacting live account balance.
+            {% elif trade and trade.execution_status == 'MISSED' %}
+            ⚪ Missed Trade: Setup was valid but not entered due to hesitation or late entry. Tracked for opportunity cost.
+            {% elif trade and trade.is_sl_swept %}
+            🪤 SL Swept: Price hit Stop Loss before reversing and moving to target. Tracked to optimize SL buffer.
+            {% else %}
+            🟢 Live Executed: Entered in the market. Directly impacts actual account balance & equity curve.
+            {% endif %}
+        </p>
+    </div>
+
+    <!-- 1. Timing & Market Session -->
+    <div class="form-section-block">
+        <h4 class="form-section-title">🕒 Timing & Market Session</h4>
+        <div class="form-section-grid grid-timing">
+            <div class="form-group">
+                <label>Entry Date</label>
+                <input type="date" name="entry_date" id="entryDateInput" value="{{ trade.entry_date if trade else '' }}" oninput="updateHoldingDuration()">
+            </div>
+            <div class="form-group">
+                <label>Entry Time (PH Time)</label>
+                <input type="time" name="entry_time" id="entryTimeInput" value="{{ trade.entry_time.strftime('%H:%M') if trade and trade.entry_time else '' }}" oninput="autoDetectSession(this.value); updateHoldingDuration();">
+            </div>
+            <div class="form-group">
+                <div class="label-with-hint">
+                    <label>Close / Exit Time (PH Time)</label>
+                    <span id="holdingTimeBadge" class="session-hint-text" style="color:#0284c7; font-weight:700;"></span>
+                </div>
+                <div style="display:flex; gap:0.4rem;">
+                    <input type="date" name="exit_date" id="exitDateInput" value="{{ trade.exit_date if trade and trade.exit_date else '' }}" style="flex:1.15;" placeholder="Exit Date" oninput="updateHoldingDuration()">
+                    <input type="time" name="exit_time" id="exitTimeInput" value="{{ trade.exit_time.strftime('%H:%M') if trade and trade.exit_time else '' }}" style="flex:1;" oninput="updateHoldingDuration()">
+                </div>
+            </div>
+            <div class="form-group">
+                <div class="label-with-hint">
+                    <label>Market Session</label>
+                    <span id="sessionHint" class="session-hint-text"></span>
+                </div>
+                <select name="session_id" id="sessionSelect">
+                    <option value="">-- Select --</option>
+                    {% for s in sessions %}
+                    <option value="{{ s.id }}" data-name="{{ s.name }}" {% if trade and trade.session_id == s.id %}selected{% endif %}>{{ s.name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+        </div>
+    </div>
+
+    <!-- 2. Instrument & Setup Edge -->
+    <div class="form-section-block">
+        <h4 class="form-section-title">🎯 Setup & Trade Edge</h4>
+        <div class="form-section-grid grid-setup">
+            <div class="form-group">
+                <label>Instrument / Coin</label>
+                <input type="hidden" name="new_instrument" id="newInstrumentHidden" value="">
+                <select name="instrument_id" id="instrumentSelect" onchange="onInstrumentSelectChange(this)">
+                    <option value="">-- Select --</option>
+                    {% for i in instruments %}
+                    <option value="{{ i.id }}" {% if trade and trade.instrument_id == i.id %}selected{% endif %}>{{ i.name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="form-group">
+                <label>Setup / Strategy</label>
+                <select name="strategy_id" id="strategySelect">
+                    <option value="">-- Select --</option>
+                    {% for st in strategies %}
+                    <option value="{{ st.id }}" {% if trade and trade.strategy_id == st.id %}selected{% endif %}>{{ st.name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="form-group">
+                <label>Probability Level</label>
+                <select name="probability_level_id">
+                    <option value="">-- Select --</option>
+                    {% for p in probabilities %}
+                    <option value="{{ p.id }}" {% if trade and trade.probability_level_id == p.id %}selected{% endif %}>{{ p.name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="form-group">
+                <label>MTF Phase</label>
+                <select name="mtf_phase_id">
+                    <option value="">-- Select --</option>
+                    {% for ph in phases %}
+                    <option value="{{ ph.id }}" {% if trade and trade.mtf_phase_id == ph.id %}selected{% endif %}>{{ ph.name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+        </div>
+    </div>
+
+    <!-- 3. Candle & Risk Geometry -->
+    <div class="form-section-block">
+        <h4 class="form-section-title">📐 Candle Size & R-Target Geometry</h4>
+        <div class="form-section-grid grid-geometry">
+            <div class="form-group">
+                <label>Entry Candle Size (pips / $)</label>
+                <input type="number" step="0.0001" name="entry_candle_size" id="formCandleSize" value="{{ trade.entry_candle_size if trade else '' }}">
+            </div>
+            <div class="form-group">
+                <label>MAE SL Buffer (Stop Loss distance % / pips)</label>
+                <input type="number" step="0.0001" name="mae_sl_buffer" id="formSLBuffer" value="{{ trade.mae_sl_buffer if trade else '' }}">
+            </div>
+            <div class="form-group">
+                <label>MFE (Take Profit distance % / pips)</label>
+                <input type="number" step="0.0001" name="mfe" id="formMFE" value="{{ trade.mfe if trade else '' }}">
+            </div>
+        </div>
+    </div>
+
+    <!-- 4. Trade Outcome & Realized Return (Actual Exit) -->
+    <div class="form-section-block">
+        <h4 class="form-section-title">🎯 Trade Outcome & Realized Return (Actual Exit)</h4>
+        <div class="outcome-selector-container">
+            <div class="outcome-presets-row">
+                <span class="preset-label">Quick Presets:</span>
+                <button type="button" class="btn-outcome-preset {% if not trade or trade.outcome_type == 'AUTO' %}active{% endif %}" onclick="setOutcomePreset('AUTO', '', this)">⚡ Auto (By Target)</button>
+                <button type="button" class="btn-outcome-preset {% if trade and trade.outcome_type == 'FULL_TP' %}active{% endif %}" onclick="setOutcomePreset('FULL_TP', 'TARGET', this)">🎯 Hit TP</button>
+                <button type="button" class="btn-outcome-preset {% if trade and trade.outcome_type == 'RUNNER' %}active{% endif %}" onclick="setOutcomePreset('RUNNER', '5.0', this)">🚀 Runner / Exceeded</button>
+                <button type="button" class="btn-outcome-preset {% if trade and trade.outcome_type == 'BREAK_EVEN' %}active{% endif %}" onclick="setOutcomePreset('BREAK_EVEN', '0.00', this)">⚖️ Break Even (0.0R)</button>
+                <button type="button" class="btn-outcome-preset {% if trade and trade.outcome_type == 'TRAILING_STOP' %}active{% endif %}" onclick="setOutcomePreset('TRAILING_STOP', '1.50', this)">🛡️ Trailing Stop</button>
+                <button type="button" class="btn-outcome-preset {% if trade and trade.outcome_type == 'CUT_LOSS' %}active{% endif %}" onclick="setOutcomePreset('CUT_LOSS', '-0.50', this)">✂️ Cut Loss</button>
+                <button type="button" class="btn-outcome-preset {% if trade and trade.outcome_type == 'FULL_SL' %}active{% endif %}" onclick="setOutcomePreset('FULL_SL', '-1.00', this)">❌ Full SL (-1.0R)</button>
+            </div>
+            
+            <div class="form-section-grid grid-outcome-inputs" style="margin-top: 0.75rem;">
+                <div class="form-group">
+                    <label>Outcome Classification</label>
+                    <select name="outcome_type" id="outcomeTypeSelect" onchange="onOutcomeSelectChange(this.value)">
+                        <option value="AUTO" {% if not trade or trade.outcome_type == 'AUTO' %}selected{% endif %}>⚡ Auto Calculate (Max R vs Target)</option>
+                        <option value="FULL_TP" {% if trade and trade.outcome_type == 'FULL_TP' %}selected{% endif %}>🎯 Full Take Profit Hit</option>
+                        <option value="RUNNER" {% if trade and trade.outcome_type == 'RUNNER' %}selected{% endif %}>🚀 Runner / Exceeded Target</option>
+                        <option value="BREAK_EVEN" {% if trade and trade.outcome_type == 'BREAK_EVEN' %}selected{% endif %}>⚖️ Break Even (BE)</option>
+                        <option value="TRAILING_STOP" {% if trade and trade.outcome_type == 'TRAILING_STOP' %}selected{% endif %}>🛡️ Trailing Stop Hit</option>
+                        <option value="CUT_LOSS" {% if trade and trade.outcome_type == 'CUT_LOSS' %}selected{% endif %}>✂️ Early Cut Loss</option>
+                        <option value="FULL_SL" {% if trade and trade.outcome_type == 'FULL_SL' %}selected{% endif %}>❌ Full Stop Loss Hit</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <div class="label-with-hint">
+                        <label>Actual Realized R (Net Return)</label>
+                        <span id="realizedRHint" class="session-hint-text" style="color:#0284c7;"></span>
+                    </div>
+                    <div class="input-with-suffix">
+                        <input type="number" step="any" name="realized_r" id="realizedRInput" value="{{ trade.realized_r if trade and trade.realized_r is not none else '' }}" placeholder="Leave empty for Auto (e.g. 0.0, 5.2, -0.4)" class="form-input">
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 5. Trading Psychology & Emotional State -->
+    <div class="form-section-block">
+        <h4 class="form-section-title">🧠 Trading Psychology & Emotional State</h4>
+        <div class="form-section-grid grid-emotions">
+            <div class="form-group">
+                <label>🧘 Pre-Trade Mindset (Before Entry)</label>
+                <div class="emotion-tags-row">
+                    <button type="button" class="btn-emotion-tag {% if trade and trade.emotion_before == 'CALM' %}active{% endif %}" onclick="setEmotionTag('before', 'CALM', this)">🧘 Calm & Disciplined</button>
+                    <button type="button" class="btn-emotion-tag {% if trade and trade.emotion_before == 'FOMO' %}active{% endif %}" onclick="setEmotionTag('before', 'FOMO', this)">⚡ FOMO / Rushed</button>
+                    <button type="button" class="btn-emotion-tag {% if trade and trade.emotion_before == 'HESITANT' %}active{% endif %}" onclick="setEmotionTag('before', 'HESITANT', this)">😨 Fearful / Hesitant</button>
+                    <button type="button" class="btn-emotion-tag {% if trade and trade.emotion_before == 'REVENGE' %}active{% endif %}" onclick="setEmotionTag('before', 'REVENGE', this)">🔥 Revenge Trading</button>
+                    <button type="button" class="btn-emotion-tag {% if trade and trade.emotion_before == 'BORED' %}active{% endif %}" onclick="setEmotionTag('before', 'BORED', this)">🥱 Boredom Entry</button>
+                    <button type="button" class="btn-emotion-tag {% if trade and trade.emotion_before == 'CONFIDENT' %}active{% endif %}" onclick="setEmotionTag('before', 'CONFIDENT', this)">💎 High Confidence</button>
+                </div>
+                <input type="hidden" name="emotion_before" id="emotionBeforeInput" value="{{ trade.emotion_before if trade and trade.emotion_before else '' }}">
+            </div>
+
+            <div class="form-group">
+                <label>🏁 Post-Trade Execution (After Exit)</label>
+                <div class="emotion-tags-row">
+                    <button type="button" class="btn-emotion-tag {% if trade and trade.emotion_after == 'SATISFIED' %}active{% endif %}" onclick="setEmotionTag('after', 'SATISFIED', this)">✅ Followed Plan</button>
+                    <button type="button" class="btn-emotion-tag {% if trade and trade.emotion_after == 'GREEDY' %}active{% endif %}" onclick="setEmotionTag('after', 'GREEDY', this)">🤑 Greed / Held Too Long</button>
+                    <button type="button" class="btn-emotion-tag {% if trade and trade.emotion_after == 'PANICKED' %}active{% endif %}" onclick="setEmotionTag('after', 'PANICKED', this)">😱 Panicked / Cut Early</button>
+                    <button type="button" class="btn-emotion-tag {% if trade and trade.emotion_after == 'FRUSTRATED' %}active{% endif %}" onclick="setEmotionTag('after', 'FRUSTRATED', this)">😤 Frustrated / Tilted</button>
+                    <button type="button" class="btn-emotion-tag {% if trade and trade.emotion_after == 'NEUTRAL' %}active{% endif %}" onclick="setEmotionTag('after', 'NEUTRAL', this)">🧘 Detached / Neutral</button>
+                </div>
+                <input type="hidden" name="emotion_after" id="emotionAfterInput" value="{{ trade.emotion_after if trade and trade.emotion_after else '' }}">
+            </div>
+        </div>
+    </div>
+
+    <!-- 6. Qualitative Context & News -->
+    <div class="form-section-block">
+        <h4 class="form-section-title">📰 News & Qualitative Notes</h4>
+        <div class="form-section-grid grid-news">
+            <div class="form-group">
+                <label>Entry News</label>
+                <input type="text" name="entry_news" value="{{ trade.entry_news if trade else '' }}" placeholder="e.g. CPI, FOMC, None">
+            </div>
+            <div class="form-group">
+                <label>Management News</label>
+                <input type="text" name="management_news" value="{{ trade.management_news if trade else '' }}" placeholder="News during trade">
+            </div>
+            <div class="form-group full-width">
+                <label>Comments / Execution Notes</label>
+                <textarea name="comments" id="formComments" rows="3" placeholder="Notes, trade thesis, calculator summary...">{{ trade.comments if trade else '' }}</textarea>
+            </div>
+        </div>
+    </div>
+        <!-- Dynamic Multi-Screenshots Section -->
+        <div class="form-group full-width">
+            <div class="shots-manager-header">
+                <div>
+                    <label class="font-bold" style="font-size: 0.95rem; color: #0f172a;">Trade Screenshots & TradingView Links</label>
+                    <p class="field-subtext" style="margin: 0.15rem 0 0 0; font-size: 0.75rem; color: #64748b;">Attach unlimited chart screenshots (HTF bias, LTF entry, Trade Management, Multi-timeframe context, etc.).</p>
+                </div>
+                <div class="shots-header-actions">
+                    <button type="button" class="btn-bulk-toggle" onclick="toggleBulkShots()">📋 Bulk Paste Links</button>
+                    <button type="button" class="btn-add-shot-row" onclick="addScreenshotRow()">+ Add Another Screenshot</button>
+                </div>
+            </div>
+
+            <!-- Bulk Paste Box -->
+            <div id="bulkShotsBox" class="bulk-shots-card" style="display:none;">
+                <label>Paste Multiple TradingView URLs (one per line):</label>
+                <textarea id="bulkShotsInput" rows="3" placeholder="https://www.tradingview.com/x/UY4u40uu/&#10;https://www.tradingview.com/x/27EVhM6N/&#10;https://www.tradingview.com/x/dajm3aMh/"></textarea>
+                <button type="button" class="btn-bulk-import" onclick="importBulkScreenshots()">📥 Insert All Links</button>
+            </div>
+
+            <!-- Dynamic Screenshot Rows Container -->
+            <div id="screenshotsContainer" class="shots-rows-container">
+                {% if existing_screenshots %}
+                    {% for shot_url in existing_screenshots %}
+                    <div class="shot-input-row">
+                        <span class="shot-row-num">#{{ loop.index }}</span>
+                        <input type="text" name="screenshots" value="{{ shot_url }}" placeholder="https://www.tradingview.com/x/..." class="shot-url-input">
+                        <button type="button" class="btn-del-shot-row" onclick="removeScreenshotRow(this)" title="Remove Screenshot">✕</button>
+                    </div>
+                    {% endfor %}
+                {% elif trade and (trade.screenshot_1 or trade.screenshot_2 or trade.screenshot_3) %}
+                    {% if trade.screenshot_1 %}
+                    <div class="shot-input-row">
+                        <span class="shot-row-num">#1</span>
+                        <input type="text" name="screenshots" value="{{ trade.screenshot_1 }}" placeholder="https://www.tradingview.com/x/..." class="shot-url-input">
+                        <button type="button" class="btn-del-shot-row" onclick="removeScreenshotRow(this)">✕</button>
+                    </div>
+                    {% endif %}
+                    {% if trade.screenshot_2 %}
+                    <div class="shot-input-row">
+                        <span class="shot-row-num">#2</span>
+                        <input type="text" name="screenshots" value="{{ trade.screenshot_2 }}" placeholder="https://www.tradingview.com/x/..." class="shot-url-input">
+                        <button type="button" class="btn-del-shot-row" onclick="removeScreenshotRow(this)">✕</button>
+                    </div>
+                    {% endif %}
+                    {% if trade.screenshot_3 %}
+                    <div class="shot-input-row">
+                        <span class="shot-row-num">#3</span>
+                        <input type="text" name="screenshots" value="{{ trade.screenshot_3 }}" placeholder="https://www.tradingview.com/x/..." class="shot-url-input">
+                        <button type="button" class="btn-del-shot-row" onclick="removeScreenshotRow(this)">✕</button>
+                    </div>
+                    {% endif %}
+                {% else %}
+                    <div class="shot-input-row">
+                        <span class="shot-row-num">#1</span>
+                        <input type="text" name="screenshots" placeholder="https://www.tradingview.com/x/... (HTF Context)" class="shot-url-input">
+                        <button type="button" class="btn-del-shot-row" onclick="removeScreenshotRow(this)">✕</button>
+                    </div>
+                    <div class="shot-input-row">
+                        <span class="shot-row-num">#2</span>
+                        <input type="text" name="screenshots" placeholder="https://www.tradingview.com/x/... (LTF Execution)" class="shot-url-input">
+                        <button type="button" class="btn-del-shot-row" onclick="removeScreenshotRow(this)">✕</button>
+                    </div>
+                    <div class="shot-input-row">
+                        <span class="shot-row-num">#3</span>
+                        <input type="text" name="screenshots" placeholder="https://www.tradingview.com/x/... (Outcome / Management)" class="shot-url-input">
+                        <button type="button" class="btn-del-shot-row" onclick="removeScreenshotRow(this)">✕</button>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    <div class="form-actions-bar">
+        <button type="submit" class="btn-primary-action">{% if trade %}Update Trade #{{ trade.id }}{% else %}Save & Log Trade{% endif %}</button>
+        <a href="/trades/" class="btn-secondary-action">Cancel</a>
+        {% if trade %}
+        <button type="button" class="btn-danger-action" style="margin-left: auto;" onclick="if(confirm('Sigurado ka nga gusto nimo i-delete kini nga Trade #{{ trade.id }}?')) { document.getElementById('deleteTradeForm').submit(); }">🗑️ Delete Trade #{{ trade.id }}</button>
+        {% endif %}
+    </div>
+</form>
+{% if trade %}
+<form id="deleteTradeForm" method="post" action="/trades/{{ trade.id }}/delete" style="display:none;"></form>
+{% endif %}
+
+<script>
+// ============================================================================
+// 0. Toggle Risk Calculator
+// ============================================================================
+function toggleCalculator() {
+    const card = document.getElementById('riskCalculatorCard');
+    const text = document.getElementById('calcToggleText');
+    const icon = document.getElementById('calcToggleIcon');
+    if (!card) return;
+    const isHidden = (card.style.display === 'none' || window.getComputedStyle(card).display === 'none');
+    if (isHidden) {
+        card.style.display = 'block';
+        if (text) text.textContent = 'Hide Risk Calculator';
+        if (icon) icon.textContent = '⚡';
+    } else {
+        card.style.display = 'none';
+        if (text) text.textContent = 'Show Risk Calculator';
+        if (icon) icon.textContent = '📐';
+    }
+}
+
+// ============================================================================
+// 1. Live Risk, Position Size & Exchange Fee Calculator Engine
+// ============================================================================
+const EXCHANGE_FEES = {
+    mexc:    { maker: 0.0000, taker: 0.00020 },
+    binance: { maker: 0.0002, taker: 0.00050 },
+    bybit:   { maker: 0.0002, taker: 0.00055 },
+    okx:     { maker: 0.0002, taker: 0.00050 },
+    bitget:  { maker: 0.0002, taker: 0.00060 },
+    zero:    { maker: 0.0000, taker: 0.00000 },
+};
+
+function updateExchangeFees() {
+    const ex = document.getElementById('calcExchange').value;
+    const customBox = document.getElementById('customFeeBox');
+    if (ex === 'custom') {
+        customBox.style.display = 'block';
+    } else {
+        customBox.style.display = 'none';
+    }
+    recalcPositionSize();
+}
+
+function changeSLMode() {
+    const mode = document.getElementById('calcSLMode').value;
+    const slInput = document.getElementById('calcSL');
+    if (mode === 'pct') {
+        slInput.placeholder = 'e.g. 2.0 (%)';
+    } else {
+        slInput.placeholder = 'e.g. 147.00 ($)';
+    }
+    recalcPositionSize();
+}
+
+function recalcPositionSize() {
+    const balance = parseFloat(document.getElementById('calcBalance').value) || 0;
+    const riskVal = parseFloat(document.getElementById('calcRiskVal').value) || 0;
+    const riskType = document.getElementById('calcRiskType').value;
+    const direction = document.getElementById('calcDirection').value;
+    const entry = parseFloat(document.getElementById('calcEntry').value) || 0;
+    const sl = parseFloat(document.getElementById('calcSL').value) || 0;
+    const tp = parseFloat(document.getElementById('calcTP').value) || 0;
+    const leverage = parseFloat(document.getElementById('calcLeverage').value) || 1;
+    const orderType = document.getElementById('calcOrderType').value;
+    const ex = document.getElementById('calcExchange').value;
+    const slMode = document.getElementById('calcSLMode') ? document.getElementById('calcSLMode').value : 'price';
+
+    // Persist balance
+    if (balance > 0) {
+        localStorage.setItem('trading_calc_balance', balance);
+    }
+
+    // 1. Calculate Dollar Risk
+    let dollarRisk = 0;
+    if (riskType === 'pct') {
+        dollarRisk = balance * (riskVal / 100);
+    } else {
+        dollarRisk = riskVal;
+    }
+
+    if (entry <= 0 || sl <= 0 || dollarRisk <= 0) {
+        resetCalcOutputs(dollarRisk);
+        return;
+    }
+
+    // 2. Stop Loss Distance
+    let slDistanceCash = 0;
+    let slPct = 0;
+    let computedSLPrice = sl;
+
+    if (slMode === 'pct') {
+        slPct = sl;
+        slDistanceCash = entry * (slPct / 100);
+        computedSLPrice = direction === 'long' ? (entry - slDistanceCash) : (entry + slDistanceCash);
+    } else {
+        if (direction === 'long') {
+            slDistanceCash = entry - sl;
+            slPct = ((entry - sl) / entry) * 100;
+        } else {
+            slDistanceCash = sl - entry;
+            slPct = ((sl - entry) / entry) * 100;
+        }
+        computedSLPrice = sl;
+    }
+
+    if (slDistanceCash <= 0) {
+        document.getElementById('resSLDist').textContent = 'Invalid SL';
+        return;
+    }
+
+    // 3. Position Size in Units & Notional Value
+    const units = dollarRisk / slDistanceCash;
+    const notionalValue = units * entry;
+    const marginRequired = notionalValue / leverage;
+    const marginPct = balance > 0 ? (marginRequired / balance * 100) : 0;
+
+    // 4. Take Profit & Gross R:R
+    let tpDistanceCash = 0;
+    let tpPct = 0;
+    let grossProfit = 0;
+    let grossR = 0;
+    if (tp > 0) {
+        if (direction === 'long') {
+            tpDistanceCash = tp - entry;
+            tpPct = ((tp - entry) / entry) * 100;
+        } else {
+            tpDistanceCash = entry - tp;
+            tpPct = ((entry - tp) / entry) * 100;
+        }
+        grossProfit = units * tpDistanceCash;
+        grossR = dollarRisk > 0 ? (grossProfit / dollarRisk) : 0;
+    }
+
+    // 5. Exchange Fees Calculation
+    let feeRate = 0;
+    if (ex === 'custom') {
+        const customFeePct = parseFloat(document.getElementById('calcCustomFee').value) || 0;
+        feeRate = (customFeePct / 100) / 2; // Split for entry and exit
+    } else {
+        const feeTier = EXCHANGE_FEES[ex] || EXCHANGE_FEES.binance;
+        feeRate = orderType === 'limit' ? feeTier.maker : feeTier.taker;
+    }
+
+    // Round-trip fee: Entry fee on Notional + Exit fee on TP Notional (or SL Notional)
+    const entryFee = notionalValue * feeRate;
+    const exitNotional = (tp > 0) ? (units * tp) : notionalValue;
+    const exitFee = exitNotional * feeRate;
+    const totalFees = entryFee + exitFee;
+
+    // 6. Net Calculations
+    const netProfit = grossProfit - totalFees;
+    const netR = dollarRisk > 0 ? (netProfit / dollarRisk) : 0;
+
+    // 7. Update UI Elements
+    document.getElementById('resUnits').textContent = units < 1 ? units.toFixed(4) : units.toFixed(2);
+    document.getElementById('resNotional').textContent = '$' + notionalValue.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2}) + ' Notional';
+    
+    document.getElementById('resMargin').textContent = '$' + marginRequired.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2});
+    document.getElementById('resMarginPct').textContent = marginPct.toFixed(1) + '% of Balance';
+
+    document.getElementById('resSLDist').textContent = slPct.toFixed(2) + '%';
+    document.getElementById('resRiskCash').textContent = '-$' + dollarRisk.toFixed(2) + ' (1.00R)';
+
+    if (tp > 0) {
+        document.getElementById('resTPDist').textContent = tpPct.toFixed(2) + '%';
+        document.getElementById('resProfitCash').textContent = '+$' + grossProfit.toFixed(2) + ' Gross';
+        document.getElementById('resNetR').textContent = '+' + netR.toFixed(2) + 'R';
+        document.getElementById('resNetCash').textContent = '+$' + netProfit.toFixed(2) + ' Net (Gross: ' + grossR.toFixed(2) + 'R)';
+    } else {
+        document.getElementById('resTPDist').textContent = '—';
+        document.getElementById('resProfitCash').textContent = '—';
+        document.getElementById('resNetR').textContent = '—';
+        document.getElementById('resNetCash').textContent = '—';
+    }
+
+    document.getElementById('resFees').textContent = '-$' + totalFees.toFixed(2);
+    document.getElementById('resFeePct').textContent = ((totalFees / notionalValue) * 100).toFixed(3) + '% of Notional';
+}
+
+function resetCalcOutputs(dollarRisk) {
+    document.getElementById('resUnits').textContent = '0.00';
+    document.getElementById('resNotional').textContent = '$0.00 Notional';
+    document.getElementById('resMargin').textContent = '$0.00';
+    document.getElementById('resMarginPct').textContent = '0.0% of Balance';
+    document.getElementById('resSLDist').textContent = '0.00%';
+    document.getElementById('resRiskCash').textContent = dollarRisk > 0 ? '-$' + dollarRisk.toFixed(2) : '-$0.00';
+    document.getElementById('resTPDist').textContent = '0.00%';
+    document.getElementById('resProfitCash').textContent = '+$0.00 Gross';
+    document.getElementById('resFees').textContent = '-$0.00';
+    document.getElementById('resNetR').textContent = '0.00R';
+    document.getElementById('resNetCash').textContent = '+$0.00 Net';
+}
+
+function applyCalcToForm() {
+    const entry = parseFloat(document.getElementById('calcEntry').value) || 0;
+    const sl = parseFloat(document.getElementById('calcSL').value) || 0;
+    const tp = parseFloat(document.getElementById('calcTP').value) || 0;
+    const direction = document.getElementById('calcDirection').value;
+    const leverage = document.getElementById('calcLeverage').value;
+    const units = document.getElementById('resUnits').textContent;
+    const margin = document.getElementById('resMargin').textContent;
+    const fees = document.getElementById('resFees').textContent;
+    const netR = document.getElementById('resNetR').textContent;
+
+    if (entry <= 0 || sl <= 0) {
+        alert('Please enter at least Entry and Stop Loss prices in the calculator first.');
+        return;
+    }
+
+    const slMode = document.getElementById('calcSLMode') ? document.getElementById('calcSLMode').value : 'price';
+    let computedSLPrice = sl;
+    let slDist = 0;
+
+    if (slMode === 'pct') {
+        slDist = entry * (sl / 100);
+        computedSLPrice = direction === 'long' ? (entry - slDist) : (entry + slDist);
+    } else {
+        slDist = direction === 'long' ? (entry - sl) : (sl - entry);
+        computedSLPrice = sl;
+    }
+
+    const tpDist = tp > 0 ? (direction === 'long' ? (tp - entry) : (entry - tp)) : 0;
+
+    // Apply to Form fields
+    document.getElementById('formCandleSize').value = Math.abs(slDist).toFixed(4);
+    document.getElementById('formSLBuffer').value = Math.abs(slDist).toFixed(4);
+    if (tp > 0) {
+        document.getElementById('formMFE').value = Math.abs(tpDist).toFixed(4);
+    }
+
+    // 1. Sync Coin / Instrument
+    const coinVal = document.getElementById('calcCoinInput').value;
+    if (coinVal) {
+        onCalcCoinChange(coinVal);
+    }
+
+    // Append summary to comments
+    const commentField = document.getElementById('formComments');
+    const coinLabel = coinVal ? `${coinVal.toUpperCase().trim()} ` : '';
+    const calcSummary = `[${coinLabel}${direction.toUpperCase()} @ $${entry} | SL: $${computedSLPrice.toFixed(2)} | TP: $${tp || '—'} | Lev: ${leverage}x | Size: ${units} ($${margin} margin) | Fees: ${fees} | Target: ${netR}]`;
+    if (!commentField.value.includes(calcSummary)) {
+        commentField.value = commentField.value ? commentField.value + '\n' + calcSummary : calcSummary;
+    }
+
+    // Visual notification
+    const btn = document.querySelector('.btn-apply-calc');
+    btn.textContent = '✅ Applied to Form!';
+    btn.style.background = '#15803d';
+    setTimeout(() => {
+        btn.textContent = '📥 Apply Values to Trade Form Below';
+        btn.style.background = '';
+    }, 2000);
+}
+
+function onCalcCoinChange(val) {
+    if (!val) return;
+    const clean = val.trim().toUpperCase();
+    const select = document.getElementById('instrumentSelect');
+    const hidden = document.getElementById('newInstrumentHidden');
+    if (!select) return;
+
+    let matched = false;
+    for (let i = 0; i < select.options.length; i++) {
+        if (select.options[i].text.trim().toUpperCase() === clean) {
+            select.selectedIndex = i;
+            if (hidden) hidden.value = '';
+            matched = true;
+            break;
+        }
+    }
+
+    if (!matched && clean.length >= 2) {
+        let newOpt = select.querySelector('option[data-new="true"]');
+        if (!newOpt) {
+            newOpt = document.createElement('option');
+            newOpt.setAttribute('data-new', 'true');
+            select.appendChild(newOpt);
+        }
+        newOpt.value = '';
+        newOpt.text = clean + ' (⚡ Auto-Add New)';
+        newOpt.selected = true;
+        if (hidden) hidden.value = clean;
+    }
+}
+
+function onInstrumentSelectChange(select) {
+    const opt = select.options[select.selectedIndex];
+    const calcInput = document.getElementById('calcCoinInput');
+    const hidden = document.getElementById('newInstrumentHidden');
+    if (opt && opt.value) {
+        if (calcInput) calcInput.value = opt.text.trim();
+        if (hidden) hidden.value = '';
+    }
+}
+
+function toggleCalculator() {
+    const card = document.getElementById('riskCalculatorCard');
+    const text = document.getElementById('calcToggleText');
+    const icon = document.getElementById('calcToggleIcon');
+    if (card.style.display === 'none') {
+        card.style.display = 'block';
+        text.textContent = 'Hide Risk Calculator';
+        icon.textContent = '⚡';
+    } else {
+        card.style.display = 'none';
+        text.textContent = 'Show Risk Calculator';
+        icon.textContent = '🧮';
+    }
+}
+
+function updateHoldingDuration() {
+    const eDateInput = document.getElementById('entryDateInput');
+    const eTimeInput = document.getElementById('entryTimeInput');
+    const xDateInput = document.getElementById('exitDateInput');
+    const xTimeInput = document.getElementById('exitTimeInput');
+    const badge = document.getElementById('holdingTimeBadge');
+    if (!badge || !eTimeInput || !xTimeInput) return;
+
+    const eDate = eDateInput ? eDateInput.value : '';
+    const eTime = eTimeInput.value;
+    const xDate = xDateInput ? xDateInput.value : '';
+    const xTime = xTimeInput.value;
+
+    if (!eTime || !xTime) {
+        badge.textContent = '';
+        return;
+    }
+
+    try {
+        const baseDate = eDate || '2024-01-01';
+        const closeDate = xDate || baseDate;
+        let startDt = new Date(`${baseDate}T${eTime}:00`);
+        let endDt = new Date(`${closeDate}T${xTime}:00`);
+
+        if (endDt < startDt && !xDate) {
+            endDt.setDate(endDt.getDate() + 1);
+        }
+
+        const diffMins = Math.floor((endDt - startDt) / (1000 * 60));
+        if (diffMins >= 0) {
+            const hrs = Math.floor(diffMins / 60);
+            const mins = diffMins % 60;
+            let str = '';
+            if (hrs > 0) str += `${hrs}h `;
+            str += `${mins}m`;
+            badge.textContent = `⏱️ Held: ${str.trim()} (${diffMins}m)`;
+        } else {
+            badge.textContent = '';
+        }
+    } catch (e) {
+        badge.textContent = '';
+    }
+}
+
+// Restore balance and coin on load
+document.addEventListener('DOMContentLoaded', function() {
+    const savedBal = localStorage.getItem('trading_calc_balance');
+    if (savedBal) {
+        document.getElementById('calcBalance').value = savedBal;
+    }
+    const select = document.getElementById('instrumentSelect');
+    if (select && select.selectedIndex > 0) {
+        const opt = select.options[select.selectedIndex];
+        const calcCoin = document.getElementById('calcCoinInput');
+        if (calcCoin && !calcCoin.value) {
+            calcCoin.value = opt.text.trim();
+        }
+    }
+    updateHoldingDuration();
+    recalcPositionSize();
+});
+
+// ============================================================================
+// 2. Auto-Detect Session in Philippine Time (PHT)
+// ============================================================================
+function autoDetectSession(timeVal) {
+    if (!timeVal) {
+        document.getElementById('sessionHint').textContent = '';
+        return;
+    }
+    const parts = timeVal.split(':');
+    if (parts.length < 2) return;
+    const h = parseInt(parts[0], 10);
+    const m = parseInt(parts[1], 10);
+    const mins = h * 60 + m;
+
+    let targetSession = 'NY LULL';
+    if (mins >= 480 && mins < 840) {       // 08:00 AM - 01:59 PM (PHT)
+        targetSession = 'ASIA';
+    } else if (mins >= 840 && mins < 1140) { // 02:00 PM - 06:59 PM (PHT) -> London Open
+        targetSession = 'LDN';
+    } else if (mins >= 1140 && mins < 1200) { // 07:00 PM - 07:59 PM (PHT)
+        targetSession = 'LDN LULL';
+    } else if (mins >= 1200 && mins <= 1439) { // 08:00 PM - 11:59 PM (PHT) -> New York Open
+        targetSession = 'NY';
+    } else { // 12:00 AM - 07:59 AM (PHT)
+        targetSession = 'NY LULL';
+    }
+
+    const select = document.getElementById('sessionSelect');
+    const hint = document.getElementById('sessionHint');
+
+    for (let i = 0; i < select.options.length; i++) {
+        const opt = select.options[i];
+        if (opt.text.trim().toUpperCase() === targetSession.toUpperCase()) {
+            select.selectedIndex = i;
+            if (hint) {
+                hint.textContent = '⚡ Auto-detected (' + targetSession + ')';
+            }
+            break;
+        }
+    }
+}
+
+// ============================================================================
+// Execution Tag (Live, Front-Run, Missed, SL Swept) Single-Choice Handler
+// ============================================================================
+function setExecStatus(status, btnElem) {
+    document.querySelectorAll('.btn-exec-status').forEach(b => {
+        b.classList.remove('active', 'exec-live', 'exec-front-run', 'exec-missed', 'exec-swept');
+    });
+    
+    btnElem.classList.add('active');
+
+    const execInput = document.getElementById('executionStatusInput');
+    const sweptInput = document.getElementById('isSlSweptInput');
+    const hint = document.getElementById('execStatusHint');
+
+    if (status === 'SL_SWEPT') {
+        btnElem.classList.add('exec-swept');
+        if (execInput) execInput.value = 'LIVE';
+        if (sweptInput) sweptInput.value = '1';
+        if (hint) hint.textContent = '🪤 SL Swept: Price tapped Stop Loss before reversing and moving to target. Tracked to optimize SL buffer!';
+    } else if (status === 'FRONT_RUN') {
+        btnElem.classList.add('exec-front-run');
+        if (execInput) execInput.value = 'FRONT_RUN';
+        if (sweptInput) sweptInput.value = '';
+        if (hint) hint.textContent = '🟡 Front-Run: Limit order was unfilled by 1-2 ticks. Tracked for opportunity cost without impacting live account balance.';
+    } else if (status === 'MISSED') {
+        btnElem.classList.add('exec-missed');
+        if (execInput) execInput.value = 'MISSED';
+        if (sweptInput) sweptInput.value = '';
+        if (hint) hint.textContent = '⚪ Missed Trade: Setup was valid but not entered due to hesitation or late entry. Tracked for opportunity cost.';
+    } else {
+        // LIVE
+        btnElem.classList.add('exec-live');
+        if (execInput) execInput.value = 'LIVE';
+        if (sweptInput) sweptInput.value = '';
+        if (hint) hint.textContent = '🟢 Live Executed: Entered in the market. Directly impacts actual account balance & equity curve.';
+    }
+}
+
+// ============================================================================
+// Emotional State & Psychology Tag Engine
+// ============================================================================
+function setEmotionTag(kind, val, btnElem) {
+    const isBefore = (kind === 'before');
+    const inputId = isBefore ? 'emotionBeforeInput' : 'emotionAfterInput';
+    const input = document.getElementById(inputId);
+    const parent = btnElem.parentElement;
+
+    if (btnElem.classList.contains('active')) {
+        btnElem.classList.remove('active');
+        if (input) input.value = '';
+    } else {
+        parent.querySelectorAll('.btn-emotion-tag').forEach(b => b.classList.remove('active'));
+        btnElem.classList.add('active');
+        if (input) input.value = val;
+    }
+}
+
+// ============================================================================
+// Outcome & Realized Return Presets Engine
+// ============================================================================
+function setOutcomePreset(type, defaultVal, btnElem) {
+    document.querySelectorAll('.btn-outcome-preset').forEach(b => b.classList.remove('active'));
+    if (btnElem) btnElem.classList.add('active');
+
+    const select = document.getElementById('outcomeTypeSelect');
+    const input = document.getElementById('realizedRInput');
+    const hint = document.getElementById('realizedRHint');
+    if (select) select.value = type;
+
+    if (type === 'AUTO') {
+        if (input) input.value = '';
+        if (hint) hint.textContent = 'Auto Calculated';
+    } else if (type === 'FULL_TP') {
+        if (input) input.value = input.value || '3.30';
+        if (hint) hint.textContent = 'Full Target Win';
+    } else if (type === 'BREAK_EVEN') {
+        if (input) input.value = '0.00';
+        if (hint) hint.textContent = 'Break Even (0.00R)';
+    } else if (type === 'FULL_SL') {
+        if (input) input.value = '-1.00';
+        if (hint) hint.textContent = 'Full Stop Loss (-1.00R)';
+    } else {
+        if (defaultVal && input && (!input.value || input.value === '0.00' || input.value === '-1.00')) {
+            input.value = defaultVal;
+        }
+        if (hint) hint.textContent = type.replace('_', ' ');
+    }
+}
+
+function onOutcomeSelectChange(val) {
+    const hint = document.getElementById('realizedRHint');
+    const input = document.getElementById('realizedRInput');
+    if (val === 'AUTO') {
+        if (input) input.value = '';
+        if (hint) hint.textContent = 'Auto Calculated';
+    } else if (val === 'BREAK_EVEN') {
+        if (input) input.value = '0.00';
+        if (hint) hint.textContent = 'Break Even (0.00R)';
+    } else if (val === 'FULL_SL') {
+        if (input) input.value = '-1.00';
+        if (hint) hint.textContent = 'Full Stop Loss (-1.00R)';
+    }
+}
+
+// ============================================================================
+// 3. Dynamic Multi-Screenshot Manager Engine
+// ============================================================================
+function renumberScreenshots() {
+    const rows = document.querySelectorAll('#screenshotsContainer .shot-input-row');
+    rows.forEach((row, idx) => {
+        const numSpan = row.querySelector('.shot-row-num');
+        if (numSpan) numSpan.textContent = '#' + (idx + 1);
+    });
+}
+
+function addScreenshotRow(initialVal = '') {
+    const container = document.getElementById('screenshotsContainer');
+    const rowCount = container.querySelectorAll('.shot-input-row').length + 1;
+    const row = document.createElement('div');
+    row.className = 'shot-input-row';
+    row.innerHTML = `
+        <span class="shot-row-num">#${rowCount}</span>
+        <input type="text" name="screenshots" value="${initialVal}" placeholder="https://www.tradingview.com/x/..." class="shot-url-input">
+        <button type="button" class="btn-del-shot-row" onclick="removeScreenshotRow(this)" title="Remove Screenshot">✕</button>
+    `;
+    container.appendChild(row);
+    renumberScreenshots();
+}
+
+function removeScreenshotRow(btn) {
+    const row = btn.closest('.shot-input-row');
+    const container = document.getElementById('screenshotsContainer');
+    if (container.querySelectorAll('.shot-input-row').length <= 1) {
+        row.querySelector('.shot-url-input').value = '';
+    } else {
+        row.remove();
+        renumberScreenshots();
+    }
+}
+
+function toggleBulkShots() {
+    const box = document.getElementById('bulkShotsBox');
+    box.style.display = box.style.display === 'none' ? 'block' : 'none';
+}
+
+function importBulkScreenshots() {
+    const text = document.getElementById('bulkShotsInput').value;
+    if (!text.trim()) return;
+    const lines = text.split(/[\r\n,]+/);
+    const container = document.getElementById('screenshotsContainer');
+    
+    // Clear empty rows first
+    const existingInputs = container.querySelectorAll('.shot-url-input');
+    existingInputs.forEach(inp => {
+        if (!inp.value.trim()) inp.closest('.shot-input-row').remove();
+    });
+
+    lines.forEach(l => {
+        const clean = l.trim();
+        if (clean) {
+            addScreenshotRow(clean);
+        }
+    });
+
+    document.getElementById('bulkShotsInput').value = '';
+    document.getElementById('bulkShotsBox').style.display = 'none';
+}
+</script>
+{% endblock %}

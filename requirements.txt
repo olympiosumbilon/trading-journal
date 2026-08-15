@@ -1,0 +1,13 @@
+# Requirements
+
+fastapi
+uvicorn[standard]
+sqlalchemy
+psycopg[binary]
+psycopg_pool
+jinja2
+openpyxl
+python-multipart
+pydantic-settings
+requests
+apscheduler

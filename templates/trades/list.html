@@ -1,0 +1,258 @@
+{% extends "base.html" %}
+
+{% block title %}Trades — Trading Journal{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <h1>Trades</h1>
+    <a href="/trades/new" class="btn-primary">+ New Trade</a>
+</div>
+
+<div class="filters-card">
+    <form method="get" action="/trades/" id="filter-form">
+        <div class="filters-row">
+            <div class="filter-group">
+                <label for="f-year">Year</label>
+                <select name="year" id="f-year">
+                    <option value="">All Years</option>
+                    {% for y in [2022, 2023, 2024, 2025, 2026] %}
+                    <option value="{{ y }}" {% if filters.year == y|string %}selected{% endif %}>{{ y }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="filter-group">
+                <label for="f-month">Month</label>
+                <select name="month" id="f-month">
+                    <option value="">All</option>
+                    {% set month_names = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"] %}
+                    {% for m in range(1, 13) %}
+                    <option value="{{ m }}" {% if filters.month == m|string %}selected{% endif %}>{{ month_names[m-1] }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="filter-group">
+                <label for="f-session">Session</label>
+                <select name="session" id="f-session">
+                    <option value="">All</option>
+                    {% for s in sessions %}
+                    <option value="{{ s.id }}" {% if filters.session == s.id|string %}selected{% endif %}>{{ s.name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="filter-group">
+                <label for="f-instrument">Instrument</label>
+                <select name="instrument" id="f-instrument">
+                    <option value="">All</option>
+                    {% for i in instruments %}
+                    <option value="{{ i.id }}" {% if filters.instrument == i.id|string %}selected{% endif %}>{{ i.name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="filter-group">
+                <label for="f-strategy">Setup</label>
+                <select name="strategy" id="f-strategy">
+                    <option value="">All</option>
+                    {% for st in strategies %}
+                    <option value="{{ st.id }}" {% if filters.strategy == st.id|string %}selected{% endif %}>{{ st.name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="filter-group">
+                <label for="f-probability">Probability</label>
+                <select name="probability" id="f-probability">
+                    <option value="">All</option>
+                    {% for p in probabilities %}
+                    <option value="{{ p.id }}" {% if filters.probability == p.id|string %}selected{% endif %}>{{ p.name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="filter-group">
+                <label for="f-phase">MTF Phase</label>
+                <select name="phase" id="f-phase">
+                    <option value="">All</option>
+                    {% for ph in phases %}
+                    <option value="{{ ph.id }}" {% if filters.phase == ph.id|string %}selected{% endif %}>{{ ph.name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="filter-group">
+                <label for="f-tag">Tag / Execution</label>
+                <select name="tag" id="f-tag" onchange="this.form.submit()">
+                    <option value="">All Tags</option>
+                    <option value="LIVE" {% if filters.tag == 'LIVE' %}selected{% endif %}>🟢 Live Trades</option>
+                    <option value="FRONT_RUN" {% if filters.tag == 'FRONT_RUN' %}selected{% endif %}>🟡 Front-Run</option>
+                    <option value="MISSED" {% if filters.tag == 'MISSED' %}selected{% endif %}>⚪ Missed</option>
+                    <option value="SL_SWEPT" {% if filters.tag == 'SL_SWEPT' %}selected{% endif %}>🪤 SL Swept</option>
+                </select>
+            </div>
+            <div class="filter-group">
+                <label for="f-sort">Sort By</label>
+                <select name="sort_by" id="f-sort" onchange="this.form.submit()">
+                    <option value="date_desc" {% if sort_by == 'date_desc' %}selected{% endif %}>Date (Newest)</option>
+                    <option value="date_asc" {% if sort_by == 'date_asc' %}selected{% endif %}>Date (Oldest)</option>
+                    <option value="max_r_desc" {% if sort_by == 'max_r_desc' %}selected{% endif %}>Max R (High→Low)</option>
+                    <option value="max_r_asc" {% if sort_by == 'max_r_asc' %}selected{% endif %}>Max R (Low→High)</option>
+                    <option value="fixed_r_desc" {% if sort_by == 'fixed_r_desc' %}selected{% endif %}>Fixed R (High→Low)</option>
+                    <option value="fixed_r_asc" {% if sort_by == 'fixed_r_asc' %}selected{% endif %}>Fixed R (Low→High)</option>
+                    <option value="total_r_desc" {% if sort_by == 'total_r_desc' %}selected{% endif %}>Total R (High→Low)</option>
+                </select>
+            </div>
+            <div class="filter-group">
+                <label for="f-per-page">Show</label>
+                <select name="per_page" id="f-per-page" onchange="this.form.submit()">
+                    <option value="10" {% if per_page == 10 %}selected{% endif %}>10 rows</option>
+                    <option value="25" {% if per_page == 25 %}selected{% endif %}>25 rows</option>
+                    <option value="30" {% if per_page == 30 %}selected{% endif %}>30 rows</option>
+                    <option value="50" {% if per_page == 50 %}selected{% endif %}>50 rows</option>
+                    <option value="100" {% if per_page == 100 %}selected{% endif %}>100 rows</option>
+                </select>
+            </div>
+            <div class="filter-actions">
+                <button type="submit" class="btn-primary">Filter</button>
+                <a href="/trades/" class="btn-clear">Clear</a>
+            </div>
+        </div>
+        {% if filters.outcome %}<input type="hidden" name="outcome" value="{{ filters.outcome }}">{% endif %}
+        {% if filters.day_idx %}<input type="hidden" name="day_idx" value="{{ filters.day_idx }}">{% endif %}
+        {% if filters.emotion_before %}<input type="hidden" name="emotion_before" value="{{ filters.emotion_before }}">{% endif %}
+        {% if filters.emotion_after %}<input type="hidden" name="emotion_after" value="{{ filters.emotion_after }}">{% endif %}
+    </form>
+</div>
+
+<div class="table-meta" style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:0.5rem;">
+    <span class="trade-count">
+        Showing {{ (page - 1) * per_page + 1 }}&ndash;{{ [page * per_page, total_count] | min }} of <strong>{{ total_count }}</strong> trade{{ 's' if total_count != 1 else '' }}
+    </span>
+    {% if active_filter_label or filters.phase or filters.probability or filters.instrument or filters.strategy or filters.session or filters.tag or filters.outcome or filters.day_idx or filters.emotion_before or filters.emotion_after or (filters.year and filters.year != 'all') or filters.month %}
+    <div class="active-filter-badge" style="display:inline-flex; align-items:center; gap:0.4rem; background:#e0f2fe; color:#0369a1; padding:0.25rem 0.65rem; border-radius:9999px; font-size:0.78rem; font-weight:600;">
+        <span>🎯 Filter: {{ active_filter_label if active_filter_label else 'Custom Filter' }}</span>
+        <a href="/trades/" style="color:#0284c7; text-decoration:underline; font-weight:700; margin-left:0.3rem;">[Show All Trades]</a>
+    </div>
+    {% endif %}
+</div>
+
+<div class="table-wrapper">
+<table>
+    <thead>
+        <tr>
+            <th>Date</th>
+            <th>Time</th>
+            <th>Instrument</th>
+            <th>Session</th>
+            <th>Setup</th>
+            <th>Prob</th>
+            <th>Candle</th>
+            <th>MAE</th>
+            <th>MFE</th>
+            <th>Max R</th>
+            <th>Fixed R</th>
+            <th>Total R</th>
+            <th>Actions</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for trade in trades %}
+        <tr>
+            <td>{{ trade.entry_date }}</td>
+            <td class="num-cell" style="white-space:nowrap;">
+                <div>{{ trade.entry_time | time_12h }}</div>
+                {% if trade.holding_time_minutes %}
+                <span class="sub-pill-duration" title="Holding Time: {{ trade.holding_time_minutes }} mins">{{ trade.holding_time_minutes | duration }}</span>
+                {% endif %}
+            <td>
+                <div class="font-bold">{{ trade.instrument_obj.name if trade.instrument_obj else "" }}</div>
+                {% if trade.execution_status == 'FRONT_RUN' %}
+                <span class="status-pill status-front-run" title="Front-Run: Unfilled by 1-2 ticks">FRONT-RUN</span>
+                {% elif trade.execution_status == 'MISSED' %}
+                <span class="status-pill status-missed" title="Missed Trade: Hesitation/Late">MISSED</span>
+                {% endif %}
+                {% if trade.is_sl_swept %}
+                <span class="status-pill status-swept" title="SL Swept: Stopped then moved">SWEPT</span>
+                {% endif %}
+            </td>
+            <td>{{ trade.session_obj.name if trade.session_obj else "" }}</td>
+            <td>
+                <div>{{ trade.strategy_obj.name if trade.strategy_obj else "" }}</div>
+                {% if trade.emotion_before %}
+                <span class="sub-pill-duration" style="background:#f1f5f9; color:#475569;" title="Pre-Trade Mindset: {{ trade.emotion_before }}">
+                    {% if trade.emotion_before == 'CALM' %}🧘 Calm
+                    {% elif trade.emotion_before == 'FOMO' %}⚡ FOMO
+                    {% elif trade.emotion_before == 'HESITANT' %}😨 Fear
+                    {% elif trade.emotion_before == 'REVENGE' %}🔥 Revenge
+                    {% elif trade.emotion_before == 'BORED' %}🥱 Bored
+                    {% elif trade.emotion_before == 'CONFIDENT' %}💎 Confident
+                    {% else %}{{ trade.emotion_before }}{% endif %}
+                </span>
+                {% endif %}
+            </td>
+            <td>{{ trade.probability_level_obj.name if trade.probability_level_obj else "" }}</td>
+            <td>{{ trade.entry_candle_size or "" }}</td>
+            <td>{{ trade.mae_sl_buffer or "" }}</td>
+            <td>{{ trade.mfe or "" }}</td>
+            <td class="{% if trade.max_r is not none and trade.max_r < 0 %}negative{% elif trade.max_r is not none and trade.max_r > 0 %}positive{% endif %}">
+                {{ "%.2f"|format(trade.max_r) if trade.max_r is not none else "" }}
+            </td>
+            <td class="{% if trade.fixed_r_target is not none and trade.fixed_r_target < 0 %}negative{% elif trade.fixed_r_target is not none and trade.fixed_r_target > 0 %}positive{% endif %}" style="white-space:nowrap;">
+                <div>{{ "%.2f"|format(trade.fixed_r_target) if trade.fixed_r_target is not none else "" }}</div>
+                {% if trade.outcome_type == 'BREAK_EVEN' or (trade.fixed_r_target is not none and trade.fixed_r_target == 0) %}
+                <span class="outcome-pill outcome-be">BE</span>
+                {% elif trade.outcome_type == 'RUNNER' %}
+                <span class="outcome-pill outcome-runner">RUNNER</span>
+                {% elif trade.outcome_type == 'TRAILING_STOP' %}
+                <span class="outcome-pill outcome-trail">TRAIL</span>
+                {% elif trade.outcome_type == 'CUT_LOSS' %}
+                <span class="outcome-pill outcome-cut">CUT</span>
+                {% endif %}
+            </td>
+            <td class="{% if trade.total_r is not none and trade.total_r < 0 %}negative{% elif trade.total_r is not none and trade.total_r > 0 %}positive{% endif %}">
+                {{ "%.2f"|format(trade.total_r) if trade.total_r is not none else "" }}
+            </td>
+            <td style="white-space: nowrap;">
+                <div style="display: flex; gap: 0.35rem; align-items: center;">
+                    <a href="/trades/{{ trade.id }}" class="tbl-action-btn btn-view-sm" title="View Trade">View</a>
+                    <a href="/trades/{{ trade.id }}/edit" class="tbl-action-btn btn-edit-sm" title="Edit Trade">Edit</a>
+                    <form method="post" action="/trades/{{ trade.id }}/delete" onsubmit="return confirm('Sigurado ka nga gusto nimo i-delete kini nga Trade #{{ trade.id }}?')" style="display:inline; margin:0;">
+                        <button type="submit" class="tbl-action-btn btn-del-sm" title="Delete Trade">Delete</button>
+                    </form>
+                </div>
+            </td>
+        </tr>
+        {% else %}
+        <tr>
+            <td colspan="13" class="empty-state">No trades found for the selected filters.</td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+</div>
+
+{% if total_pages > 1 %}
+<div class="pagination">
+    {% set base = "/trades/?" %}
+    {% for k, v in filter_params.items() %}{% set base = base + k + "=" + v + "&" %}{% endfor %}
+
+    {% if page > 1 %}
+    <a href="{{ base }}page={{ page - 1 }}" class="page-btn">&laquo; Prev</a>
+    {% else %}
+    <span class="page-btn disabled">&laquo; Prev</span>
+    {% endif %}
+
+    {% for p in range(1, total_pages + 1) %}
+        {% if p == page %}
+        <span class="page-btn current">{{ p }}</span>
+        {% elif p == 1 or p == total_pages or (p >= page - 2 and p <= page + 2) %}
+        <a href="{{ base }}page={{ p }}" class="page-btn">{{ p }}</a>
+        {% elif p == page - 3 or p == page + 3 %}
+        <span class="page-ellipsis">…</span>
+        {% endif %}
+    {% endfor %}
+
+    {% if page < total_pages %}
+    <a href="{{ base }}page={{ page + 1 }}" class="page-btn">Next &raquo;</a>
+    {% else %}
+    <span class="page-btn disabled">Next &raquo;</span>
+    {% endif %}
+</div>
+{% endif %}
+
+{% endblock %}

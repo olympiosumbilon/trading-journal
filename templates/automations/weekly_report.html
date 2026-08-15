@@ -1,0 +1,64 @@
+{% extends "base.html" %}
+
+{% block title %}Weekly Report — Trading Journal{% endblock %}
+
+{% block content %}
+<h1>Weekly Report</h1>
+<p><strong>Period:</strong> {{ report.period }}</p>
+
+<div class="summary-cards">
+    <div class="card">
+        <div class="card-value">{{ report.total_trades }}</div>
+        <div class="card-label">Trades</div>
+    </div>
+    <div class="card">
+        <div class="card-value">{{ report.win_rate }}%</div>
+        <div class="card-label">Win Rate</div>
+    </div>
+    <div class="card">
+        <div class="card-value">{{ report.total_r }}</div>
+        <div class="card-label">Total R</div>
+    </div>
+    <div class="card">
+        <div class="card-value">{{ report.avg_r }}</div>
+        <div class="card-label">Avg R/Trade</div>
+    </div>
+</div>
+
+<h2>Per Instrument</h2>
+<table>
+    <thead>
+        <tr><th>Instrument</th><th>Trades</th><th>Wins</th><th>Total R</th></tr>
+    </thead>
+    <tbody>
+        {% for name, stats in report.per_instrument.items() %}
+        <tr>
+            <td>{{ name }}</td>
+            <td>{{ stats.trades }}</td>
+            <td>{{ stats.wins }}</td>
+            <td>{{ "%.2f"|format(stats.total_r) }}</td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+
+<h2>Trade Log</h2>
+<table>
+    <thead>
+        <tr><th>Date</th><th>Instrument</th><th>Setup</th><th>Result</th><th>R</th></tr>
+    </thead>
+    <tbody>
+        {% for trade in report.trades %}
+        <tr>
+            <td>{{ trade.entry_date }}</td>
+            <td>{{ trade.instrument }}</td>
+            <td>{{ trade.strategy }}</td>
+            <td class="{% if trade.is_win %}positive{% elif trade.is_loss %}negative{% endif %}">
+                {% if trade.is_win %}Win{% elif trade.is_loss %}Loss{% else %}—{% endif %}
+            </td>
+            <td>{{ trade.fixed_r_target or 0 }}</td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% endblock %}

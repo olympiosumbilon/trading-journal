@@ -1,0 +1,32 @@
+{% extends "base.html" %}
+
+{% block title %}Automations — Trading Journal{% endblock %}
+
+{% block content %}
+<h1>Automations</h1>
+
+<h2>Active Alerts</h2>
+{% if alerts %}
+<div class="alerts">
+    {% for alert in alerts %}
+    <div class="alert alert-warning">{{ alert }}</div>
+    {% endfor %}
+</div>
+{% else %}
+<p class="alert alert-success">No alerts. All systems normal.</p>
+{% endif %}
+
+<h2>Available Actions</h2>
+<div class="automation-actions">
+    <a href="/automations/export/csv" class="btn-primary">Download CSV Export</a>
+    <a href="/automations/weekly-report" class="btn-primary">View Weekly Report</a>
+    <a href="/automations/alerts" class="btn-primary">Check Alerts (JSON)</a>
+</div>
+
+<style>
+.alerts { margin-bottom: 1.5rem; }
+.alert-warning { background: #fef3c7; color: #92400e; padding: 0.75rem; border-radius: 4px; margin-bottom: 0.5rem; }
+.alert-success { background: #dcfce7; color: #166534; padding: 0.75rem; border-radius: 4px; }
+.automation-actions { display: flex; gap: 1rem; flex-wrap: wrap; }
+</style>
+{% endblock %}

@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Trading Journal{% endblock %}</title>
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+    <nav class="main-nav">
+        <div class="nav-left">
+            <a href="/" class="nav-brand">TRADING JOURNAL</a>
+            <a href="/dashboard/">Dashboard</a>
+            <a href="/trades/">Trades</a>
+            <a href="/ai/">AI Review</a>
+            <a href="/automations/">Automations</a>
+            <a href="/summary/">Summary</a>
+            <a href="/analysis/">Yearly Analysis</a>
+            <a href="/settings/">Settings</a>
+        </div>
+        <div class="nav-right">
+            <div class="global-year-picker">
+                <span class="gy-label">ACTIVE YEAR:</span>
+                <select id="globalYearDropdown" onchange="setGlobalActiveYear(this.value)" class="gy-select">
+                    <option value="all">All-Time</option>
+                    <option value="2022">2022</option>
+                    <option value="2023">2023</option>
+                    <option value="2024">2024</option>
+                    <option value="2025">2025</option>
+                    <option value="2026">2026</option>
+                    <option value="2027">2027</option>
+                    <option value="2028">2028</option>
+                    <option value="2029">2029</option>
+                    <option value="2030">2030</option>
+                    <option value="2031">2031</option>
+                    <option value="2032">2032</option>
+                    <option value="2033">2033</option>
+                    <option value="2034">2034</option>
+                    <option value="2035">2035</option>
+                </select>
+            </div>
+        </div>
+    </nav>
+    <main>
+        {% block content %}{% endblock %}
+    </main>
+
+    <script>
+    (function() {
+        const getCookie = (name) => {
+            const v = document.cookie.match('(^|;) ?' + name + '=([^;]*)(;|$)');
+            return v ? v[2] : null;
+        };
+        const params = new URLSearchParams(window.location.search);
+        const activeYear = params.get('year') || getCookie('active_year') || '2024';
+        const dropdown = document.getElementById('globalYearDropdown');
+        if (dropdown && activeYear) {
+            dropdown.value = activeYear;
+        }
+    })();
+
+    function setGlobalActiveYear(year) {
+        document.cookie = "active_year=" + year + "; path=/; max-age=31536000";
+        const url = new URL(window.location.href);
+        if (url.pathname.startsWith('/analysis/') || url.pathname.startsWith('/summary/') || url.pathname.startsWith('/trades/') || url.pathname.startsWith('/dashboard/')) {
+            url.searchParams.set('year', year);
+        }
+        window.location.href = url.toString();
+    }
+    </script>
+</body>
+</html>

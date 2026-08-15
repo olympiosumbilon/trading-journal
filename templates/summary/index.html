@@ -1,0 +1,961 @@
+{% extends "base.html" %}
+
+{% block title %}All-Time Summary — Trading Journal{% endblock %}
+
+{% block content %}
+<div class="analysis-header">
+    <div class="header-left">
+        <span class="brand-sub">TRADING JOURNAL</span>
+        <h1>{% if selected_year %}Summary ({{ selected_year }}){% else %}All-Time Summary{% endif %}</h1>
+    </div>
+    <div class="header-right">
+        <div class="year-selector-box">
+            <label for="summary-year-select">Filter Period</label>
+            <select id="summary-year-select" onchange="setGlobalActiveYear(this.value)" class="year-select">
+                <option value="all" {% if not selected_year %}selected{% endif %}>All-Time (Lifetime)</option>
+                {% for y in years %}
+                <option value="{{ y }}" {% if selected_year == y %}selected{% endif %}>Year {{ y }}</option>
+                {% endfor %}
+            </select>
+        </div>
+    </div>
+</div>
+
+<!-- Top Section: KPI Card + Cumulative Equity Curve Chart -->
+<div class="analysis-top-grid">
+    <!-- Left KPI Summary Card -->
+    <div class="photon-kpi-card">
+        <div class="kpi-header">
+            <div class="year-badge">{% if selected_year %}{{ selected_year }}{% else %}ALL-TIME{% endif %}</div>
+            <h3>SUMMARY</h3>
+        </div>
+        <div class="kpi-body">
+            <div class="kpi-row highlight-row">
+                <span class="kpi-label">Total Return (R)</span>
+                <span class="kpi-val {% if summary.total_r > 0 %}val-pos{% elif summary.total_r < 0 %}val-neg{% endif %}">
+                    {{ "%.2f"|format(summary.total_r) }}
+                </span>
+            </div>
+            <div class="kpi-row">
+                <span class="kpi-label">Net Return (R)</span>
+                <span class="kpi-val {% if summary.net_r > 0 %}val-pos{% elif summary.net_r < 0 %}val-neg{% endif %}">
+                    {{ "%.2f"|format(summary.net_r) }}
+                </span>
+            </div>
+            <div class="kpi-row highlight-row">
+                <span class="kpi-label">Strike Rate</span>
+                <span class="kpi-val accent-val">{{ summary.strike_rate }}%</span>
+            </div>
+            <div class="kpi-row">
+                <span class="kpi-label"># Trades</span>
+                <span class="kpi-val">{{ summary.total_trades }}</span>
+            </div>
+            <div class="kpi-row">
+                <span class="kpi-label">Wins</span>
+                <span class="kpi-val val-pos">{{ summary.wins }}</span>
+            </div>
+            <div class="kpi-row">
+                <span class="kpi-label">Losses</span>
+                <span class="kpi-val val-neg">{{ summary.losses }}</span>
+            </div>
+            <div class="kpi-row">
+                <span class="kpi-label">Avg Winner (R)</span>
+                <span class="kpi-val val-pos">{{ "%.2f"|format(summary.avg_winner) }}</span>
+            </div>
+            <div class="kpi-row">
+                <span class="kpi-label">Avg Loser (R)</span>
+                <span class="kpi-val val-neg">{{ "%.2f"|format(summary.avg_loser) }}</span>
+            </div>
+            <div class="kpi-row">
+                <span class="kpi-label">Win Streak</span>
+                <span class="kpi-val">{{ summary.win_streak }}</span>
+            </div>
+            <div class="kpi-row">
+                <span class="kpi-label">Loss Streak</span>
+                <span class="kpi-val">{{ summary.loss_streak }}</span>
+            </div>
+            <div class="kpi-row">
+                <span class="kpi-label">Drawdown (R)</span>
+                <span class="kpi-val val-neg">{{ "%.2f"|format(summary.drawdown) }}</span>
+            </div>
+            <div class="kpi-row">
+                <span class="kpi-label">Profit Factor</span>
+                <span class="kpi-val">{{ "%.2f"|format(summary.profit_factor) }}</span>
+            </div>
+            <div class="kpi-row">
+                <span class="kpi-label">Expectancy (R)</span>
+                <span class="kpi-val">{{ "%.2f"|format(summary.expectancy) }}</span>
+            </div>
+            <div class="kpi-row">
+                <span class="kpi-label">Commission Buffer</span>
+                <span class="kpi-val">{{ "%.1f"|format(summary.commission_buffer) }}</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Right Large Cumulative Equity Chart Box -->
+    <div class="chart-box cumulative-box">
+        <h4>TOTAL RETURN (R) &mdash; CUMULATIVE EQUITY CURVE</h4>
+        <div class="chart-container large-chart-container">
+            <canvas id="chartCumulative"></canvas>
+        </div>
+    </div>
+</div>
+
+<!-- Section: Multi-Year Strategy Performance Matrix Table -->
+<div class="analysis-section">
+    <div class="section-title-bar">
+        <h3>MULTI-YEAR STRATEGY PERFORMANCE MATRIX</h3>
+    </div>
+    <div class="table-wrapper matrix-wrapper">
+        <table class="matrix-table">
+            <thead>
+                <tr class="header-group-row">
+                    <th rowspan="2" class="sticky-col">YEAR</th>
+                    <th colspan="3" class="group-header overall-group">OVERALL</th>
+                    {% for st in strategies %}
+                    <th colspan="3" class="group-header">{{ st.name }}</th>
+                    {% endfor %}
+                </tr>
+                <tr class="header-sub-row">
+                    <th># TRADES</th><th>SR%</th><th>R</th>
+                    {% for st in strategies %}
+                    <th># TRADES</th><th>SR%</th><th>R</th>
+                    {% endfor %}
+                </tr>
+            </thead>
+            <tbody>
+                {% for y in years_matrix %}
+                <tr class="{% if y.trades == 0 %}dim-row{% endif %}">
+                    <td class="sticky-col font-bold">
+                        {% if y.trades > 0 %}
+                        <a href="{{ y.filter_url }}" style="color:inherit; text-decoration:none;">{{ y.year }}</a>
+                        {% else %}
+                        {{ y.year }}
+                        {% endif %}
+                    </td>
+                    <td class="num-cell">
+                        {% if y.trades_list and y.trades_list|length > 0 %}
+                        <div class="interactive-trade-wrapper">
+                            <a href="{{ y.filter_url or '/trades/' }}" class="trade-count-badge">
+                                {{ y.trades }}
+                            </a>
+                            <div class="trade-hover-popover">
+                                <div class="popover-header">
+                                    <span class="popover-title">Year {{ y.year }} ({{ y.trades }})</span>
+                                    <a href="{{ y.filter_url }}" class="popover-view-all">View All &rarr;</a>
+                                </div>
+                                <div class="popover-trades-list">
+                                    {% for tr in y.trades_list %}
+                                    <a href="/trades/{{ tr.id }}" class="popover-trade-item">
+                                        <div>
+                                            <span class="popover-item-id">#{{ tr.id }}</span>
+                                            <strong>{{ tr.pair }}</strong>
+                                            <span class="popover-item-sub">({{ tr.setup }})</span>
+                                        </div>
+                                        <span class="popover-item-r {% if tr.r > 0 %}val-pos{% elif tr.r < 0 %}val-neg{% else %}text-muted{% endif %}">
+                                            {{ "+%.2f"|format(tr.r) if tr.r > 0 else "%.2f"|format(tr.r) }}R
+                                        </span>
+                                    </a>
+                                    {% endfor %}
+                                </div>
+                            </div>
+                        </div>
+                        {% else %}
+                        {{ y.trades if y.trades > 0 else "" }}
+                        {% endif %}
+                    </td>
+                    <td class="num-cell">{{ "%.1f"|format(y.sr) ~ "%" if y.trades > 0 else "" }}</td>
+                    <td class="num-cell {% if y.r > 0 %}val-pos{% elif y.r < 0 %}val-neg{% endif %}">
+                        {{ "%.2f"|format(y.r) if y.trades > 0 else "" }}
+                    </td>
+                    {% for st in strategies %}
+                        {% set col = y.strat_cols.get(st.id) %}
+                        <td class="num-cell">
+                            {% if col and col.trades_list and col.trades_list|length > 0 %}
+                            <div class="interactive-trade-wrapper">
+                                <a href="{{ col.filter_url or '/trades/' }}" class="trade-count-badge">
+                                    {{ col.trades }}
+                                </a>
+                                <div class="trade-hover-popover">
+                                    <div class="popover-header">
+                                        <span class="popover-title">{{ y.year }} • {{ st.name }} ({{ col.trades }})</span>
+                                        <a href="{{ col.filter_url }}" class="popover-view-all">View All &rarr;</a>
+                                    </div>
+                                    <div class="popover-trades-list">
+                                        {% for tr in col.trades_list %}
+                                        <a href="/trades/{{ tr.id }}" class="popover-trade-item">
+                                            <div>
+                                                <span class="popover-item-id">#{{ tr.id }}</span>
+                                                <strong>{{ tr.pair }}</strong>
+                                                <span class="popover-item-sub">({{ tr.setup }})</span>
+                                            </div>
+                                            <span class="popover-item-r {% if tr.r > 0 %}val-pos{% elif tr.r < 0 %}val-neg{% else %}text-muted{% endif %}">
+                                                {{ "+%.2f"|format(tr.r) if tr.r > 0 else "%.2f"|format(tr.r) }}R
+                                            </span>
+                                        </a>
+                                        {% endfor %}
+                                    </div>
+                                </div>
+                            </div>
+                            {% else %}
+                            {{ col.trades if col and col.trades > 0 else "" }}
+                            {% endif %}
+                        </td>
+                        <td class="num-cell">{{ "%.1f"|format(col.sr) ~ "%" if col and col.trades > 0 else "" }}</td>
+                        <td class="num-cell {% if col and col.r > 0 %}val-pos{% elif col and col.r < 0 %}val-neg{% endif %}">
+                            {{ "%.2f"|format(col.r) if col and col.trades > 0 else "" }}
+                        </td>
+                    {% endfor %}
+                </tr>
+                {% endfor %}
+                <!-- Matrix Totals Row -->
+                <tr class="matrix-total-row">
+                    <td class="sticky-col font-bold">TOTAL</td>
+                    <td class="num-cell font-bold">
+                        {% if matrix_total_row.trades_list and matrix_total_row.trades_list|length > 0 %}
+                        <div class="interactive-trade-wrapper">
+                            <a href="{{ matrix_total_row.filter_url or '/trades/' }}" class="trade-count-badge">
+                                {{ matrix_total_row.trades }}
+                            </a>
+                            <div class="trade-hover-popover">
+                                <div class="popover-header">
+                                    <span class="popover-title">All-Time Total ({{ matrix_total_row.trades }})</span>
+                                    <a href="{{ matrix_total_row.filter_url }}" class="popover-view-all">View All &rarr;</a>
+                                </div>
+                                <div class="popover-trades-list">
+                                    {% for tr in matrix_total_row.trades_list %}
+                                    <a href="/trades/{{ tr.id }}" class="popover-trade-item">
+                                        <div>
+                                            <span class="popover-item-id">#{{ tr.id }}</span>
+                                            <strong>{{ tr.pair }}</strong>
+                                            <span class="popover-item-sub">({{ tr.setup }})</span>
+                                        </div>
+                                        <span class="popover-item-r {% if tr.r > 0 %}val-pos{% elif tr.r < 0 %}val-neg{% else %}text-muted{% endif %}">
+                                            {{ "+%.2f"|format(tr.r) if tr.r > 0 else "%.2f"|format(tr.r) }}R
+                                        </span>
+                                    </a>
+                                    {% endfor %}
+                                </div>
+                            </div>
+                        </div>
+                        {% else %}
+                        {{ matrix_total_row.trades }}
+                        {% endif %}
+                    </td>
+                    <td class="num-cell font-bold">{{ "%.1f"|format(matrix_total_row.sr) }}%</td>
+                    <td class="num-cell font-bold {% if matrix_total_row.r > 0 %}val-pos{% elif matrix_total_row.r < 0 %}val-neg{% endif %}">
+                        {{ "%.2f"|format(matrix_total_row.r) }}
+                    </td>
+                    {% for st in strategies %}
+                        {% set col = matrix_total_row.strat_cols.get(st.id) %}
+                        <td class="num-cell font-bold">
+                            {% if col and col.trades_list and col.trades_list|length > 0 %}
+                            <div class="interactive-trade-wrapper">
+                                <a href="{{ col.filter_url or '/trades/' }}" class="trade-count-badge">
+                                    {{ col.trades }}
+                                </a>
+                                <div class="trade-hover-popover">
+                                    <div class="popover-header">
+                                        <span class="popover-title">Total • {{ st.name }} ({{ col.trades }})</span>
+                                        <a href="{{ col.filter_url }}" class="popover-view-all">View All &rarr;</a>
+                                    </div>
+                                    <div class="popover-trades-list">
+                                        {% for tr in col.trades_list %}
+                                        <a href="/trades/{{ tr.id }}" class="popover-trade-item">
+                                            <div>
+                                                <span class="popover-item-id">#{{ tr.id }}</span>
+                                                <strong>{{ tr.pair }}</strong>
+                                                <span class="popover-item-sub">({{ tr.setup }})</span>
+                                            </div>
+                                            <span class="popover-item-r {% if tr.r > 0 %}val-pos{% elif tr.r < 0 %}val-neg{% else %}text-muted{% endif %}">
+                                                {{ "+%.2f"|format(tr.r) if tr.r > 0 else "%.2f"|format(tr.r) }}R
+                                            </span>
+                                        </a>
+                                        {% endfor %}
+                                    </div>
+                                </div>
+                            </div>
+                            {% else %}
+                            {{ col.trades if col and col.trades > 0 else "" }}
+                            {% endif %}
+                        </td>
+                        <td class="num-cell font-bold">{{ "%.1f"|format(col.sr) ~ "%" if col and col.trades > 0 else "" }}</td>
+                        <td class="num-cell font-bold {% if col and col.r > 0 %}val-pos{% elif col and col.r < 0 %}val-neg{% endif %}">
+                            {{ "%.2f"|format(col.r) if col and col.trades > 0 else "" }}
+                        </td>
+                    {% endfor %}
+                </tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- 🚦 Execution Status & Opportunity Cost Banner -->
+<div class="dash-opportunity-banner" style="background:#fff; border:1px solid #e2e8f0; border-radius:8px; padding:0.9rem 1.25rem; margin-bottom:1.5rem; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:1rem;">
+    <div style="display:flex; align-items:center; gap:1.25rem; flex-wrap:wrap;">
+        <div>
+            <span style="font-size:0.72rem; font-weight:800; color:#64748b; text-transform:uppercase; letter-spacing:0.05em; display:block;">All-Time Execution Discipline</span>
+            <span style="font-size:1.25rem; font-weight:800; color:#1e293b;">{{ exec_status_stats.execution_rate }}% Live Execution Rate</span>
+        </div>
+        <div style="height:32px; width:1px; background:#e2e8f0;"></div>
+        <div style="display:flex; gap:0.5rem; align-items:center; flex-wrap:wrap;">
+            <span class="status-pill status-live">🟢 {{ exec_status_stats.live_count }} Live Trades (+{{ "%.2f"|format(exec_status_stats.live_r) }}R)</span>
+            <span class="status-pill status-front-run">🟡 {{ exec_status_stats.front_run_count }} Front-Run (+{{ "%.2f"|format(exec_status_stats.front_run_missed_r) }}R Missed)</span>
+            <span class="status-pill status-missed">⚪ {{ exec_status_stats.missed_count }} Missed (+{{ "%.2f"|format(exec_status_stats.missed_trade_r) }}R Missed)</span>
+            <span class="status-pill status-swept">🪤 {{ exec_status_stats.sl_swept_count }} SL Swept (-{{ "%.2f"|format(exec_status_stats.sl_swept_lost_r) }}R Lost)</span>
+        </div>
+    </div>
+    <div style="text-align:right;">
+        <span style="font-size:0.72rem; font-weight:700; color:#94a3b8; text-transform:uppercase; display:block;">All-Time Missed Opportunity</span>
+        <span class="font-bold" style="font-size:1.15rem; color:#d97706;">+{{ "%.2f"|format(exec_status_stats.total_missed_r) }}R</span>
+        <small style="color:#64748b; font-size:0.7rem; display:block;">(Theoretical Edge: +{{ "%.2f"|format(exec_status_stats.theoretical_r) }}R)</small>
+    </div>
+</div>
+
+<!-- Section: Multi-Dimensional Breakdown Grid -->
+<div class="breakdowns-grid breakdowns-5col">
+    <!-- Instruments Card -->
+    <div class="breakdown-card">
+        <h4>INSTRUMENTS</h4>
+        <table>
+            <thead>
+                <tr><th>Instrument</th><th># Trades</th><th>SR%</th><th>R</th></tr>
+            </thead>
+            <tbody>
+                {% for i in inst_breakdown %}
+                <tr>
+                    <td class="font-bold">
+                        {% if i.filter_url and i.trades > 0 %}
+                        <a href="{{ i.filter_url }}" style="color:inherit; text-decoration:none;">{{ i.name }}</a>
+                        {% else %}
+                        {{ i.name }}
+                        {% endif %}
+                    </td>
+                    <td class="num-cell">
+                        {% if i.trades_list and i.trades_list|length > 0 %}
+                        <div class="interactive-trade-wrapper">
+                            <a href="{{ i.filter_url or '/trades/' }}" class="trade-count-badge">
+                                {{ i.trades }}
+                            </a>
+                            <div class="trade-hover-popover">
+                                <div class="popover-header">
+                                    <span class="popover-title">{{ i.name }} ({{ i.trades }})</span>
+                                    <a href="{{ i.filter_url }}" class="popover-view-all">View All &rarr;</a>
+                                </div>
+                                <div class="popover-trades-list">
+                                    {% for tr in i.trades_list %}
+                                    <a href="/trades/{{ tr.id }}" class="popover-trade-item">
+                                        <div>
+                                            <span class="popover-item-id">#{{ tr.id }}</span>
+                                            <strong>{{ tr.pair }}</strong>
+                                            <span class="popover-item-sub">({{ tr.setup }})</span>
+                                        </div>
+                                        <span class="popover-item-r {% if tr.r > 0 %}val-pos{% elif tr.r < 0 %}val-neg{% else %}text-muted{% endif %}">
+                                            {{ "+%.2f"|format(tr.r) if tr.r > 0 else "%.2f"|format(tr.r) }}R
+                                        </span>
+                                    </a>
+                                    {% endfor %}
+                                </div>
+                            </div>
+                        </div>
+                        {% else %}
+                        {{ i.trades if i.trades > 0 else "" }}
+                        {% endif %}
+                    </td>
+                    <td class="num-cell">{{ "%.2f"|format(i.sr) ~ "%" if i.trades > 0 else "" }}</td>
+                    <td class="num-cell {% if i.r > 0 %}val-pos{% elif i.r < 0 %}val-neg{% endif %}">
+                        {{ "%.2f"|format(i.r) if i.trades > 0 else "" }}
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Probabilities Card -->
+    <div class="breakdown-card">
+        <h4>PROBABILITIES</h4>
+        <table>
+            <thead>
+                <tr><th>Level</th><th># Trades</th><th>SR%</th><th>R</th></tr>
+            </thead>
+            <tbody>
+                {% for p in prob_breakdown %}
+                <tr>
+                    <td>
+                        {% if p.filter_url and p.trades > 0 %}
+                        <a href="{{ p.filter_url }}" style="text-decoration:none;">
+                            <span class="prob-pill prob-{{ p.name | lower }}">{{ p.name }}</span>
+                        </a>
+                        {% else %}
+                        <span class="prob-pill prob-{{ p.name | lower }}">{{ p.name }}</span>
+                        {% endif %}
+                    </td>
+                    <td class="num-cell">
+                        {% if p.trades_list and p.trades_list|length > 0 %}
+                        <div class="interactive-trade-wrapper">
+                            <a href="{{ p.filter_url or '/trades/' }}" class="trade-count-badge">
+                                {{ p.trades }}
+                            </a>
+                            <div class="trade-hover-popover">
+                                <div class="popover-header">
+                                    <span class="popover-title">{{ p.name }} ({{ p.trades }})</span>
+                                    <a href="{{ p.filter_url }}" class="popover-view-all">View All &rarr;</a>
+                                </div>
+                                <div class="popover-trades-list">
+                                    {% for tr in p.trades_list %}
+                                    <a href="/trades/{{ tr.id }}" class="popover-trade-item">
+                                        <div>
+                                            <span class="popover-item-id">#{{ tr.id }}</span>
+                                            <strong>{{ tr.pair }}</strong>
+                                            <span class="popover-item-sub">({{ tr.setup }})</span>
+                                        </div>
+                                        <span class="popover-item-r {% if tr.r > 0 %}val-pos{% elif tr.r < 0 %}val-neg{% else %}text-muted{% endif %}">
+                                            {{ "+%.2f"|format(tr.r) if tr.r > 0 else "%.2f"|format(tr.r) }}R
+                                        </span>
+                                    </a>
+                                    {% endfor %}
+                                </div>
+                            </div>
+                        </div>
+                        {% else %}
+                        {{ p.trades if p.trades > 0 else "" }}
+                        {% endif %}
+                    </td>
+                    <td class="num-cell">{{ "%.2f"|format(p.sr) ~ "%" if p.trades > 0 else "" }}</td>
+                    <td class="num-cell {% if p.r > 0 %}val-pos{% elif p.r < 0 %}val-neg{% endif %}">
+                        {{ "%.2f"|format(p.r) if p.trades > 0 else "" }}
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Phases Card -->
+    <div class="breakdown-card">
+        <h4>MTF PHASES</h4>
+        <table>
+            <thead>
+                <tr><th>Phase</th><th># Trades</th><th>SR%</th><th>R</th></tr>
+            </thead>
+            <tbody>
+                {% for ph in phase_breakdown %}
+                <tr>
+                    <td class="font-bold">
+                        {% if ph.filter_url and ph.trades > 0 %}
+                        <a href="{{ ph.filter_url }}" style="color:inherit; text-decoration:none;">{{ ph.name }}</a>
+                        {% else %}
+                        {{ ph.name }}
+                        {% endif %}
+                    </td>
+                    <td class="num-cell">
+                        {% if ph.trades_list and ph.trades_list|length > 0 %}
+                        <div class="interactive-trade-wrapper">
+                            <a href="{{ ph.filter_url or '/trades/' }}" class="trade-count-badge">
+                                {{ ph.trades }}
+                            </a>
+                            <div class="trade-hover-popover">
+                                <div class="popover-header">
+                                    <span class="popover-title">Phase {{ ph.name }} ({{ ph.trades }})</span>
+                                    <a href="{{ ph.filter_url }}" class="popover-view-all">View All &rarr;</a>
+                                </div>
+                                <div class="popover-trades-list">
+                                    {% for tr in ph.trades_list %}
+                                    <a href="/trades/{{ tr.id }}" class="popover-trade-item">
+                                        <div>
+                                            <span class="popover-item-id">#{{ tr.id }}</span>
+                                            <strong>{{ tr.pair }}</strong>
+                                            <span class="popover-item-sub">({{ tr.setup }})</span>
+                                        </div>
+                                        <span class="popover-item-r {% if tr.r > 0 %}val-pos{% elif tr.r < 0 %}val-neg{% else %}text-muted{% endif %}">
+                                            {{ "+%.2f"|format(tr.r) if tr.r > 0 else "%.2f"|format(tr.r) }}R
+                                        </span>
+                                    </a>
+                                    {% endfor %}
+                                </div>
+                            </div>
+                        </div>
+                        {% else %}
+                        {{ ph.trades if ph.trades > 0 else "" }}
+                        {% endif %}
+                    </td>
+                    <td class="num-cell">{{ "%.2f"|format(ph.sr) ~ "%" if ph.trades > 0 else "" }}</td>
+                    <td class="num-cell {% if ph.r > 0 %}val-pos{% elif ph.r < 0 %}val-neg{% endif %}">
+                        {{ "%.2f"|format(ph.r) if ph.trades > 0 else "" }}
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Days Card -->
+    <div class="breakdown-card">
+        <h4>DAYS OF WEEK</h4>
+        <table>
+            <thead>
+                <tr><th>Day</th><th># Trades</th><th>SR%</th><th>R</th></tr>
+            </thead>
+            <tbody>
+                {% for d in days_breakdown %}
+                <tr>
+                    <td class="font-bold">
+                        {% if d.filter_url and d.trades > 0 %}
+                        <a href="{{ d.filter_url }}" style="color:inherit; text-decoration:none;">{{ d.name }}</a>
+                        {% else %}
+                        {{ d.name }}
+                        {% endif %}
+                    </td>
+                    <td class="num-cell">
+                        {% if d.trades_list and d.trades_list|length > 0 %}
+                        <div class="interactive-trade-wrapper">
+                            <a href="{{ d.filter_url or '/trades/' }}" class="trade-count-badge">
+                                {{ d.trades }}
+                            </a>
+                            <div class="trade-hover-popover">
+                                <div class="popover-header">
+                                    <span class="popover-title">{{ d.name }} ({{ d.trades }})</span>
+                                    <a href="{{ d.filter_url }}" class="popover-view-all">View All &rarr;</a>
+                                </div>
+                                <div class="popover-trades-list">
+                                    {% for tr in d.trades_list %}
+                                    <a href="/trades/{{ tr.id }}" class="popover-trade-item">
+                                        <div>
+                                            <span class="popover-item-id">#{{ tr.id }}</span>
+                                            <strong>{{ tr.pair }}</strong>
+                                            <span class="popover-item-sub">({{ tr.setup }})</span>
+                                        </div>
+                                        <span class="popover-item-r {% if tr.r > 0 %}val-pos{% elif tr.r < 0 %}val-neg{% else %}text-muted{% endif %}">
+                                            {{ "+%.2f"|format(tr.r) if tr.r > 0 else "%.2f"|format(tr.r) }}R
+                                        </span>
+                                    </a>
+                                    {% endfor %}
+                                </div>
+                            </div>
+                        </div>
+                        {% else %}
+                        {{ d.trades if d.trades > 0 else "" }}
+                        {% endif %}
+                    </td>
+                    <td class="num-cell">{{ "%.2f"|format(d.sr) ~ "%" if d.trades > 0 else "" }}</td>
+                    <td class="num-cell {% if d.r > 0 %}val-pos{% elif d.r < 0 %}val-neg{% endif %}">
+                        {{ "%.2f"|format(d.r) if d.trades > 0 else "" }}
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Sessions Card -->
+    <div class="breakdown-card">
+        <h4>SESSIONS</h4>
+        <table>
+            <thead>
+                <tr><th>Session</th><th># Trades</th><th>SR%</th><th>R</th></tr>
+            </thead>
+            <tbody>
+                {% for s in session_breakdown %}
+                <tr>
+                    <td class="font-bold">
+                        {% if s.filter_url and s.trades > 0 %}
+                        <a href="{{ s.filter_url }}" style="color:inherit; text-decoration:none;">{{ s.name }}</a>
+                        {% else %}
+                        {{ s.name }}
+                        {% endif %}
+                    </td>
+                    <td class="num-cell">
+                        {% if s.trades_list and s.trades_list|length > 0 %}
+                        <div class="interactive-trade-wrapper">
+                            <a href="{{ s.filter_url or '/trades/' }}" class="trade-count-badge">
+                                {{ s.trades }}
+                            </a>
+                            <div class="trade-hover-popover">
+                                <div class="popover-header">
+                                    <span class="popover-title">{{ s.name }} ({{ s.trades }})</span>
+                                    <a href="{{ s.filter_url }}" class="popover-view-all">View All &rarr;</a>
+                                </div>
+                                <div class="popover-trades-list">
+                                    {% for tr in s.trades_list %}
+                                    <a href="/trades/{{ tr.id }}" class="popover-trade-item">
+                                        <div>
+                                            <span class="popover-item-id">#{{ tr.id }}</span>
+                                            <strong>{{ tr.pair }}</strong>
+                                            <span class="popover-item-sub">({{ tr.setup }})</span>
+                                        </div>
+                                        <span class="popover-item-r {% if tr.r > 0 %}val-pos{% elif tr.r < 0 %}val-neg{% else %}text-muted{% endif %}">
+                                            {{ "+%.2f"|format(tr.r) if tr.r > 0 else "%.2f"|format(tr.r) }}R
+                                        </span>
+                                    </a>
+                                    {% endfor %}
+                                </div>
+                            </div>
+                        </div>
+                        {% else %}
+                        {{ s.trades if s.trades > 0 else "" }}
+                        {% endif %}
+                    </td>
+                    <td class="num-cell">{{ "%.2f"|format(s.sr) ~ "%" if s.trades > 0 else "" }}</td>
+                    <td class="num-cell {% if s.r > 0 %}val-pos{% elif s.r < 0 %}val-neg{% endif %}">
+                        {{ "%.2f"|format(s.r) if s.trades > 0 else "" }}
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- Section: Execution Outcomes & Mindset Edge Grid (2x2 Layout) -->
+<div class="breakdowns-grid breakdowns-2col">
+    <!-- 1. Trade Exit & Outcome Distribution Card -->
+    <div class="breakdown-card">
+        <h4>🎯 TRADE OUTCOME & EXITS</h4>
+        <table>
+            <thead>
+                <tr><th>Outcome Type</th><th style="text-align:center;"># Trades</th><th style="text-align:right;">Share%</th><th style="text-align:right;">Total Return</th></tr>
+            </thead>
+            <tbody>
+                {% for cat in outcome_stats.categories %}
+                <tr>
+                    <td class="font-bold">
+                        <a href="/trades/?outcome={{ cat.key }}" style="color:inherit; text-decoration:none;">
+                            {{ cat.icon }} {{ cat.name }}
+                        </a>
+                    </td>
+                    <td class="num-cell" style="text-align:center;">
+                        {% if cat.trades_list and cat.trades_list|length > 0 %}
+                        <div class="interactive-trade-wrapper">
+                            <a href="/trades/?outcome={{ cat.key }}" class="trade-count-badge">
+                                {{ cat.count }}
+                            </a>
+                            <div class="trade-hover-popover">
+                                <div class="popover-header">
+                                    <span class="popover-title">{{ cat.icon }} {{ cat.name }} ({{ cat.count }})</span>
+                                    <a href="/trades/?outcome={{ cat.key }}" class="popover-view-all">View All &rarr;</a>
+                                </div>
+                                <div class="popover-trades-list">
+                                    {% for tr in cat.trades_list %}
+                                    <a href="/trades/{{ tr.id }}" class="popover-trade-item">
+                                        <div>
+                                            <span class="popover-item-id">#{{ tr.id }}</span>
+                                            <strong>{{ tr.pair }}</strong>
+                                            <span class="popover-item-sub">({{ tr.setup }})</span>
+                                        </div>
+                                        <span class="popover-item-r {% if tr.r > 0 %}val-pos{% elif tr.r < 0 %}val-neg{% else %}text-muted{% endif %}">
+                                            {{ "+%.2f"|format(tr.r) if tr.r > 0 else "%.2f"|format(tr.r) }}R
+                                        </span>
+                                    </a>
+                                    {% endfor %}
+                                </div>
+                            </div>
+                        </div>
+                        {% else %}
+                        {{ cat.count if cat.count > 0 else "0" }}
+                        {% endif %}
+                    </td>
+                    <td class="num-cell" style="text-align:right;">{{ cat.pct ~ "%" if cat.count > 0 else "0.0%" }}</td>
+                    <td class="num-cell font-bold {% if cat.total_r > 0 %}val-pos{% elif cat.total_r < 0 %}val-neg{% endif %}" style="text-align:right;">
+                        {{ "+%.2f"|format(cat.total_r) if cat.total_r > 0 else ("%.2f"|format(cat.total_r) if cat.count > 0 else "0.00") }}R
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <!-- 2. Execution Leaks & Missed Trades Card -->
+    <div class="breakdown-card">
+        <h4>⚠️ MISSED & LEAKAGE TAGS</h4>
+        <table>
+            <thead>
+                <tr><th>Execution Tag</th><th style="text-align:center;"># Trades</th><th style="text-align:right;">Opportunity / Leak</th></tr>
+            </thead>
+            <tbody>
+                {% for tag in exec_status_stats.tags_summary %}
+                <tr>
+                    <td class="font-bold">
+                        <a href="/trades/?tag={{ tag.key }}" style="color:inherit; text-decoration:none;">
+                            {{ tag.icon }} {{ tag.name }}
+                        </a>
+                    </td>
+                    <td class="num-cell" style="text-align:center;">
+                        {% if tag.trades_list and tag.trades_list|length > 0 %}
+                        <div class="interactive-trade-wrapper">
+                            <a href="/trades/?tag={{ tag.key }}" class="trade-count-badge">
+                                {{ tag.count }}
+                            </a>
+                            <div class="trade-hover-popover">
+                                <div class="popover-header">
+                                    <span class="popover-title">{{ tag.icon }} {{ tag.name }} ({{ tag.count }})</span>
+                                    <a href="/trades/?tag={{ tag.key }}" class="popover-view-all">View All &rarr;</a>
+                                </div>
+                                <div class="popover-trades-list">
+                                    {% for tr in tag.trades_list %}
+                                    <a href="/trades/{{ tr.id }}" class="popover-trade-item">
+                                        <div>
+                                            <span class="popover-item-id">#{{ tr.id }}</span>
+                                            <strong>{{ tr.pair }}</strong>
+                                            <span class="popover-item-sub">({{ tr.setup }})</span>
+                                        </div>
+                                        <span class="popover-item-r {% if tr.r > 0 %}val-pos{% elif tr.r < 0 %}val-neg{% else %}text-muted{% endif %}">
+                                            {{ "+%.2f"|format(tr.r) if tr.r > 0 else "%.2f"|format(tr.r) }}R
+                                        </span>
+                                    </a>
+                                    {% endfor %}
+                                </div>
+                            </div>
+                        </div>
+                        {% else %}
+                        {{ tag.count }}
+                        {% endif %}
+                    </td>
+                    <td class="num-cell font-bold {% if tag.impact_type == 'lost' %}val-neg{% else %}text-accent{% endif %}" style="text-align:right; color: {% if tag.impact_type == 'lost' %}#e11d48{% else %}#d97706{% endif %};">
+                        {% if tag.impact_type == 'lost' %}
+                        -{{ "%.2f"|format(tag.impact_r) }}R Lost
+                        {% else %}
+                        +{{ "%.2f"|format(tag.impact_r) }}R Missed
+                        {% endif %}
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <!-- 3. Pre-Trade Mindset Card -->
+    <div class="breakdown-card">
+        <h4>🧘 PRE-TRADE MINDSET</h4>
+        <table>
+            <thead>
+                <tr><th>Mindset State</th><th style="text-align:center;"># Trades</th><th style="text-align:right;">Win Rate</th><th style="text-align:right;">Total Return</th></tr>
+            </thead>
+            <tbody>
+                {% for b in psychology_stats.before_stats %}
+                <tr>
+                    <td class="font-bold">
+                        <a href="/trades/?emotion_before={{ b.key }}" style="color:inherit; text-decoration:none;">
+                            {{ b.icon }} {{ b.name }}
+                        </a>
+                    </td>
+                    <td class="num-cell" style="text-align:center;">
+                        {% if b.trades_list and b.trades_list|length > 0 %}
+                        <div class="interactive-trade-wrapper">
+                            <a href="/trades/?emotion_before={{ b.key }}" class="trade-count-badge">
+                                {{ b.count }}
+                            </a>
+                            <div class="trade-hover-popover">
+                                <div class="popover-header">
+                                    <span class="popover-title">{{ b.icon }} {{ b.name }} ({{ b.count }})</span>
+                                    <a href="/trades/?emotion_before={{ b.key }}" class="popover-view-all">View All &rarr;</a>
+                                </div>
+                                <div class="popover-trades-list">
+                                    {% for tr in b.trades_list %}
+                                    <a href="/trades/{{ tr.id }}" class="popover-trade-item">
+                                        <div>
+                                            <span class="popover-item-id">#{{ tr.id }}</span>
+                                            <strong>{{ tr.pair }}</strong>
+                                            <span class="popover-item-sub">({{ tr.setup }})</span>
+                                        </div>
+                                        <span class="popover-item-r {% if tr.r > 0 %}val-pos{% elif tr.r < 0 %}val-neg{% else %}text-muted{% endif %}">
+                                            {{ "+%.2f"|format(tr.r) if tr.r > 0 else "%.2f"|format(tr.r) }}R
+                                        </span>
+                                    </a>
+                                    {% endfor %}
+                                </div>
+                            </div>
+                        </div>
+                        {% else %}
+                        {{ b.count }}
+                        {% endif %}
+                    </td>
+                    <td class="num-cell" style="text-align:right;">{{ b.win_rate }}%</td>
+                    <td class="num-cell font-bold {% if b.total_r > 0 %}val-pos{% elif b.total_r < 0 %}val-neg{% endif %}" style="text-align:right;">
+                        {{ "+%.2f"|format(b.total_r) if b.total_r > 0 else "%.2f"|format(b.total_r) }}R
+                    </td>
+                </tr>
+                {% else %}
+                <tr><td colspan="4" class="empty-cell" style="text-align:center; padding:1.25rem; color:#94a3b8;">No pre-trade tags logged yet.</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <!-- 4. Post-Trade Execution Card -->
+    <div class="breakdown-card">
+        <h4>🏁 POST-TRADE REFLECTION</h4>
+        <table>
+            <thead>
+                <tr><th>Execution Feeling</th><th style="text-align:center;"># Trades</th><th style="text-align:right;">Win Rate</th><th style="text-align:right;">Total Return</th></tr>
+            </thead>
+            <tbody>
+                {% for a in psychology_stats.after_stats %}
+                <tr>
+                    <td class="font-bold">
+                        <a href="/trades/?emotion_after={{ a.key }}" style="color:inherit; text-decoration:none;">
+                            {{ a.icon }} {{ a.name }}
+                        </a>
+                    </td>
+                    <td class="num-cell" style="text-align:center;">
+                        {% if a.trades_list and a.trades_list|length > 0 %}
+                        <div class="interactive-trade-wrapper">
+                            <a href="/trades/?emotion_after={{ a.key }}" class="trade-count-badge">
+                                {{ a.count }}
+                            </a>
+                            <div class="trade-hover-popover">
+                                <div class="popover-header">
+                                    <span class="popover-title">{{ a.icon }} {{ a.name }} ({{ a.count }})</span>
+                                    <a href="/trades/?emotion_after={{ a.key }}" class="popover-view-all">View All &rarr;</a>
+                                </div>
+                                <div class="popover-trades-list">
+                                    {% for tr in a.trades_list %}
+                                    <a href="/trades/{{ tr.id }}" class="popover-trade-item">
+                                        <div>
+                                            <span class="popover-item-id">#{{ tr.id }}</span>
+                                            <strong>{{ tr.pair }}</strong>
+                                            <span class="popover-item-sub">({{ tr.setup }})</span>
+                                        </div>
+                                        <span class="popover-item-r {% if tr.r > 0 %}val-pos{% elif tr.r < 0 %}val-neg{% else %}text-muted{% endif %}">
+                                            {{ "+%.2f"|format(tr.r) if tr.r > 0 else "%.2f"|format(tr.r) }}R
+                                        </span>
+                                    </a>
+                                    {% endfor %}
+                                </div>
+                            </div>
+                        </div>
+                        {% else %}
+                        {{ a.count }}
+                        {% endif %}
+                    </td>
+                    <td class="num-cell" style="text-align:right;">{{ a.win_rate }}%</td>
+                    <td class="num-cell font-bold {% if a.total_r > 0 %}val-pos{% elif a.total_r < 0 %}val-neg{% endif %}" style="text-align:right;">
+                        {{ "+%.2f"|format(a.total_r) if a.total_r > 0 else "%.2f"|format(a.total_r) }}R
+                    </td>
+                </tr>
+                {% else %}
+                <tr><td colspan="4" class="empty-cell" style="text-align:center; padding:1.25rem; color:#94a3b8;">No post-trade tags logged yet.</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- Section: Time of Day Breakdown -->
+<div class="analysis-section">
+    <div class="section-title-bar">
+        <h3>TIME OF DAY (30-MIN INTERVALS)</h3>
+    </div>
+    <div class="table-wrapper time-table-wrapper">
+        <table>
+            <thead>
+                <tr><th>Time Interval</th><th># Trades</th><th>SR%</th><th>Total R</th></tr>
+            </thead>
+            <tbody>
+                {% for t in time_breakdown %}
+                {% if t.trades > 0 %}
+                <tr>
+                    <td class="font-bold">{{ t.interval }}</td>
+                    <td class="num-cell">
+                        {% if t.trades_list and t.trades_list|length > 0 %}
+                        <div class="interactive-trade-wrapper">
+                            <span class="trade-count-badge">
+                                {{ t.trades }}
+                            </span>
+                            <div class="trade-hover-popover">
+                                <div class="popover-header">
+                                    <span class="popover-title">{{ t.interval }} ({{ t.trades }})</span>
+                                </div>
+                                <div class="popover-trades-list">
+                                    {% for tr in t.trades_list %}
+                                    <a href="/trades/{{ tr.id }}" class="popover-trade-item">
+                                        <div>
+                                            <span class="popover-item-id">#{{ tr.id }}</span>
+                                            <strong>{{ tr.pair }}</strong>
+                                            <span class="popover-item-sub">({{ tr.setup }})</span>
+                                        </div>
+                                        <span class="popover-item-r {% if tr.r > 0 %}val-pos{% elif tr.r < 0 %}val-neg{% else %}text-muted{% endif %}">
+                                            {{ "+%.2f"|format(tr.r) if tr.r > 0 else "%.2f"|format(tr.r) }}R
+                                        </span>
+                                    </a>
+                                    {% endfor %}
+                                </div>
+                            </div>
+                        </div>
+                        {% else %}
+                        {{ t.trades }}
+                        {% endif %}
+                    </td>
+                    <td class="num-cell">{{ "%.2f"|format(t.sr) }}%</td>
+                    <td class="num-cell {% if t.r > 0 %}val-pos{% elif t.r < 0 %}val-neg{% endif %}">
+                        {{ "%.2f"|format(t.r) }}
+                    </td>
+                </tr>
+                {% endif %}
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- Chart.js Script -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+const cumLabels = {{ cum_labels | tojson }};
+const cumValues = {{ cum_values | tojson }};
+
+const ctxCum = document.getElementById('chartCumulative').getContext('2d');
+const gradient = ctxCum.createLinearGradient(0, 0, 0, 320);
+gradient.addColorStop(0, 'rgba(37, 99, 235, 0.4)');
+gradient.addColorStop(1, 'rgba(37, 99, 235, 0.0)');
+
+new Chart(ctxCum, {
+    type: 'line',
+    data: {
+        labels: cumLabels,
+        datasets: [{
+            label: 'Total Return (R)',
+            data: cumValues,
+            borderColor: '#38bdf8',
+            borderWidth: 2.5,
+            backgroundColor: gradient,
+            fill: true,
+            tension: 0.15,
+            pointRadius: 2,
+            pointHoverRadius: 5,
+            pointBackgroundColor: '#38bdf8',
+        }]
+    },
+    options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        interaction: { mode: 'index', intersect: false },
+        plugins: {
+            legend: { display: false },
+            tooltip: {
+                callbacks: {
+                    label: function(context) {
+                        return ` Cumulative Return: ${context.parsed.y.toFixed(2)}R`;
+                    }
+                }
+            }
+        },
+        scales: {
+            x: {
+                grid: { color: '#1e293b' },
+                ticks: { color: '#94a3b8', font: { size: 10 } }
+            },
+            y: {
+                grid: { color: '#1e293b' },
+                ticks: {
+                    color: '#94a3b8',
+                    font: { size: 10 },
+                    callback: (v) => v + 'R'
+                }
+            }
+        }
+    }
+});
+</script>
+{% endblock %}

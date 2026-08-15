@@ -1,0 +1,281 @@
+{% extends "base.html" %}
+
+{% block title %}Trade #{{ trade.id }} — Trading Journal{% endblock %}
+
+{% block content %}
+<div class="trade-detail-container">
+
+    <!-- Page Header & Action Bar -->
+    <div class="detail-header-bar">
+        <div class="header-left">
+            <a href="/trades/" class="back-link">&larr; Back to Trades</a>
+            <div class="trade-title-row">
+                <h1>Trade #{{ trade.id }}</h1>
+                <span class="outcome-badge {% if trade.execution_status == 'FRONT_RUN' %}outcome-runner{% elif trade.execution_status == 'MISSED' %}outcome-be{% elif trade.is_win %}outcome-win{% elif trade.is_loss %}outcome-loss{% else %}outcome-be{% endif %}">
+                    {% if trade.execution_status == 'FRONT_RUN' %}
+                        🟡 FRONT-RUN / UNFILLED (Potential +{{ "%.2f"|format(trade.fixed_r_target or 0) }}R)
+                    {% elif trade.execution_status == 'MISSED' %}
+                        ⚪ MISSED TRADE (Potential +{{ "%.2f"|format(trade.fixed_r_target or 0) }}R)
+                    {% elif trade.outcome_type == 'BREAK_EVEN' or (trade.fixed_r_target is not none and trade.fixed_r_target == 0) %}
+                        ⚖️ BREAK EVEN (0.00R)
+                    {% elif trade.outcome_type == 'RUNNER' %}
+                        🚀 RUNNER ({{ "+%.2f"|format(trade.fixed_r_target) if trade.fixed_r_target > 0 else "%.2f"|format(trade.fixed_r_target) }}R)
+                    {% elif trade.outcome_type == 'TRAILING_STOP' %}
+                        🛡️ TRAIL STOP ({{ "+%.2f"|format(trade.fixed_r_target) if trade.fixed_r_target > 0 else "%.2f"|format(trade.fixed_r_target) }}R)
+                    {% elif trade.outcome_type == 'CUT_LOSS' %}
+                        ✂️ CUT LOSS ({{ "%.2f"|format(trade.fixed_r_target or 0) }}R)
+                    {% elif trade.is_win %}
+                        WIN (+{{ "%.2f"|format(trade.fixed_r_target or 0) }}R)
+                    {% elif trade.is_loss %}
+                        LOSS ({{ "%.2f"|format(trade.fixed_r_target or 0) }}R)
+                    {% else %}
+                        BE (0.00R)
+                    {% endif %}
+                </span>
+                {% if trade.is_sl_swept %}
+                <span class="outcome-badge" style="background:#ffe4e6; color:#be123c; border:1px solid #fecdd3;">🪤 SL SWEPT</span>
+                {% endif %}
+            </div>
+        </div>
+        <div class="header-actions">
+            <a href="/trades/{{ trade.id }}/edit" class="btn-action btn-edit">✏️ Edit Trade</a>
+            <form method="post" action="/trades/{{ trade.id }}/delete" onsubmit="return confirm('Are you sure you want to delete Trade #{{ trade.id }}?')" style="display:inline;">
+                <button type="submit" class="btn-action btn-delete">🗑️ Delete</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Trade Core Metrics Grid -->
+    <div class="detail-metrics-card">
+        <div class="metric-item">
+            <span class="m-label">ENTRY DATE & TIME</span>
+            <span class="m-val">{{ trade.entry_date }} &bull; {{ trade.entry_time | time_12h }}</span>
+        </div>
+        <div class="metric-item">
+            <span class="m-label">CLOSE TIME</span>
+            <span class="m-val">{{ (trade.exit_date ~ ' • ' if trade.exit_date and trade.exit_date != trade.entry_date else '') ~ (trade.exit_time | time_12h) if trade.exit_time else "—" }}</span>
+        </div>
+        <div class="metric-item highlight-metric">
+            <span class="m-label">HOLDING DURATION</span>
+            <span class="m-val mono" style="color:#38bdf8; font-weight:800;">{{ trade.holding_time_minutes | duration if trade.holding_time_minutes is not none else "—" }}</span>
+        </div>
+        <div class="metric-item">
+            <span class="m-label">INSTRUMENT</span>
+            <span class="m-val font-bold text-accent">{{ trade.instrument_obj.name if trade.instrument_obj else "—" }}</span>
+        </div>
+        <div class="metric-item">
+            <span class="m-label">SESSION</span>
+            <span class="m-val font-bold">{{ trade.session_obj.name if trade.session_obj else "—" }}</span>
+        </div>
+        <div class="metric-item">
+            <span class="m-label">SETUP</span>
+            <span class="m-val font-bold">{{ trade.strategy_obj.name if trade.strategy_obj else "—" }}</span>
+        </div>
+        <div class="metric-item">
+            <span class="m-label">PROBABILITY</span>
+            <span class="m-val">
+                {% if trade.probability_level_obj %}
+                <span class="prob-pill prob-{{ trade.probability_level_obj.name | lower }}">{{ trade.probability_level_obj.name }}</span>
+                {% else %}—{% endif %}
+            </span>
+        </div>
+        <div class="metric-item">
+            <span class="m-label">MTF PHASE</span>
+            <span class="m-val">
+                {% if trade.mtf_phase_obj %}
+                <span class="phase-pill-badge">{{ trade.mtf_phase_obj.name }}</span>
+                {% else %}—{% endif %}
+            </span>
+        </div>
+        <div class="metric-item">
+            <span class="m-label">ENTRY CANDLE</span>
+            <span class="m-val mono">{{ trade.entry_candle_size or "—" }}</span>
+        </div>
+        <div class="metric-item">
+            <span class="m-label">SL BUFFER</span>
+            <span class="m-val mono">{{ trade.mae_sl_buffer or "—" }}</span>
+        </div>
+        <div class="metric-item">
+            <span class="m-label">MFE</span>
+            <span class="m-val mono">{{ trade.mfe or "—" }}</span>
+        </div>
+        <div class="metric-item">
+            <span class="m-label">MAX R</span>
+            <span class="m-val mono">{{ "%.2f"|format(trade.max_r) if trade.max_r is not none else "—" }}</span>
+        </div>
+        <div class="metric-item highlight-metric">
+            <span class="m-label">FIXED R TARGET</span>
+            <span class="m-val mono {% if trade.is_win %}val-pos{% elif trade.is_loss %}val-neg{% endif %}">
+                {{ "%.2f"|format(trade.fixed_r_target) if trade.fixed_r_target is not none else "—" }}R
+            </span>
+        </div>
+        <div class="metric-item highlight-metric">
+            <span class="m-label">CUMULATIVE TOTAL R</span>
+            <span class="m-val mono val-pos">{{ "%.2f"|format(trade.total_r) if trade.total_r is not none else "—" }}R</span>
+        </div>
+    </div>
+
+    <!-- Psychology & Mindset Tags Card -->
+    {% if trade.emotion_before or trade.emotion_after %}
+    <div class="detail-notes-card" style="margin-bottom: 1.25rem;">
+        <div class="notes-grid">
+            <div class="note-box">
+                <h4>🧘 PRE-TRADE MINDSET</h4>
+                <p class="font-bold">
+                    {% if trade.emotion_before == 'CALM' %}🧘 Calm & Disciplined
+                    {% elif trade.emotion_before == 'FOMO' %}⚡ FOMO / Rushed
+                    {% elif trade.emotion_before == 'HESITANT' %}😨 Fearful / Hesitant
+                    {% elif trade.emotion_before == 'REVENGE' %}🔥 Revenge Trading
+                    {% elif trade.emotion_before == 'BORED' %}🥱 Boredom Entry
+                    {% elif trade.emotion_before == 'CONFIDENT' %}💎 High Confidence
+                    {% else %}{{ trade.emotion_before }}{% endif %}
+                </p>
+            </div>
+            <div class="note-box">
+                <h4>🏁 POST-TRADE EXECUTION</h4>
+                <p class="font-bold">
+                    {% if trade.emotion_after == 'SATISFIED' %}✅ Followed Plan
+                    {% elif trade.emotion_after == 'GREEDY' %}🤑 Greed / Held Too Long
+                    {% elif trade.emotion_after == 'PANICKED' %}😱 Panicked / Cut Early
+                    {% elif trade.emotion_after == 'FRUSTRATED' %}😤 Frustrated / Tilted
+                    {% elif trade.emotion_after == 'NEUTRAL' %}🧘 Detached / Neutral
+                    {% else %}{{ trade.emotion_after }}{% endif %}
+                </p>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Notes & Trade Journaling Comments -->
+    <div class="detail-notes-card">
+        <div class="notes-grid">
+            <div class="note-box">
+                <h4>ENTRY NEWS</h4>
+                <p>{{ trade.entry_news or "No entry news specified." }}</p>
+            </div>
+            <div class="note-box">
+                <h4>MANAGEMENT NEWS</h4>
+                <p>{{ trade.management_news or "No management news specified." }}</p>
+            </div>
+            <div class="note-box full-span">
+                <h4>TRADE COMMENTS & ANALYSIS</h4>
+                <p class="comments-text">{{ trade.comments or "No trade comments recorded." }}</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Screenshots & TradingView Charts Gallery -->
+    <div class="screenshots-section">
+        <div class="section-title-bar">
+            <div>
+                <h3>TRADE SCREENSHOTS & TRADINGVIEW CHARTS</h3>
+                <p style="margin:0.2rem 0 0 0; font-size:0.75rem; color:#94a3b8;">High-resolution chart snapshots & multi-timeframe analysis ({{ all_screenshots|length }} attached).</p>
+            </div>
+            <button type="button" class="btn-attach-shot" onclick="toggleAttachForm('attach-new-shot-box')">+ Add Another Screenshot</button>
+        </div>
+
+        <!-- Add New Screenshot Form Dropdown -->
+        <div id="attach-new-shot-box" class="attach-dropdown" style="display:none; margin-bottom:1.25rem; background:#1e293b; border:1px solid #334155; border-radius:8px; padding:1rem;">
+            <form method="post" action="/trades/{{ trade.id }}/add_screenshot" class="attach-form-box">
+                <label style="color:#f8fafc; font-weight:700; font-size:0.85rem;">Attach New TradingView Link / Image URL:</label>
+                <div class="inline-input-group" style="margin-top:0.35rem;">
+                    <input type="url" name="url" placeholder="https://www.tradingview.com/x/..." required class="form-input" style="flex:1;">
+                    <input type="text" name="caption" placeholder="Optional Caption (e.g. 5M Entry)" class="form-input" style="width:200px;">
+                    <button type="submit" class="btn-save-sm" style="background:#2563eb; color:#fff; padding:0.5rem 1rem;">Save Screenshot</button>
+                </div>
+            </form>
+        </div>
+
+        <div class="screenshots-gallery-grid">
+            {% for s in all_screenshots %}
+            <div class="screenshot-card">
+                <div class="card-top-bar">
+                    <span class="slot-badge">SCREENSHOT #{{ loop.index }}{% if s.caption %} &mdash; {{ s.caption }}{% endif %}</span>
+                    {% if s.is_tv %}
+                    <a href="{{ s.link_url }}" target="_blank" class="tv-source-btn" title="Open on TradingView">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+                        TradingView
+                    </a>
+                    {% endif %}
+                </div>
+
+                <div class="screenshot-img-wrapper">
+                    <img src="{{ s.img_src }}" alt="Screenshot #{{ loop.index }}" onclick="openLightbox('{{ s.img_src }}', 'Screenshot #{{ loop.index }}')" class="clickable-chart">
+                    <div class="img-hover-overlay" onclick="openLightbox('{{ s.img_src }}', 'Screenshot #{{ loop.index }}')">
+                        <span>🔍 Click to Enlarge</span>
+                    </div>
+                </div>
+
+                <div class="card-bottom-actions">
+                    {% if s.id %}
+                    <form method="post" action="/trades/{{ trade.id }}/delete_screenshot_item" style="display:inline;" onsubmit="return confirm('Remove this screenshot?');">
+                        <input type="hidden" name="screenshot_id" value="{{ s.id }}">
+                        <button type="submit" class="btn-remove-shot">Remove</button>
+                    </form>
+                    {% else %}
+                    <form method="post" action="/trades/{{ trade.id }}/delete_screenshot" style="display:inline;" onsubmit="return confirm('Remove this screenshot?');">
+                        <input type="hidden" name="slot" value="{{ loop.index }}">
+                        <button type="submit" class="btn-remove-shot">Remove</button>
+                    </form>
+                    {% endif %}
+                    <a href="{{ s.link_url }}" target="_blank" class="btn-view-ext">Open Link &nearr;</a>
+                </div>
+            </div>
+            {% else %}
+            <div class="empty-screenshot-placeholder" style="grid-column: 1 / -1; padding: 2.5rem; text-align: center;">
+                <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="M20.4 14.5L16 10 4 20"/></svg>
+                <p style="margin: 0.5rem 0 0 0; color: #94a3b8; font-weight: 600;">No screenshots attached to this trade yet.</p>
+                <button type="button" class="btn-attach-shot" style="margin-top: 0.75rem;" onclick="toggleAttachForm('attach-new-shot-box')">+ Attach First Screenshot</button>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+
+</div>
+
+<!-- Fullscreen Lightbox Modal -->
+<div id="lightboxModal" class="lightbox-modal" onclick="closeLightbox(event)">
+    <div class="lightbox-content">
+        <div class="lightbox-header">
+            <span id="lightboxTitle">Screenshot View</span>
+            <button type="button" class="lightbox-close-btn" onclick="closeLightboxDirect()">&times;</button>
+        </div>
+        <div class="lightbox-img-container">
+            <img id="lightboxImg" src="" alt="Enlarged Chart">
+        </div>
+    </div>
+</div>
+
+<script>
+function toggleAttachForm(formId) {
+    const el = document.getElementById(formId);
+    if (el) {
+        el.style.display = el.style.display === 'none' ? 'block' : 'none';
+    }
+}
+
+function openLightbox(src, title) {
+    document.getElementById('lightboxImg').src = src;
+    document.getElementById('lightboxTitle').textContent = title || 'Chart View';
+    document.getElementById('lightboxModal').classList.add('open');
+    document.body.style.overflow = 'hidden';
+}
+
+function closeLightbox(event) {
+    if (event.target.id === 'lightboxModal' || event.target.classList.contains('lightbox-modal')) {
+        closeLightboxDirect();
+    }
+}
+
+function closeLightboxDirect() {
+    document.getElementById('lightboxModal').classList.remove('open');
+    document.body.style.overflow = 'auto';
+}
+
+document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape') {
+        closeLightboxDirect();
+    }
+});
+</script>
+{% endblock %}
