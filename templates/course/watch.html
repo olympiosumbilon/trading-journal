@@ -194,7 +194,7 @@
                 <div class="lesson-docs-grid">
                     {% for doc in current_lesson.folder_docs %}
                     <div class="doc-attachment-card">
-                        <div class="doc-card-top">
+                        <div class="doc-card-left">
                             <div class="doc-card-icon">
                                 {% if doc.type == 'word' %}📝
                                 {% elif doc.type == 'pdf' %}📕
@@ -208,28 +208,22 @@
                                 <div class="doc-card-meta">{{ doc.ext | upper }} &bull; {{ doc.size_mb }} MB</div>
                             </div>
                         </div>
-                        <div class="doc-card-actions">
+                        <div class="doc-card-right">
                             {% if doc.type == 'link' %}
-                            <a href="/course/file?path={{ doc.rel_path | urlencode }}" target="_blank" class="btn-primary btn-sm">
-                                🔗 Open Link &rarr;
+                            <a href="/course/file?path={{ doc.rel_path | urlencode }}" target="_blank" class="btn-primary btn-sm btn-doc-action">
+                                🔗 Open
                             </a>
                             {% elif doc.type in ['word', 'document'] %}
-                            <button type="button" onclick="previewDoc({{ doc.rel_path | tojson }})" class="btn-primary btn-sm">
+                            <button type="button" onclick="previewDoc({{ doc.rel_path | tojson }})" class="btn-primary btn-sm btn-doc-action">
                                 👁️ View
-                            </button>
-                            <button type="button" onclick="openOnDesktop({{ doc.rel_path | tojson }})" class="btn-secondary btn-sm" title="Open directly in Microsoft Word on your PC">
-                                🖥️ Word
                             </button>
                             {% elif doc.type in ['pdf', 'image'] %}
-                            <a href="/course/file?path={{ doc.rel_path | urlencode }}" target="_blank" class="btn-primary btn-sm">
+                            <a href="/course/file?path={{ doc.rel_path | urlencode }}" target="_blank" class="btn-primary btn-sm btn-doc-action">
                                 👁️ View
                             </a>
-                            <button type="button" onclick="openOnDesktop({{ doc.rel_path | tojson }})" class="btn-secondary btn-sm" title="Open on PC">
-                                🖥️ Desktop
-                            </button>
                             {% else %}
-                            <button type="button" onclick="openOnDesktop({{ doc.rel_path | tojson }})" class="btn-primary btn-sm">
-                                🖥️ Open File
+                            <button type="button" onclick="previewDoc({{ doc.rel_path | tojson }})" class="btn-primary btn-sm btn-doc-action">
+                                👁️ View
                             </button>
                             {% endif %}
                         </div>
@@ -289,9 +283,6 @@
                 </div>
             </div>
             <div class="dmh-actions">
-                <button type="button" id="btnModalOpenDesktop" class="btn-secondary btn-sm" title="Launch in Microsoft Word / Desktop">
-                    🖥️ Open in Word
-                </button>
                 <button type="button" class="doc-modal-close-btn" onclick="closeDocModal()">&times;</button>
             </div>
         </div>
@@ -592,23 +583,18 @@ function toggleSidebar() {
 }
 
 // In-App Document Preview Modal
-function previewDoc(relPath) {
+window.previewDoc = function(relPath) {
     const modal = document.getElementById('docViewerModal');
     const body = document.getElementById('docModalBody');
     const title = document.getElementById('docModalTitle');
     const filename = document.getElementById('docModalFilename');
-    const btnDesktop = document.getElementById('btnModalOpenDesktop');
 
     if (!modal) return;
 
-    modal.style.display = 'flex';
-    body.innerHTML = '<div class="doc-modal-loading">⏳ Parsing document...</div>';
+    modal.style.setProperty('display', 'flex', 'important');
+    body.innerHTML = '<div class="doc-modal-loading">⏳ Reading document content...</div>';
     title.innerText = 'Loading Document...';
     filename.innerText = relPath.split('/').pop();
-
-    if (btnDesktop) {
-        btnDesktop.onclick = () => openOnDesktop(relPath);
-    }
 
     fetch('/course/read-doc?path=' + encodeURIComponent(relPath))
         .then(res => res.json())
@@ -635,7 +621,7 @@ function previewDoc(relPath) {
                 } else if (data.type === 'url') {
                     body.innerHTML = `<div style="text-align:center; padding:2rem;"><p>External Web Shortcut:</p><a href="${data.url}" target="_blank" class="btn-primary" style="display:inline-block; margin-top:1rem;">🔗 Open ${data.url} &rarr;</a></div>`;
                 } else {
-                    body.innerHTML = `<div style="text-align:center; padding:2rem;"><p>This document is ready to view:</p><button onclick="openOnDesktop('${relPath}')" class="btn-primary" style="margin-top:1rem;">🖥️ Open File on PC</button></div>`;
+                    body.innerHTML = `<div style="text-align:center; padding:2rem;"><p>Document preview ready.</p></div>`;
                 }
             } else {
                 body.innerHTML = '<div class="empty-docs-box">Failed to read document content.</div>';
@@ -644,12 +630,12 @@ function previewDoc(relPath) {
         .catch(err => {
             body.innerHTML = '<div class="empty-docs-box">Error loading document.</div>';
         });
-}
+};
 
-function closeDocModal() {
+window.closeDocModal = function() {
     const modal = document.getElementById('docViewerModal');
-    if (modal) modal.style.display = 'none';
-}
+    if (modal) modal.style.setProperty('display', 'none', 'important');
+};
 
 function openOnDesktop(relPath) {
     fetch('/course/open-desktop?path=' + encodeURIComponent(relPath), { method: 'POST' })
