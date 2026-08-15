@@ -39,6 +39,20 @@ def get_file_type(ext: str) -> str:
     return "document"
 
 
+def detect_video_container(file_path: str) -> str:
+    """Detects whether video is native MP4 (ftyp) or MPEG-TS (0x47 sync byte)."""
+    try:
+        with open(file_path, "rb") as f:
+            h = f.read(16)
+            if len(h) >= 4 and h[0] == 0x47:
+                return "ts"
+            if b"ftyp" in h:
+                return "mp4"
+    except Exception:
+        pass
+    return "mp4"
+
+
 def scan_directory_tree(dir_path: str, base_root: str) -> Dict[str, Any]:
     """Recursively scans a directory and structures subdirectories, videos, and documents."""
     if not os.path.exists(dir_path):
@@ -66,6 +80,7 @@ def scan_directory_tree(dir_path: str, base_root: str) -> Dict[str, Any]:
             file_size_mb = round(file_size / (1024 * 1024), 1)
 
             if ext in VIDEO_EXTENSIONS:
+                container = detect_video_container(full_path)
                 videos.append({
                     "name": item,
                     "title": clean_title(item),
@@ -73,6 +88,7 @@ def scan_directory_tree(dir_path: str, base_root: str) -> Dict[str, Any]:
                     "full_path": full_path,
                     "ext": ext,
                     "type": "video",
+                    "container": container,
                     "size_mb": file_size_mb,
                 })
                 total_videos += 1

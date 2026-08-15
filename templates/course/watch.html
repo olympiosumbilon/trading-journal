@@ -116,7 +116,6 @@
                 controlsList="nodownload"
                 poster=""
             >
-                <source src="/course/stream?path={{ current_lesson.rel_path | urlencode }}" type="video/mp4">
                 Your browser does not support the video tag.
             </video>
         </div>
@@ -254,37 +253,47 @@
 
 </div>
 
+<script src="https://cdn.jsdelivr.net/npm/mux.js@6.3.0/dist/mux.min.js"></script>
 <script>
 const currentLessonPath = {{ current_lesson.rel_path | tojson }};
 const currentLessonTitle = {{ current_lesson.title | tojson }};
+const currentContainer = {{ current_lesson.container | tojson }};
+const streamUrl = "/course/stream?path=" + encodeURIComponent(currentLessonPath);
 const nextLessonUrl = {% if next_lesson %}"/course/watch?file=" + encodeURIComponent({{ next_lesson.rel_path | tojson }}){% else %}null{% endif %};
 
 document.addEventListener('DOMContentLoaded', () => {
     const video = document.getElementById('photonVideoPlayer');
 
-    // 1. Remember last watched
+    // 1. Initialize Video with MP4 or MPEG-TS Transmuxer
+    loadVideo(video, streamUrl, currentContainer === 'ts');
+
+    // 2. Remember last watched
     localStorage.setItem('photon_last_watched_file', currentLessonPath);
     localStorage.setItem('photon_last_watched_title', currentLessonTitle);
 
-    // 2. Load and reflect completed lessons
+    // 3. Load and reflect completed lessons
     loadCompletionStatus();
 
-    // 3. Load lesson notes
+    // 4. Load lesson notes
     const notesArea = document.getElementById('lessonNotesTextarea');
     if (notesArea) {
         notesArea.value = localStorage.getItem('photon_notes_' + currentLessonPath) || '';
     }
 
-    // 4. Remember speed preference
+    // 5. Remember speed preference
     const savedSpeed = parseFloat(localStorage.getItem('photon_video_speed') || '1.0');
     if (savedSpeed) {
         setPlaySpeed(savedSpeed);
     }
 
-    // 5. Restore video timestamp if user was watching this video
+    // 6. Restore video timestamp if user was watching this video
     const savedTime = parseFloat(localStorage.getItem('photon_time_' + currentLessonPath) || '0');
     if (savedTime && video) {
-        video.currentTime = savedTime;
+        video.addEventListener('loadedmetadata', () => {
+            if (savedTime < (video.duration || 1000)) {
+                video.currentTime = savedTime;
+            }
+        }, { once: true });
     }
 
     // Periodic time saver
@@ -342,6 +351,85 @@ document.addEventListener('DOMContentLoaded', () => {
         activeItem.scrollIntoView({ block: 'center', behavior: 'smooth' });
     }
 });
+
+// Robust Video Loader with automatic fallback to client-side mux.js
+function loadVideo(videoEl, url, isTs) {
+    if (isTs && window.MediaSource && window.muxjs) {
+        setupTransmuxer(videoEl, url);
+    } else {
+        videoEl.src = url;
+        videoEl.load();
+        videoEl.addEventListener('error', function onError(e) {
+            console.warn('Native video playback failed, attempting mux.js transmuxer fallback...', e);
+            videoEl.removeEventListener('error', onError);
+            if (window.muxjs && window.MediaSource) {
+                setupTransmuxer(videoEl, url);
+            }
+        }, { once: true });
+    }
+}
+
+function setupTransmuxer(videoEl, url) {
+    const mediaSource = new MediaSource();
+    videoEl.src = URL.createObjectURL(mediaSource);
+
+    mediaSource.addEventListener('sourceopen', function () {
+        const transmuxer = new muxjs.mp4.Transmuxer();
+        let sourceBuffer = null;
+        const queue = [];
+
+        transmuxer.on('data', function (segment) {
+            const data = new Uint8Array(segment.initSegment.byteLength + segment.data.byteLength);
+            data.set(segment.initSegment, 0);
+            data.set(segment.data, segment.initSegment.byteLength);
+
+            if (!sourceBuffer) {
+                const mime = 'video/mp4; codecs="' + (segment.videoCodec || 'avc1.42E01E') + ', ' + (segment.audioCodec || 'mp4a.40.2') + '"';
+                try {
+                    sourceBuffer = mediaSource.addSourceBuffer(mime);
+                } catch (e) {
+                    try {
+                        sourceBuffer = mediaSource.addSourceBuffer('video/mp4; codecs="avc1.42E01E, mp4a.40.2"');
+                    } catch (err) {
+                        sourceBuffer = mediaSource.addSourceBuffer('video/mp4');
+                    }
+                }
+
+                sourceBuffer.addEventListener('updateend', function () {
+                    if (queue.length > 0 && !sourceBuffer.updating) {
+                        sourceBuffer.appendBuffer(queue.shift());
+                    }
+                });
+            }
+
+            if (sourceBuffer.updating || queue.length > 0) {
+                queue.push(data);
+            } else {
+                sourceBuffer.appendBuffer(data);
+            }
+        });
+
+        fetch(url)
+            .then(res => {
+                if (!res.ok) throw new Error('Stream request failed: ' + res.status);
+                const reader = res.body.getReader();
+                function readChunk() {
+                    reader.read().then(({ done, value }) => {
+                        if (done) {
+                            transmuxer.flush();
+                            return;
+                        }
+                        transmuxer.push(value);
+                        readChunk();
+                    }).catch(err => {
+                        console.error('Reader error:', err);
+                    });
+                }
+                readChunk();
+            })
+            .catch(err => console.error('Fetch stream error:', err));
+    });
+}
 
 // Speed Controls
 function setPlaySpeed(speed) {
