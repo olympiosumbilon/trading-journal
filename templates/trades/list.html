@@ -350,7 +350,7 @@
         {% for k, v in filter_params.items() %}{% set base = base + k + "=" + v + "&" %}{% endfor %}
 
         {% if page > 1 %}
-        <a href="{{ base }}page={{ page - 1 }}" class="page-btn page-arrow" title="Previous Page" onclick="loadTradesPage('{{ base }}page={{ page - 1 }}', event)">&lsaquo;</a>
+        <button type="button" class="page-btn page-arrow" title="Previous Page" onclick="loadTradesPage('{{ base }}page={{ page - 1 }}')">&lsaquo;</button>
         {% else %}
         <span class="page-btn page-arrow disabled">&lsaquo;</span>
         {% endif %}
@@ -359,14 +359,14 @@
             {% if p == page %}
             <span class="page-btn current">{{ p }}</span>
             {% elif p == 1 or p == total_pages or (p >= page - 2 and p <= page + 2) %}
-            <a href="{{ base }}page={{ p }}" class="page-btn" onclick="loadTradesPage('{{ base }}page={{ p }}', event)">{{ p }}</a>
+            <button type="button" class="page-btn" onclick="loadTradesPage('{{ base }}page={{ p }}')">{{ p }}</button>
             {% elif p == page - 3 or p == page + 3 %}
             <span class="page-ellipsis">…</span>
             {% endif %}
         {% endfor %}
 
         {% if page < total_pages %}
-        <a href="{{ base }}page={{ page + 1 }}" class="page-btn page-arrow" title="Next Page" onclick="loadTradesPage('{{ base }}page={{ page + 1 }}', event)">&rsaquo;</a>
+        <button type="button" class="page-btn page-arrow" title="Next Page" onclick="loadTradesPage('{{ base }}page={{ page + 1 }}')">&rsaquo;</button>
         {% else %}
         <span class="page-btn page-arrow disabled">&rsaquo;</span>
         {% endif %}
@@ -403,18 +403,16 @@ function switchTradeViewMode(mode) {
     }
 }
 
-// Seamless AJAX Pagination Engine
-async function loadTradesPage(url, e) {
-    if (e) e.preventDefault();
+// Seamless In-Place Table/Card Reload (Zero Scroll Jump)
+async function loadTradesPage(url) {
     const dynamicContainer = document.getElementById('tradesDynamicContainer');
     if (!dynamicContainer) {
         window.location.href = url;
         return;
     }
     
-    // Smooth loading visual feedback
-    dynamicContainer.style.opacity = '0.4';
-    dynamicContainer.style.transition = 'opacity 0.15s ease';
+    // Subtle opacity transition
+    dynamicContainer.style.opacity = '0.35';
     
     try {
         const res = await fetch(url);
@@ -429,7 +427,7 @@ async function loadTradesPage(url, e) {
             dynamicContainer.innerHTML = newDynamicContent.innerHTML;
             dynamicContainer.style.opacity = '1';
             
-            // Re-apply current view mode preference
+            // Re-apply view mode preference
             const saved = localStorage.getItem('trade_view_mode');
             const isMobile = window.innerWidth <= 768;
             if (saved === 'table' && !isMobile) {
@@ -438,20 +436,8 @@ async function loadTradesPage(url, e) {
                 switchTradeViewMode('card');
             }
             
-            // Update browser address bar without hard reload
+            // Update browser URL silently (without reload or scrolling)
             window.history.pushState(null, '', url);
-            
-            // Smoothly scroll to the top of the trade list
-            const metaBar = document.getElementById('tradesMetaBar');
-            if (metaBar) {
-                const headerOffset = 70;
-                const elementPosition = metaBar.getBoundingClientRect().top;
-                const offsetPosition = elementPosition + window.pageYOffset - headerOffset;
-                window.scrollTo({
-                    top: offsetPosition,
-                    behavior: 'smooth'
-                });
-            }
         } else {
             window.location.href = url;
         }
