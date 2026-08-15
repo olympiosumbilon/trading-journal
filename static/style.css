@@ -6977,11 +6977,32 @@ a {
         -webkit-overflow-scrolling: touch !important;
         gap: 0.4rem !important;
         padding: 0.4rem 0.2rem !important;
+        flex-wrap: nowrap !important;
+        margin-bottom: 1rem !important;
+        width: 100% !important;
+        box-sizing: border-box !important;
+    }
+
+    .hqb-label {
+        display: none !important;
+    }
+
+    .hqb-pill {
+        flex-shrink: 0 !important;
+        font-size: 0.72rem !important;
+        padding: 0.35rem 0.65rem !important;
+        white-space: nowrap !important;
+    }
+
     /* 10. Market Terminal & News Section on Mobile */
     .hub-section-card {
         padding: 1rem 0.85rem !important;
         border-radius: 10px !important;
         margin-bottom: 1rem !important;
+        width: 100% !important;
+        max-width: 100% !important;
+        box-sizing: border-box !important;
+        overflow: hidden !important;
     }
 
     .hub-section-header {
@@ -6990,6 +7011,8 @@ a {
         gap: 0.75rem !important;
         padding-bottom: 0.75rem !important;
         margin-bottom: 1rem !important;
+        width: 100% !important;
+        box-sizing: border-box !important;
     }
 
     .hsh-right {
@@ -6997,6 +7020,66 @@ a {
         align-items: stretch !important;
         width: 100% !important;
         gap: 0.5rem !important;
+    }
+
+    .news-category-pills {
+        display: flex !important;
+        overflow-x: auto !important;
+        -webkit-overflow-scrolling: touch !important;
+        flex-wrap: nowrap !important;
+        width: 100% !important;
+        max-width: 100% !important;
+        padding: 0.3rem 0.2rem !important;
+        gap: 0.35rem !important;
+        box-sizing: border-box !important;
+    }
+
+    .news-cat-btn {
+        flex-shrink: 0 !important;
+        font-size: 0.74rem !important;
+        white-space: nowrap !important;
+        padding: 0.35rem 0.65rem !important;
+    }
+
+    .btn-refresh-news {
+        width: 100% !important;
+        text-align: center !important;
+        justify-content: center !important;
+        display: flex !important;
+        padding: 0.55rem !important;
+        box-sizing: border-box !important;
+        font-size: 0.8rem !important;
+    }
+
+    .news-grid-container {
+        grid-template-columns: 1fr !important;
+        gap: 0.75rem !important;
+        width: 100% !important;
+        max-width: 100% !important;
+        box-sizing: border-box !important;
+    }
+
+    .news-article-card {
+        padding: 0.85rem 0.85rem !important;
+        width: 100% !important;
+        max-width: 100% !important;
+        box-sizing: border-box !important;
+        word-break: break-word !important;
+        overflow-wrap: break-word !important;
+    }
+
+    .news-card-title {
+        font-size: 0.92rem !important;
+        line-height: 1.35 !important;
+        word-break: break-word !important;
+        overflow-wrap: break-word !important;
+    }
+
+    .news-card-desc {
+        font-size: 0.76rem !important;
+        line-height: 1.4 !important;
+        word-break: break-word !important;
+        overflow-wrap: break-word !important;
     }
 
     .heatmap-tabs {
@@ -7030,32 +7113,7 @@ a {
     .coinglass-iframe-wrapper {
         height: 480px !important;
         border-radius: 8px !important;
-    }
-
-    .news-category-pills {
-        display: flex !important;
-        overflow-x: auto !important;
-        -webkit-overflow-scrolling: touch !important;
-        flex-wrap: nowrap !important;
         width: 100% !important;
-        padding: 0.3rem 0.2rem !important;
-        gap: 0.35rem !important;
-        box-sizing: border-box !important;
-    }
-
-    .news-cat-btn {
-        flex-shrink: 0 !important;
-        font-size: 0.74rem !important;
-        white-space: nowrap !important;
-        padding: 0.35rem 0.65rem !important;
-    }
-
-    .btn-refresh-news {
-        width: 100% !important;
-        text-align: center !important;
-        justify-content: center !important;
-        display: flex !important;
-        padding: 0.5rem !important;
         box-sizing: border-box !important;
     }
 }
