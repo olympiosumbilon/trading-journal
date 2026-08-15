@@ -7262,6 +7262,61 @@ a {
         max-width: 100% !important;
         box-sizing: border-box !important;
     }
+
+    /* 12. Breakdown Tables & Analysis Cards on Mobile */
+    .breakdowns-grid,
+    .breakdowns-2col,
+    .breakdowns-3col,
+    .breakdowns-4col {
+        grid-template-columns: 1fr !important;
+        gap: 0.75rem !important;
+        width: 100% !important;
+    }
+
+    .breakdown-card {
+        padding: 0.75rem 0.6rem !important;
+        border-radius: 8px !important;
+        width: 100% !important;
+        max-width: 100% !important;
+        box-sizing: border-box !important;
+        overflow-x: auto !important;
+        -webkit-overflow-scrolling: touch !important;
+    }
+
+    .breakdown-card h4 {
+        font-size: 0.78rem !important;
+        margin-bottom: 0.5rem !important;
+        padding-bottom: 0.35rem !important;
+    }
+
+    .breakdown-card table {
+        width: 100% !important;
+        min-width: 100% !important;
+        font-size: 0.76rem !important;
+    }
+
+    .breakdown-card th, 
+    .breakdown-card td {
+        padding: 0.4rem 0.3rem !important;
+        font-size: 0.76rem !important;
+        white-space: nowrap !important;
+    }
+
+    .breakdown-card th:first-child,
+    .breakdown-card td:first-child {
+        padding-left: 0.2rem !important;
+    }
+
+    .breakdown-card th:last-child,
+    .breakdown-card td:last-child {
+        padding-right: 0.2rem !important;
+    }
+
+    .trade-count-badge {
+        padding: 0.15rem 0.35rem !important;
+        font-size: 0.72rem !important;
+        min-width: 20px !important;
+    }
 }
 
 
