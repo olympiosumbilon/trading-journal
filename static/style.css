@@ -4151,6 +4151,201 @@ a {
     font-size: 0.78rem;
 }
 
+/* ==========================================================================
+   🧭 Trader Fear & Greed Index Gauge & Matrix
+   ========================================================================== */
+.fear-greed-panel {
+    background: #fff;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+    margin-top: 1rem;
+    overflow: hidden;
+}
+
+.fg-tab-bar {
+    display: flex;
+    gap: 0.3rem;
+    padding: 0.5rem 0.75rem;
+    background: #f8fafc;
+    border-bottom: 1px solid #e2e8f0;
+}
+
+.fg-tab-btn {
+    flex: 1;
+    padding: 0.3rem 0.2rem;
+    font-size: 0.72rem;
+    font-weight: 700;
+    border: 1px solid transparent;
+    background: transparent;
+    color: #64748b;
+    border-radius: 5px;
+    cursor: pointer;
+    text-align: center;
+    transition: all 0.15s ease;
+}
+
+.fg-tab-btn:hover {
+    color: #1e293b;
+    background: #f1f5f9;
+}
+
+.fg-tab-btn.active {
+    background: #2563eb;
+    color: #fff;
+    border-color: #2563eb;
+    box-shadow: 0 1px 2px rgba(37,99,235,0.2);
+}
+
+.fg-tab-content {
+    padding: 0.85rem 1rem 1rem 1rem;
+}
+
+.fg-gauge-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    position: relative;
+    margin-bottom: 0.6rem;
+}
+
+.fg-gauge-svg {
+    width: 100%;
+    max-width: 200px;
+    height: auto;
+    overflow: visible;
+}
+
+.fg-center-score {
+    margin-top: -12px;
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.2rem;
+}
+
+.fg-score-num {
+    font-size: 1.75rem;
+    font-weight: 900;
+    line-height: 1;
+    font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+}
+
+.fg-score-label {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
+    font-size: 0.72rem;
+    font-weight: 800;
+    padding: 0.2rem 0.55rem;
+    border-radius: 12px;
+    letter-spacing: 0.02em;
+    text-transform: uppercase;
+}
+
+.sentiment-extreme-fear {
+    background: #fee2e2;
+    color: #dc2626;
+    border: 1px solid #fca5a5;
+}
+
+.sentiment-fear {
+    background: #ffedd5;
+    color: #ea580c;
+    border: 1px solid #fdba74;
+}
+
+.sentiment-neutral {
+    background: #dcfce7;
+    color: #16a34a;
+    border: 1px solid #86efac;
+}
+
+.sentiment-greed {
+    background: #fef3c7;
+    color: #d97706;
+    border: 1px solid #fde68a;
+}
+
+.sentiment-extreme-greed {
+    background: #f3e8ff;
+    color: #9333ea;
+    border: 1px solid #d8b4fe;
+}
+
+.fg-bar-distribution {
+    margin-bottom: 0.65rem;
+}
+
+.fg-bar-header {
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.68rem;
+    color: #64748b;
+    margin-bottom: 0.25rem;
+}
+
+.fg-bar-header strong {
+    color: #1e293b;
+}
+
+.fg-stacked-progress {
+    display: flex;
+    height: 6px;
+    border-radius: 3px;
+    overflow: hidden;
+    background: #e2e8f0;
+}
+
+.fg-seg-fear {
+    background: #ef4444;
+    transition: width 0.3s ease;
+}
+
+.fg-seg-disc {
+    background: #10b981;
+    transition: width 0.3s ease;
+}
+
+.fg-seg-greed {
+    background: #eab308;
+    transition: width 0.3s ease;
+}
+
+.fg-insight-box {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.45rem;
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    border-radius: 6px;
+    padding: 0.5rem 0.65rem;
+    margin-bottom: 0.65rem;
+}
+
+.fg-insight-icon {
+    font-size: 0.85rem;
+    line-height: 1.2;
+}
+
+.fg-insight-text {
+    font-size: 0.72rem;
+    color: #475569;
+    line-height: 1.35;
+}
+
+.fg-meta-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 0.72rem;
+    font-weight: 700;
+    color: #64748b;
+    padding-top: 0.45rem;
+    border-top: 1px dashed #e2e8f0;
+}
+
 
 
 

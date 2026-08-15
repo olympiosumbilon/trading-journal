@@ -75,8 +75,9 @@ Phase 5 complete: automations layer with scheduled alerts, CSV export, weekly re
 
 ## Validation Status
 - ✅ Interactive trade preview popovers render on hover across all breakdown tables
-- ✅ Trade links inside popovers open `/trades/{id}` directly
-- ✅ Category headers link to `/trades/?...` pre-filtered
+- ✅ Direct drill-down filter URLs working for months, quarters, setups, sessions, probabilities, phases, days, outcomes, tags, and psychology
+- ✅ Complete comprehensive `README.md` created with installation, usage guide, and feature breakdown
+- ✅ Git initialized and pushed to `https://github.com/olympiosumbilon/trading-journal.git` (`main` branch)
 - ✅ Trade list filters correctly by `Tag / Execution` (LIVE, FRONT_RUN, MISSED, SL_SWEPT)
 - ✅ Form tag buttons are strictly single-select with vivid visual indicators
 - ✅ Analysis & Summary render HTTP 200 without template or calculation errors

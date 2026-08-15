@@ -5,7 +5,7 @@ from sqlalchemy.orm import selectinload
 from database import SessionLocal
 from models import Trade, Session, Instrument, Strategy, ProbabilityLevel, MTFPhase
 from services.automation_service import check_alerts
-from services.calculation_service import compute_execution_outcomes, compute_psychology_stats, compute_execution_status_stats
+from services.calculation_service import compute_execution_outcomes, compute_psychology_stats, compute_execution_status_stats, compute_fear_greed_matrix
 from utils.template_helpers import format_time_12h
 from datetime import time
 
@@ -268,6 +268,7 @@ def dashboard(request: Request, year: str = ""):
     outcome_stats = compute_execution_outcomes(trades_list)
     psychology_stats = compute_psychology_stats(trades_list)
     exec_status_stats = compute_execution_status_stats(trades_list)
+    fear_greed_matrix = compute_fear_greed_matrix(trades_list)
     alerts = check_alerts()
 
     return templates.TemplateResponse(
@@ -290,5 +291,6 @@ def dashboard(request: Request, year: str = ""):
             "outcome_stats": outcome_stats,
             "psychology_stats": psychology_stats,
             "exec_status_stats": exec_status_stats,
+            "fear_greed_matrix": fear_greed_matrix,
         },
     )

@@ -544,6 +544,105 @@
                     </div>
                 </div>
             </div>
+
+            <!-- 🧭 TRADER FEAR & GREED INDEX CARD (WITH TABS) -->
+            <div class="dash-panel-box fear-greed-panel">
+                <div class="dash-panel-header" style="padding: 0.75rem 1rem 0.5rem 1rem;">
+                    <div>
+                        <h3 style="font-size: 0.92rem; display: flex; align-items: center; gap: 0.35rem;">
+                            🧭 Trader Fear & Greed Index
+                        </h3>
+                        <p class="panel-desc" style="font-size: 0.72rem;">Psychological balance & mindset gauge.</p>
+                    </div>
+                </div>
+
+                <!-- Timeframe Tabs -->
+                <div class="fg-tab-bar">
+                    <button type="button" class="fg-tab-btn active" id="fgTabBtn-overall" onclick="switchFearGreedTab('overall')">Overall</button>
+                    <button type="button" class="fg-tab-btn" id="fgTabBtn-quarterly" onclick="switchFearGreedTab('quarterly')">Quarterly</button>
+                    <button type="button" class="fg-tab-btn" id="fgTabBtn-monthly" onclick="switchFearGreedTab('monthly')">Monthly</button>
+                    <button type="button" class="fg-tab-btn" id="fgTabBtn-weekly" onclick="switchFearGreedTab('weekly')">Weekly</button>
+                </div>
+
+                <!-- Tab Contents -->
+                {% for key in ['overall', 'quarterly', 'monthly', 'weekly'] %}
+                {% set item = fear_greed_matrix[key] %}
+                <div id="fgTabContent-{{ key }}" class="fg-tab-content" style="{% if not loop.first %}display:none;{% endif %}">
+                    
+                    <!-- Semicircular Speedometer Dial -->
+                    <div class="fg-gauge-container">
+                        <svg class="fg-gauge-svg" viewBox="0 0 200 115">
+                            <defs>
+                                <linearGradient id="fgGradient-{{ key }}" x1="0%" y1="0%" x2="100%" y2="0%">
+                                    <stop offset="0%" stop-color="#ef4444" />
+                                    <stop offset="25%" stop-color="#f97316" />
+                                    <stop offset="50%" stop-color="#10b981" />
+                                    <stop offset="75%" stop-color="#f59e0b" />
+                                    <stop offset="100%" stop-color="#a855f7" />
+                                </linearGradient>
+                            </defs>
+                            
+                            <!-- Track Background -->
+                            <path d="M 22 100 A 78 78 0 0 1 178 100" fill="none" stroke="#f1f5f9" stroke-width="14" stroke-linecap="round" />
+                            <!-- Colored Gradient Meter -->
+                            <path d="M 22 100 A 78 78 0 0 1 178 100" fill="none" stroke="url(#fgGradient-{{ key }})" stroke-width="14" stroke-linecap="round" />
+                            
+                            <!-- Scale Text Guides -->
+                            <text x="22" y="112" font-size="8" font-weight="800" fill="#ef4444" text-anchor="middle">FEAR</text>
+                            <text x="100" y="14" font-size="8" font-weight="800" fill="#10b981" text-anchor="middle">DISCIPLINE</text>
+                            <text x="178" y="112" font-size="8" font-weight="800" fill="#a855f7" text-anchor="middle">GREED</text>
+                            
+                            <!-- Needle Pointer -->
+                            <g transform="rotate({{ item.needle_deg }}, 100, 100)" style="transition: transform 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);">
+                                <line x1="100" y1="100" x2="100" y2="28" stroke="#1e293b" stroke-width="3" stroke-linecap="round" />
+                                <circle cx="100" cy="100" r="7" fill="#1e293b" />
+                                <circle cx="100" cy="100" r="3" fill="#ffffff" />
+                                <polygon points="97,35 103,35 100,24" fill="#1e293b" />
+                            </g>
+                        </svg>
+
+                        <div class="fg-center-score">
+                            <span class="fg-score-num" style="color: {{ item.color }};">{{ item.score }}</span>
+                            <span class="fg-score-label {{ item.sentiment_class }}">
+                                {{ item.icon }} {{ item.label }}
+                            </span>
+                        </div>
+                    </div>
+
+                    <!-- Emotional Distribution Bar -->
+                    <div class="fg-bar-distribution">
+                        <div class="fg-bar-header">
+                            <span>Fear: <strong>{{ item.fear_pct }}%</strong></span>
+                            <span>Discipline: <strong>{{ item.discipline_pct }}%</strong></span>
+                            <span>Greed: <strong>{{ item.greed_pct }}%</strong></span>
+                        </div>
+                        <div class="fg-stacked-progress">
+                            <div class="fg-seg-fear" style="width: {{ item.fear_pct }}%;" title="Fear: {{ item.fear_pct }}%"></div>
+                            <div class="fg-seg-disc" style="width: {{ item.discipline_pct }}%;" title="Discipline: {{ item.discipline_pct }}%"></div>
+                            <div class="fg-seg-greed" style="width: {{ item.greed_pct }}%;" title="Greed: {{ item.greed_pct }}%"></div>
+                        </div>
+                    </div>
+
+                    <!-- Insight Tip -->
+                    <div class="fg-insight-box">
+                        <span class="fg-insight-icon">💡</span>
+                        <span class="fg-insight-text">{{ item.insight }}</span>
+                    </div>
+
+                    <!-- Meta Summary Footer -->
+                    <div class="fg-meta-row">
+                        <span>📊 {{ item.trades_count }} Trades</span>
+                        <span>🎯 {{ item.win_rate }}% WR</span>
+                        <span class="{% if item.total_r > 0 %}val-pos{% elif item.total_r < 0 %}val-neg{% endif %}">
+                            {{ "+%.2f"|format(item.total_r) if item.total_r > 0 else "%.2f"|format(item.total_r) }}R
+                        </span>
+                    </div>
+
+                </div>
+                {% endfor %}
+
+            </div>
+
         </div>
 
     </div>
@@ -569,13 +668,15 @@ new Chart(ctx, {
             label: 'Total Return (R)',
             data: cumValues,
             borderColor: '#38bdf8',
-            borderWidth: 3,
-            backgroundColor: gradient,
+            borderWidth: 2.5,
             fill: true,
-            tension: 0.15,
-            pointRadius: 2,
+            backgroundColor: gradient,
+            pointBackgroundColor: '#0284c7',
+            pointBorderColor: '#fff',
+            pointBorderWidth: 1.5,
+            pointRadius: 3.5,
             pointHoverRadius: 6,
-            pointBackgroundColor: '#38bdf8',
+            tension: 0.25
         }]
     },
     options: {
@@ -615,6 +716,19 @@ function switchPsychTab(type) {
     document.getElementById('btnPsychAfter').classList.toggle('active', !isBefore);
     document.getElementById('psychBeforeList').style.display = isBefore ? 'flex' : 'none';
     document.getElementById('psychAfterList').style.display = !isBefore ? 'flex' : 'none';
+}
+
+function switchFearGreedTab(tabKey) {
+    const tabs = ['overall', 'quarterly', 'monthly', 'weekly'];
+    tabs.forEach(key => {
+        const btn = document.getElementById('fgTabBtn-' + key);
+        const content = document.getElementById('fgTabContent-' + key);
+        if (btn && content) {
+            const isActive = (key === tabKey);
+            btn.classList.toggle('active', isActive);
+            content.style.display = isActive ? 'block' : 'none';
+        }
+    });
 }
 </script>
 {% endblock %}

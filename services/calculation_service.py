@@ -463,4 +463,207 @@ def compute_execution_status_stats(trades: List[Trade]) -> dict:
     }
 
 
+def compute_fear_greed_single(trades):
+    """Computes a 0-100 Fear & Greed score and psychological breakdown for a given list of trades."""
+    if not trades:
+        return {
+            "score": 50,
+            "label": "Neutral / Balanced",
+            "sentiment_class": "sentiment-neutral",
+            "icon": "🧘",
+            "color": "#10b981",
+            "needle_deg": 0,
+            "fear_points": 0,
+            "greed_points": 0,
+            "discipline_points": 0,
+            "fear_pct": 0,
+            "greed_pct": 0,
+            "discipline_pct": 100,
+            "trades_count": 0,
+            "win_rate": 0.0,
+            "total_r": 0.0,
+            "insight": "No trade data recorded for this timeframe yet.",
+            "fear_count": 0,
+            "greed_count": 0,
+        }
+
+    fear_pts = 0
+    greed_pts = 0
+    disc_pts = 0
+    fear_triggers = 0
+    greed_triggers = 0
+
+    for t in trades:
+        eb = (getattr(t, "emotion_before", "") or "").upper()
+        if eb == "HESITANT":
+            fear_pts += 30
+            fear_triggers += 1
+        elif eb == "BORED":
+            fear_pts += 15
+        elif eb == "FOMO":
+            greed_pts += 35
+            greed_triggers += 1
+        elif eb == "REVENGE":
+            greed_pts += 45
+            greed_triggers += 1
+        elif eb in ["CALM", "CONFIDENT"]:
+            disc_pts += 30
+
+        ea = (getattr(t, "emotion_after", "") or "").upper()
+        if ea == "PANICKED":
+            fear_pts += 35
+            fear_triggers += 1
+        elif ea == "FRUSTRATED":
+            fear_pts += 20
+            fear_triggers += 1
+        elif ea == "GREEDY":
+            greed_pts += 35
+            greed_triggers += 1
+        elif ea in ["SATISFIED", "NEUTRAL"]:
+            disc_pts += 30
+
+        ex = (getattr(t, "execution_status", "LIVE") or "LIVE").upper()
+        if ex == "MISSED":
+            fear_pts += 25
+            fear_triggers += 1
+        elif ex == "FRONT_RUN":
+            greed_pts += 25
+            greed_triggers += 1
+        elif ex == "LIVE":
+            disc_pts += 20
+
+        ot = (getattr(t, "outcome_type", "") or "").upper()
+        if ot == "CUT_LOSS":
+            fear_pts += 25
+            fear_triggers += 1
+        elif ot == "RUNNER":
+            disc_pts += 25
+
+    total_pts = fear_pts + greed_pts + disc_pts
+    if total_pts == 0:
+        score = 50
+    else:
+        net_bias = (greed_pts - fear_pts) / total_pts
+        raw_score = 50 + (net_bias * 45)
+        score = max(5, min(95, int(round(raw_score))))
+
+    # Map score (0..100) to needle rotation (-90deg..+90deg)
+    needle_deg = int(round((score / 100.0) * 180 - 90))
+
+    if score <= 25:
+        label = "Extreme Fear"
+        sentiment_class = "sentiment-extreme-fear"
+        icon = "🥶"
+        color = "#ef4444"
+        insight = "High hesitation & premature panic exits. Stick to your proven stop rules and trust your edge."
+    elif score <= 45:
+        label = "Fear Bias"
+        sentiment_class = "sentiment-fear"
+        icon = "😨"
+        color = "#f97316"
+        insight = "Mild fear bias. Watch out for hesitation on valid entries and managing trades too defensively."
+    elif score <= 55:
+        label = "Disciplined & Balanced"
+        sentiment_class = "sentiment-neutral"
+        icon = "🧘"
+        color = "#10b981"
+        insight = "Optimal psychological state! Calm execution, following trade plans with minimal emotional bias."
+    elif score <= 75:
+        label = "Greed Bias"
+        sentiment_class = "sentiment-greed"
+        icon = "🤑"
+        color = "#eab308"
+        insight = "Greed bias detected. Guard against FOMO entries, jumping in early, or holding past planned targets."
+    else:
+        label = "Extreme Greed"
+        sentiment_class = "sentiment-extreme-greed"
+        icon = "🔥"
+        color = "#a855f7"
+        insight = "High risk state! Impulsive entries or revenge trades detected. Pause and reset your discipline rules."
+
+    fear_pct = round((fear_pts / total_pts * 100), 1) if total_pts else 0
+    greed_pct = round((greed_pts / total_pts * 100), 1) if total_pts else 0
+    disc_pct = round((disc_pts / total_pts * 100), 1) if total_pts else 100
+
+    wins = sum(1 for t in trades if getattr(t, "is_win", False))
+    total_r = sum(getattr(t, "fixed_r_target", 0.0) or 0.0 for t in trades)
+    wr = round((wins / len(trades) * 100), 1) if trades else 0.0
+
+    return {
+        "score": score,
+        "label": label,
+        "sentiment_class": sentiment_class,
+        "icon": icon,
+        "color": color,
+        "needle_deg": needle_deg,
+        "fear_pct": fear_pct,
+        "greed_pct": greed_pct,
+        "discipline_pct": disc_pct,
+        "trades_count": len(trades),
+        "win_rate": wr,
+        "total_r": round(total_r, 2),
+        "insight": insight,
+        "fear_count": fear_triggers,
+        "greed_count": greed_triggers,
+    }
+
+
+def compute_fear_greed_matrix(trades_list):
+    """Computes Fear & Greed metrics across Overall, Quarterly, Monthly, and Weekly timeframes."""
+    if not trades_list:
+        empty = compute_fear_greed_single([])
+        return {
+            "overall": {**empty, "title": "Overall Edge"},
+            "quarterly": {**empty, "title": "Latest Quarter"},
+            "monthly": {**empty, "title": "Latest Month"},
+            "weekly": {**empty, "title": "Latest Week (7D)"},
+        }
+
+    # Sort trades by date
+    sorted_trades = sorted(
+        trades_list,
+        key=lambda x: (x.entry_date or x.id, x.entry_time or 0)
+    )
+
+    # 1. Overall
+    overall_res = compute_fear_greed_single(sorted_trades)
+    overall_res["title"] = "Overall All-Time"
+
+    # 2. Quarterly (latest quarter with trades)
+    latest_trade = sorted_trades[-1]
+    latest_m = latest_trade.month_number if getattr(latest_trade, "month_number", None) else (latest_trade.entry_date.month if latest_trade.entry_date else 1)
+    latest_q = (latest_m - 1) // 3 + 1
+    q_months = range((latest_q - 1) * 3 + 1, latest_q * 3 + 1)
+    q_trades = [t for t in sorted_trades if (t.month_number in q_months if getattr(t, "month_number", None) else (t.entry_date.month in q_months if t.entry_date else False))]
+    quarterly_res = compute_fear_greed_single(q_trades)
+    quarterly_res["title"] = f"Quarter Q{latest_q}"
+
+    # 3. Monthly (latest month with trades)
+    m_trades = [t for t in sorted_trades if (t.month_number == latest_m if getattr(t, "month_number", None) else (t.entry_date.month == latest_m if t.entry_date else False))]
+    month_names = {1: "Jan", 2: "Feb", 3: "Mar", 4: "Apr", 5: "May", 6: "Jun", 7: "Jul", 8: "Aug", 9: "Sep", 10: "Oct", 11: "Nov", 12: "Dec"}
+    monthly_res = compute_fear_greed_single(m_trades)
+    monthly_res["title"] = f"Month: {month_names.get(latest_m, f'M{latest_m}')}"
+
+    # 4. Weekly (last 7 trades or trades within 7 days of the latest trade)
+    if latest_trade.entry_date:
+        from datetime import timedelta
+        cutoff_date = latest_trade.entry_date - timedelta(days=7)
+        w_trades = [t for t in sorted_trades if t.entry_date and t.entry_date >= cutoff_date]
+        if not w_trades:
+            w_trades = sorted_trades[-5:] if len(sorted_trades) >= 5 else sorted_trades
+    else:
+        w_trades = sorted_trades[-7:]
+
+    weekly_res = compute_fear_greed_single(w_trades)
+    weekly_res["title"] = "Latest Week"
+
+    return {
+        "overall": overall_res,
+        "quarterly": quarterly_res,
+        "monthly": monthly_res,
+        "weekly": weekly_res,
+    }
+
+
+
 
