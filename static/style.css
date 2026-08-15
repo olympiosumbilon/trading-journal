@@ -7274,13 +7274,12 @@ a {
     }
 
     .breakdown-card {
-        padding: 0.75rem 0.6rem !important;
+        padding: 0.85rem 0.75rem !important;
         border-radius: 8px !important;
         width: 100% !important;
         max-width: 100% !important;
         box-sizing: border-box !important;
-        overflow-x: auto !important;
-        -webkit-overflow-scrolling: touch !important;
+        overflow: visible !important;
     }
 
     .breakdown-card h4 {
@@ -7291,25 +7290,32 @@ a {
 
     .breakdown-card table {
         width: 100% !important;
-        min-width: 100% !important;
+        min-width: 0 !important;
+        table-layout: auto !important;
         font-size: 0.76rem !important;
+        border-collapse: collapse !important;
     }
 
     .breakdown-card th, 
     .breakdown-card td {
-        padding: 0.4rem 0.3rem !important;
+        padding: 0.35rem 0.2rem !important;
         font-size: 0.76rem !important;
+        box-sizing: border-box !important;
+    }
+
+    .breakdown-card td.num-cell,
+    .breakdown-card th.num-cell {
         white-space: nowrap !important;
     }
 
     .breakdown-card th:first-child,
     .breakdown-card td:first-child {
-        padding-left: 0.2rem !important;
+        padding-left: 0.1rem !important;
     }
 
     .breakdown-card th:last-child,
     .breakdown-card td:last-child {
-        padding-right: 0.2rem !important;
+        padding-right: 0.1rem !important;
     }
 
     .trade-count-badge {
