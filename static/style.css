@@ -7388,9 +7388,9 @@ a {
     }
 
     .course-hero-actions {
-        display: grid !important;
-        grid-template-columns: 1.3fr 1fr !important;
-        gap: 0.45rem !important;
+        display: flex !important;
+        flex-direction: column !important;
+        gap: 0.5rem !important;
         width: 100% !important;
     }
 
@@ -7399,12 +7399,16 @@ a {
         width: 100% !important;
         text-align: center !important;
         justify-content: center !important;
-        font-size: 0.76rem !important;
-        padding: 0.55rem 0.35rem !important;
-        min-height: 38px !important;
+        font-size: 0.8rem !important;
+        padding: 0.6rem 0.5rem !important;
+        min-height: 42px !important;
         box-sizing: border-box !important;
-        white-space: nowrap !important;
-        border-radius: 6px !important;
+        white-space: normal !important;
+        word-break: break-word !important;
+        border-radius: 8px !important;
+        line-height: 1.25 !important;
+        display: flex !important;
+        align-items: center !important;
     }
 
     .course-progress-card {
@@ -7468,51 +7472,89 @@ a {
     .course-modules-section {
         border-radius: 8px !important;
         margin-bottom: 1.25rem !important;
+        width: 100% !important;
+        max-width: 100% !important;
+        box-sizing: border-box !important;
+        overflow: hidden !important;
     }
 
     .modules-cards-grid {
         grid-template-columns: 1fr !important;
         gap: 0.85rem !important;
-        padding: 0.75rem !important;
+        padding: 0.65rem !important;
+        width: 100% !important;
+        box-sizing: border-box !important;
     }
 
     .module-card {
         border-radius: 8px !important;
         width: 100% !important;
+        max-width: 100% !important;
         box-sizing: border-box !important;
+        overflow: hidden !important;
     }
 
     .module-card-header {
         padding: 0.75rem !important;
+        display: flex !important;
+        justify-content: space-between !important;
+        align-items: center !important;
+        gap: 0.5rem !important;
     }
 
     .module-card-header h4 {
         font-size: 0.88rem !important;
+        word-break: break-word !important;
     }
 
     .module-card-body {
         padding: 0.65rem 0.75rem !important;
+        width: 100% !important;
+        box-sizing: border-box !important;
+    }
+
+    .mc-lessons-preview {
+        width: 100% !important;
+        box-sizing: border-box !important;
     }
 
     .mc-lesson-row {
-        padding: 0.4rem 0.5rem !important;
+        padding: 0.4rem 0.4rem !important;
         font-size: 0.75rem !important;
+        width: 100% !important;
+        box-sizing: border-box !important;
+        display: flex !important;
+        align-items: center !important;
+        gap: 0.4rem !important;
+    }
+
+    .mc-lr-title {
+        white-space: nowrap !important;
+        overflow: hidden !important;
+        text-overflow: ellipsis !important;
+        flex: 1 !important;
+        min-width: 0 !important;
     }
 
     .module-card-footer {
         padding: 0.65rem 0.75rem !important;
+        width: 100% !important;
+        box-sizing: border-box !important;
     }
 
     .module-card-footer .btn-primary, 
     .module-card-footer .btn-secondary {
         width: 100% !important;
-        min-height: 40px !important;
-        padding: 0.55rem !important;
-        font-size: 0.8rem !important;
+        min-height: 42px !important;
+        padding: 0.6rem 0.5rem !important;
+        font-size: 0.82rem !important;
+        font-weight: 800 !important;
         text-align: center !important;
         justify-content: center !important;
         box-sizing: border-box !important;
         border-radius: 6px !important;
+        display: flex !important;
+        align-items: center !important;
     }
 }
 
