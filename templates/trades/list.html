@@ -254,7 +254,7 @@
     </div>
 
     <!-- 📊 2. DESKTOP / TABLET DATA TABLE -->
-    <div class="table-wrapper trades-table-container" id="tradesTableContainer">
+    <div class="table-wrapper trades-table-container" id="tradesTableContainer" style="display: none;">
         <table class="trades-full-table">
             <thead>
                 <tr>
@@ -413,14 +413,14 @@ function switchTradeViewMode(mode) {
     const btnTable = document.getElementById('btnModeTable');
 
     if (mode === 'table') {
-        if (cards) cards.style.display = 'none';
-        if (table) table.style.display = 'block';
+        if (cards) cards.style.setProperty('display', 'none', 'important');
+        if (table) table.style.setProperty('display', 'block', 'important');
         if (btnCard) btnCard.classList.remove('active');
         if (btnTable) btnTable.classList.add('active');
         localStorage.setItem('trade_view_mode', 'table');
     } else {
-        if (cards) cards.style.display = 'flex';
-        if (table) table.style.display = 'none';
+        if (cards) cards.style.setProperty('display', 'flex', 'important');
+        if (table) table.style.setProperty('display', 'none', 'important');
         if (btnCard) btnCard.classList.add('active');
         if (btnTable) btnTable.classList.remove('active');
         localStorage.setItem('trade_view_mode', 'card');
