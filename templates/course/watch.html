@@ -2,6 +2,8 @@
 
 {% block title %}{{ current_lesson.title }} — Photon Academy{% endblock %}
 
+{% block main_class %}main-full-bleed{% endblock %}
+
 {% block content %}
 <div class="course-watch-layout">
 
@@ -93,6 +95,9 @@
         <!-- Top Sticky Breadcrumb Bar -->
         <div class="player-top-bar">
             <div class="ptb-left">
+                <button type="button" class="sidebar-open-btn" onclick="toggleSidebar(true)" title="Open Syllabus Menu">
+                    ☰ Lessons Menu
+                </button>
                 <div class="ptb-breadcrumbs">
                     <span class="ptb-mod">{{ current_lesson.module_name }}</span>
                     {% if current_lesson.section_name and current_lesson.section_name != current_lesson.module_name %}
@@ -105,6 +110,11 @@
                 <span class="ptb-progress font-bold">Lesson {{ playlist_index }} of {{ playlist_total }}</span>
             </div>
         </div>
+
+        <!-- Mobile Floating Syllabus Button -->
+        <button type="button" class="mobile-floating-syllabus-btn" onclick="toggleSidebar(true)" aria-label="Open Lessons Menu">
+            ☰ Lessons ({{ playlist_index }}/{{ playlist_total }})
+        </button>
 
         <!-- Video Player Stage -->
         <div class="video-stage-container">
@@ -148,18 +158,15 @@
                     <span>Autoplay Next</span>
                 </label>
 
-                <!-- Navigation Prev/Next & Syllabus Trigger -->
+                <!-- Navigation Prev/Next -->
                 <div class="nav-prev-next-group">
                     {% if prev_lesson %}
-                    <a href="/course/watch?file={{ prev_lesson.rel_path | urlencode }}" class="btn-secondary btn-sm nav-pn-btn" title="Previous Lesson">
+                    <a href="/course/watch?file={{ prev_lesson.rel_path | urlencode }}" class="btn-secondary btn-sm" title="Previous Lesson">
                         &larr; Prev
                     </a>
                     {% endif %}
-                    <button type="button" class="btn-secondary btn-sm nav-pn-btn btn-syllabus-trigger" onclick="toggleSidebar(true)" title="Open Syllabus Menu">
-                        ☰ Syllabus
-                    </button>
                     {% if next_lesson %}
-                    <a href="/course/watch?file={{ next_lesson.rel_path | urlencode }}" class="btn-primary btn-sm nav-pn-btn" id="btnNextLesson" title="Next Lesson">
+                    <a href="/course/watch?file={{ next_lesson.rel_path | urlencode }}" class="btn-primary btn-sm" id="btnNextLesson" title="Next Lesson">
                         Next &rarr;
                     </a>
                     {% endif %}

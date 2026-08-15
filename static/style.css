@@ -4888,9 +4888,27 @@ a {
 /* ==========================================================================
    🎬 VIDEO PLAYER WATCH WORKSPACE
    ========================================================================== */
+/* Full-Bleed Zero-Gap Workspace for Course Player (Web & Mobile) */
+body:has(.main-full-bleed),
+body:has(.course-watch-layout) {
+    background: #090d16 !important;
+}
+
+main.main-full-bleed {
+    padding: 0 !important;
+    max-width: 100% !important;
+    margin: 0 !important;
+    width: 100% !important;
+    background: #090d16 !important;
+    overflow: hidden !important;
+}
+
 .course-watch-layout {
     display: flex;
-    height: calc(100vh - 60px);
+    height: calc(100vh - 54px);
+    width: 100%;
+    margin: 0;
+    padding: 0;
     overflow: hidden;
     background: #090d16;
 }
@@ -5793,12 +5811,29 @@ a {
     }
 
     /* 5. Course Watch Player Workspace */
+    body:has(.main-full-bleed),
+    body:has(.course-watch-layout) {
+        background: #090d16 !important;
+    }
+
+    main.main-full-bleed {
+        padding: 0 !important;
+        margin: 0 !important;
+        width: 100% !important;
+        max-width: 100vw !important;
+        background: #090d16 !important;
+    }
+
     .course-watch-layout {
-        flex-direction: column;
-        height: auto;
-        min-height: 100vh;
-        overflow: visible;
-        position: relative;
+        flex-direction: column !important;
+        height: auto !important;
+        min-height: 100vh !important;
+        width: 100% !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        overflow: visible !important;
+        background: #090d16 !important;
+        position: relative !important;
     }
 
     .course-sidebar-backdrop {
