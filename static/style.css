@@ -7798,6 +7798,164 @@ main.main-full-bleed {
         display: flex !important;
         align-items: center !important;
     }
+
+    /* 14. Settings & Trade Management on Mobile (< 768px) */
+    .settings-page-header {
+        margin-bottom: 1rem !important;
+    }
+
+    .settings-page-header h1 {
+        font-size: 1.3rem !important;
+        line-height: 1.25 !important;
+        margin-bottom: 0.35rem !important;
+    }
+
+    .settings-subtitle {
+        font-size: 0.78rem !important;
+        line-height: 1.4 !important;
+        margin-bottom: 0.75rem !important;
+    }
+
+    .settings-nav-tabs {
+        display: flex !important;
+        overflow-x: auto !important;
+        -webkit-overflow-scrolling: touch !important;
+        padding-bottom: 0.4rem !important;
+        gap: 0.35rem !important;
+        margin-bottom: 1rem !important;
+        white-space: nowrap !important;
+    }
+
+    .settings-nav-tabs .tab-btn {
+        padding: 0.45rem 0.75rem !important;
+        font-size: 0.78rem !important;
+        flex-shrink: 0 !important;
+    }
+
+    .panel-card {
+        border-radius: 8px !important;
+        margin-bottom: 1rem !important;
+        overflow: hidden !important;
+    }
+
+    .panel-header {
+        padding: 0.85rem 1rem !important;
+        flex-direction: column !important;
+        align-items: flex-start !important;
+        gap: 0.5rem !important;
+    }
+
+    .panel-header h3 {
+        font-size: 1rem !important;
+    }
+
+    .panel-desc {
+        font-size: 0.75rem !important;
+    }
+
+    .count-pill {
+        align-self: flex-start !important;
+    }
+
+    .lookups-balanced-grid {
+        grid-template-columns: 1fr !important;
+        gap: 1rem !important;
+    }
+
+    .table-wrapper {
+        overflow-x: auto !important;
+        -webkit-overflow-scrolling: touch !important;
+        width: 100% !important;
+        box-sizing: border-box !important;
+    }
+
+    #section-instruments .settings-table {
+        min-width: 530px !important;
+    }
+
+    .settings-table th,
+    .settings-row td {
+        padding: 0.5rem 0.45rem !important;
+        font-size: 0.78rem !important;
+    }
+
+    .form-input {
+        padding: 0.4rem 0.45rem !important;
+        font-size: 0.82rem !important;
+        border-radius: 6px !important;
+    }
+
+    .inst-input {
+        min-width: 110px !important;
+    }
+
+    .num-input {
+        min-width: 65px !important;
+    }
+
+    .action-btn-group {
+        display: inline-flex !important;
+        gap: 0.25rem !important;
+        align-items: center !important;
+        justify-content: flex-end !important;
+    }
+
+    .action-btn {
+        padding: 0.35rem 0.55rem !important;
+        font-size: 0.75rem !important;
+        border-radius: 5px !important;
+    }
+
+    .status-badge {
+        padding: 0.15rem 0.45rem !important;
+        font-size: 0.72rem !important;
+    }
+
+    .add-form-grid-inst {
+        display: flex !important;
+        flex-direction: column !important;
+        gap: 0.55rem !important;
+        width: 100% !important;
+    }
+
+    .add-form-grid-inst .form-field {
+        width: 100% !important;
+    }
+
+    .add-form-grid-inst .btn-primary-add {
+        width: 100% !important;
+        min-height: 42px !important;
+        display: flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        font-size: 0.85rem !important;
+        font-weight: 800 !important;
+        box-sizing: border-box !important;
+        border-radius: 6px !important;
+    }
+
+    .add-form-inline {
+        display: flex !important;
+        flex-direction: column !important;
+        gap: 0.45rem !important;
+        width: 100% !important;
+    }
+
+    .add-form-inline .form-input {
+        width: 100% !important;
+    }
+
+    .add-form-inline .btn-primary-add {
+        width: 100% !important;
+        min-height: 40px !important;
+        display: flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        font-size: 0.82rem !important;
+        font-weight: 800 !important;
+        box-sizing: border-box !important;
+        border-radius: 6px !important;
+    }
 }
 
 /* ==========================================================================
