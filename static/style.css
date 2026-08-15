@@ -6903,6 +6903,94 @@ a {
         display: flex !important;
         align-items: center !important;
     }
+
+    /* 9. Market Intelligence & Crypto Hub Home Page */
+    .hub-hero-banner {
+        padding: 1.1rem 1rem !important;
+        border-radius: 10px !important;
+        margin-bottom: 0.75rem !important;
+        gap: 0.75rem !important;
+        flex-direction: column !important;
+        align-items: stretch !important;
+    }
+
+    .hub-title {
+        font-size: 1.25rem !important;
+        line-height: 1.25 !important;
+        margin-bottom: 0.35rem !important;
+    }
+
+    .hub-subtitle {
+        font-size: 0.78rem !important;
+        line-height: 1.4 !important;
+    }
+
+    .hub-hero-actions {
+        display: grid !important;
+        grid-template-columns: 1.3fr 1fr 1fr !important;
+        gap: 0.45rem !important;
+        width: 100% !important;
+        margin-top: 0.35rem !important;
+    }
+
+    .btn-hub-primary, .btn-hub-secondary {
+        padding: 0.55rem 0.35rem !important;
+        font-size: 0.76rem !important;
+        font-weight: 700 !important;
+        text-align: center !important;
+        justify-content: center !important;
+        display: flex !important;
+        align-items: center !important;
+        white-space: nowrap !important;
+        border-radius: 6px !important;
+        min-height: 38px !important;
+        box-sizing: border-box !important;
+    }
+
+    .hub-metrics-grid {
+        grid-template-columns: repeat(3, 1fr) !important;
+        gap: 0.45rem !important;
+        margin-bottom: 0.75rem !important;
+    }
+
+    .hub-metric-card {
+        padding: 0.65rem 0.5rem !important;
+        border-radius: 8px !important;
+        gap: 0.15rem !important;
+    }
+
+    .hub-metric-card .hm-lbl {
+        font-size: 0.6rem !important;
+    }
+
+    .hub-metric-card .hm-val {
+        font-size: 1.2rem !important;
+    }
+
+    .hub-metric-card .hm-sub {
+        font-size: 0.65rem !important;
+    }
+
+    .hub-quick-bar {
+        display: flex !important;
+        overflow-x: auto !important;
+        -webkit-overflow-scrolling: touch !important;
+        gap: 0.4rem !important;
+        padding: 0.4rem 0.2rem !important;
+        flex-wrap: nowrap !important;
+        margin-bottom: 1rem !important;
+    }
+
+    .hqb-label {
+        display: none !important;
+    }
+
+    .hqb-pill {
+        flex-shrink: 0 !important;
+        font-size: 0.72rem !important;
+        padding: 0.35rem 0.65rem !important;
+        white-space: nowrap !important;
+    }
 }
 
 
