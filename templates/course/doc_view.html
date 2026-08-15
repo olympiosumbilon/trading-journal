@@ -10,7 +10,7 @@
         <!-- Reader Header -->
         <div class="doc-reader-header">
             <div class="drh-left">
-                <a href="javascript:history.back()" class="btn-secondary btn-sm drh-back-btn">
+                <a href="javascript:void(0)" onclick="handleBackToWatch()" class="btn-secondary btn-sm drh-back-btn">
                     &larr; Back to Watch
                 </a>
                 <div class="drh-title-wrap">
@@ -198,4 +198,23 @@ body:has(.doc-reader-wrapper) {
     }
 }
 </style>
+
+<script>
+function handleBackToWatch() {
+    if (window.opener && !window.opener.closed) {
+        window.close();
+        return;
+    }
+    if (document.referrer && (document.referrer.includes('/course/watch') || document.referrer.includes('/course/'))) {
+        window.location.href = document.referrer;
+        return;
+    }
+    const lastWatched = localStorage.getItem('photon_last_watched_file');
+    if (lastWatched) {
+        window.location.href = '/course/watch?file=' + encodeURIComponent(lastWatched);
+    } else {
+        window.location.href = '/course/watch';
+    }
+}
+</script>
 {% endblock %}

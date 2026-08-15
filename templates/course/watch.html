@@ -205,7 +205,7 @@
                 <div class="lesson-docs-grid">
                     {% for doc in current_lesson.folder_docs %}
                     {% set doc_url = ('/course/file?path=' ~ (doc.rel_path | urlencode)) if doc.type == 'link' else ('/course/doc?path=' ~ (doc.rel_path | urlencode)) %}
-                    <a href="{{ doc_url }}" target="_blank" class="doc-attachment-card">
+                    <a href="{{ doc_url }}" class="doc-attachment-card">
                         <div class="doc-card-left">
                             <div class="doc-card-icon">
                                 {% if doc.type == 'word' %}📝

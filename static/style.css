@@ -5719,31 +5719,47 @@ main.main-full-bleed {
         display: flex;
     }
 
+    .main-nav {
+        position: relative !important;
+        z-index: 1000 !important;
+    }
+
     .nav-links-menu {
         display: none;
         flex-direction: column;
         align-items: stretch;
         gap: 0.35rem;
-        padding-top: 0.75rem;
-        border-top: 1px solid #1e293b;
-        margin-top: 0.6rem;
+        padding: 0.75rem 1rem 1rem 1rem !important;
+        background: #0b1120 !important;
+        border-bottom: 1px solid #1e293b !important;
+        position: absolute !important;
+        top: 100% !important;
+        left: 0 !important;
+        right: 0 !important;
+        width: 100% !important;
+        box-sizing: border-box !important;
+        z-index: 999999 !important;
+        box-shadow: 0 15px 35px rgba(0, 0, 0, 0.85) !important;
+        margin-top: 0 !important;
+        border-top: none !important;
     }
 
     .nav-links-menu.mobile-nav-open {
-        display: flex;
+        display: flex !important;
         animation: fadeIn 0.15s ease;
     }
 
     .nav-links-menu a {
-        padding: 0.55rem 0.85rem;
+        padding: 0.6rem 0.85rem;
         border-radius: 6px;
-        background: #1e293b;
+        background: #141c2e;
         color: #f1f5f9;
         font-size: 0.85rem;
+        border: 1px solid #1e293b;
     }
 
     .nav-links-menu a:hover {
-        background: #334155;
+        background: #1e293b;
         color: #38bdf8;
     }
 
