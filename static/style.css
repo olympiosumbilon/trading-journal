@@ -6509,20 +6509,33 @@ a {
     display: flex;
     align-items: center;
     gap: 0.5rem;
-    padding-top: 0.4rem;
+    padding-top: 0.55rem;
     border-top: 1px solid #f1f5f9;
+    width: 100%;
+}
+
+.tmc-del-form {
+    flex: 1;
+    margin: 0;
+    display: flex;
 }
 
 .tmc-btn {
     flex: 1;
     text-align: center;
     text-decoration: none;
-    font-size: 0.78rem;
+    font-size: 0.82rem;
     font-weight: 700;
-    padding: 0.45rem 0.5rem;
+    padding: 0.55rem 0.5rem;
     border-radius: 6px;
     border: none;
     cursor: pointer;
+    white-space: nowrap;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 38px;
+    box-sizing: border-box;
     transition: all 0.15s ease;
 }
 
@@ -6531,16 +6544,31 @@ a {
     color: #f8fafc;
 }
 
+.tmc-btn-view:hover {
+    background: #1e293b;
+}
+
 .tmc-btn-edit {
     background: #f1f5f9;
     color: #334155;
     border: 1px solid #cbd5e1;
 }
 
+.tmc-btn-edit:hover {
+    background: #e2e8f0;
+    color: #0f172a;
+}
+
 .tmc-btn-del {
     background: #fff;
     color: #dc2626;
     border: 1px solid #fecaca;
+    width: 100%;
+}
+
+.tmc-btn-del:hover {
+    background: #fee2e2;
+    border-color: #ef4444;
 }
 
 /* ==========================================================================

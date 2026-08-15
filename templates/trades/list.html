@@ -234,10 +234,10 @@
 
         <!-- Actions -->
         <div class="tmc-actions">
-            <a href="/trades/{{ trade.id }}" class="tmc-btn tmc-btn-view">👁️ View Details</a>
-            <a href="/trades/{{ trade.id }}/edit" class="tmc-btn tmc-btn-edit">✏️ Edit</a>
-            <form method="post" action="/trades/{{ trade.id }}/delete" onsubmit="return confirm('Sigurado ka nga gusto nimo i-delete kini nga Trade #{{ trade.id }}?')" style="margin:0;">
-                <button type="submit" class="tmc-btn tmc-btn-del">🗑️ Delete</button>
+            <a href="/trades/{{ trade.id }}" class="tmc-btn tmc-btn-view">View</a>
+            <a href="/trades/{{ trade.id }}/edit" class="tmc-btn tmc-btn-edit">Edit</a>
+            <form method="post" action="/trades/{{ trade.id }}/delete" onsubmit="return confirm('Sigurado ka nga gusto nimo i-delete kini nga Trade #{{ trade.id }}?')" class="tmc-del-form">
+                <button type="submit" class="tmc-btn tmc-btn-del">Delete</button>
             </form>
         </div>
     </div>
