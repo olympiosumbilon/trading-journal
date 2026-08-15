@@ -5842,64 +5842,97 @@ a {
         transform: translateX(0) !important;
     }
 
-    body:has(.course-watch-layout),
-    body:has(.course-watch-layout) main {
-        background: #090d16 !important;
-        padding: 0 !important;
-        margin: 0 !important;
+    .sidebar-open-btn {
+        display: none !important;
     }
 
     .player-top-bar {
         padding: 0.65rem 0.85rem !important;
-        background: #0b1120 !important;
-        border-bottom: 1px solid #1e293b !important;
         display: flex !important;
         justify-content: space-between !important;
         align-items: center !important;
+        background: #0f172a !important;
+        border-bottom: 1px solid #1e293b !important;
         width: 100% !important;
         box-sizing: border-box !important;
     }
 
     .ptb-left {
+        display: flex !important;
+        align-items: center !important;
         flex: 1 !important;
         min-width: 0 !important;
     }
 
     .ptb-breadcrumbs {
-        font-size: 0.8rem !important;
+        font-size: 0.82rem !important;
+        font-weight: 700 !important;
+        color: #f8fafc !important;
+        display: flex !important;
+        align-items: center !important;
+        gap: 0.35rem !important;
         white-space: nowrap !important;
         overflow: hidden !important;
         text-overflow: ellipsis !important;
+        min-width: 0 !important;
+    }
+
+    .ptb-mod {
+        color: #38bdf8 !important;
+        font-weight: 800 !important;
     }
 
     .ptb-right {
         flex-shrink: 0 !important;
+        margin-left: 0.5rem !important;
     }
 
     .ptb-progress {
-        font-size: 0.75rem !important;
+        font-size: 0.72rem !important;
         color: #94a3b8 !important;
         background: #1e293b !important;
         padding: 0.2rem 0.5rem !important;
         border-radius: 4px !important;
+        border: 1px solid #334155 !important;
+        white-space: nowrap !important;
+    }
+
+    .mobile-floating-syllabus-btn {
+        display: flex !important;
+        position: fixed !important;
+        bottom: 1.25rem !important;
+        right: 1rem !important;
+        background: #0284c7 !important;
+        color: #ffffff !important;
+        border: 1px solid #38bdf8 !important;
+        border-radius: 30px !important;
+        padding: 0.65rem 1.15rem !important;
+        font-size: 0.82rem !important;
+        font-weight: 800 !important;
+        box-shadow: 0 10px 25px rgba(0, 0, 0, 0.7), 0 0 0 2px rgba(56, 189, 248, 0.35) !important;
+        z-index: 9999 !important;
+        cursor: pointer !important;
+        align-items: center !important;
+        gap: 0.45rem !important;
+        transition: transform 0.15s ease !important;
+    }
+
+    .mobile-floating-syllabus-btn:active {
+        transform: scale(0.95) !important;
     }
 
     .video-stage-container {
         max-height: none;
         width: 100%;
-        background: #000 !important;
     }
 
     .video-element {
-        max-height: 45vh;
+        max-height: 42vh;
         width: 100%;
-        background: #000 !important;
     }
 
     .player-action-bar {
-        padding: 0.75rem 0.85rem !important;
-        background: #0b1120 !important;
-        border-bottom: 1px solid #1e293b !important;
+        padding: 0.65rem 0.75rem;
         flex-direction: column;
         align-items: stretch;
         gap: 0.65rem;
@@ -5919,48 +5952,14 @@ a {
     }
 
     .speed-btn {
-        padding: 0.25rem 0.4rem;
-        font-size: 0.7rem;
+        padding: 0.2rem 0.35rem;
+        font-size: 0.68rem;
     }
 
     .pab-right {
         width: 100%;
-        display: flex;
-        flex-direction: column;
-        gap: 0.65rem;
-    }
-
-    .nav-prev-next-group {
-        display: flex !important;
-        align-items: center !important;
-        gap: 0.4rem !important;
-        width: 100% !important;
-    }
-
-    .nav-pn-btn {
-        flex: 1 !important;
-        min-height: 40px !important;
-        font-size: 0.8rem !important;
-        font-weight: 800 !important;
-        display: flex !important;
-        align-items: center !important;
-        justify-content: center !important;
-        text-align: center !important;
-        border-radius: 6px !important;
-        box-sizing: border-box !important;
-    }
-
-    .btn-syllabus-trigger {
-        background: #1e293b !important;
-        border: 1px solid #38bdf8 !important;
-        color: #38bdf8 !important;
-        cursor: pointer !important;
-    }
-
-    .btn-syllabus-trigger:hover,
-    .btn-syllabus-trigger:active {
-        background: #0284c7 !important;
-        color: #ffffff !important;
+        justify-content: space-between;
+        gap: 0.5rem;
     }
 
     .lesson-info-workspace {
