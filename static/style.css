@@ -13,15 +13,14 @@ nav.main-nav {
     justify-content: space-between;
     align-items: center;
     border-bottom: 1px solid #1e293b;
-    flex-wrap: wrap;
     gap: 0.75rem;
+    position: relative;
+    z-index: 100;
 }
 
-.nav-left {
+.nav-brand-bar {
     display: flex;
     align-items: center;
-    gap: 1.25rem;
-    flex-wrap: wrap;
 }
 
 .nav-brand {
@@ -30,6 +29,44 @@ nav.main-nav {
     letter-spacing: 0.1em;
     font-size: 0.95rem;
     margin-right: 0.5rem;
+}
+
+.nav-mobile-controls {
+    display: none;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.mobile-year-picker {
+    display: none;
+}
+
+.nav-hamburger-btn {
+    display: none;
+    background: #1e293b;
+    border: 1px solid #334155;
+    border-radius: 4px;
+    cursor: pointer;
+    padding: 0.4rem 0.5rem;
+    flex-direction: column;
+    justify-content: center;
+    gap: 3px;
+}
+
+.nh-bar {
+    display: block;
+    width: 18px;
+    height: 2px;
+    background: #f8fafc;
+    border-radius: 2px;
+    transition: all 0.2s ease;
+}
+
+.nav-links-menu {
+    display: flex;
+    align-items: center;
+    gap: 1.25rem;
+    flex-wrap: wrap;
 }
 
 nav a {
@@ -5460,6 +5497,315 @@ a {
     opacity: 1;
     transform: translateY(0);
 }
+
+/* ==========================================================================
+   📱 COMPREHENSIVE MOBILE & TABLET RESPONSIVE SYSTEM (< 768px & < 480px)
+   ========================================================================== */
+
+@media (max-width: 768px) {
+    /* 1. Main Navigation */
+    nav.main-nav {
+        padding: 0.6rem 1rem;
+        flex-direction: column;
+        align-items: stretch;
+        gap: 0;
+    }
+
+    .nav-brand-bar {
+        width: 100%;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    .nav-mobile-controls {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .mobile-year-picker {
+        display: flex;
+        padding: 0.15rem 0.4rem;
+    }
+
+    .desktop-year-picker {
+        display: none !important;
+    }
+
+    .nav-hamburger-btn {
+        display: flex;
+    }
+
+    .nav-links-menu {
+        display: none;
+        flex-direction: column;
+        align-items: stretch;
+        gap: 0.35rem;
+        padding-top: 0.75rem;
+        border-top: 1px solid #1e293b;
+        margin-top: 0.6rem;
+    }
+
+    .nav-links-menu.mobile-nav-open {
+        display: flex;
+        animation: fadeIn 0.15s ease;
+    }
+
+    .nav-links-menu a {
+        padding: 0.55rem 0.85rem;
+        border-radius: 6px;
+        background: #1e293b;
+        color: #f1f5f9;
+        font-size: 0.85rem;
+    }
+
+    .nav-links-menu a:hover {
+        background: #334155;
+        color: #38bdf8;
+    }
+
+    /* 2. Global Layout & Containers */
+    main {
+        padding: 0.75rem 0.5rem;
+        width: 100%;
+        box-sizing: border-box;
+    }
+
+    .dash-container {
+        padding: 0;
+        margin: 0;
+        width: 100%;
+        box-sizing: border-box;
+    }
+
+    /* 3. Document Reader View */
+    .doc-reader-card {
+        border-radius: 6px !important;
+        margin: 0 !important;
+        width: 100% !important;
+        box-sizing: border-box;
+        border: 1px solid #1e293b;
+    }
+
+    .doc-reader-header {
+        padding: 0.85rem 1rem !important;
+        flex-direction: column;
+        align-items: flex-start !important;
+        gap: 0.75rem !important;
+    }
+
+    .drh-left {
+        flex-direction: column;
+        align-items: flex-start !important;
+        gap: 0.5rem !important;
+        width: 100%;
+    }
+
+    .doc-reader-title {
+        font-size: 1.15rem !important;
+    }
+
+    .doc-reader-body {
+        padding: 1.25rem 1rem !important;
+    }
+
+    .doc-formatted-content {
+        font-size: 0.88rem !important;
+        line-height: 1.65 !important;
+    }
+
+    .doc-p-heading {
+        font-size: 1.05rem !important;
+        margin: 1.25rem 0 0.4rem 0 !important;
+    }
+
+    /* 4. Course Academy Hub & Cards */
+    .course-hero-banner {
+        padding: 1.25rem 1rem;
+        flex-direction: column;
+        align-items: stretch;
+        gap: 1.25rem;
+    }
+
+    .course-hero-banner h1 {
+        font-size: 1.35rem;
+    }
+
+    .course-hero-meta {
+        gap: 0.5rem;
+        margin-bottom: 1rem;
+    }
+
+    .course-progress-card {
+        min-width: unset;
+        width: 100%;
+        box-sizing: border-box;
+    }
+
+    .modules-cards-grid {
+        grid-template-columns: 1fr;
+        padding: 0.75rem;
+        gap: 0.85rem;
+    }
+
+    .course-search-form {
+        flex-direction: column;
+    }
+
+    /* 5. Course Watch Player Workspace */
+    .course-watch-layout {
+        flex-direction: column;
+        height: auto;
+        min-height: 100vh;
+        overflow: visible;
+    }
+
+    .course-sidebar {
+        width: 100% !important;
+        max-width: 100vw;
+        position: fixed;
+        top: 0;
+        left: 0;
+        bottom: 0;
+        right: 0;
+        z-index: 99999;
+        transform: translateX(-100%);
+        transition: transform 0.25s ease;
+    }
+
+    .course-sidebar:not(.sidebar-collapsed) {
+        transform: translateX(0);
+    }
+
+    .course-sidebar.sidebar-collapsed {
+        transform: translateX(-100%);
+        width: 100% !important;
+    }
+
+    .video-stage-container {
+        max-height: none;
+        width: 100%;
+    }
+
+    .video-element {
+        max-height: 42vh;
+        width: 100%;
+    }
+
+    .player-action-bar {
+        padding: 0.65rem 0.75rem;
+        flex-direction: column;
+        align-items: stretch;
+        gap: 0.65rem;
+    }
+
+    .pab-left {
+        width: 100%;
+        overflow-x: auto;
+        padding-bottom: 0.25rem;
+    }
+
+    .speed-switcher-group {
+        display: flex;
+        align-items: center;
+        gap: 0.2rem;
+        flex-shrink: 0;
+    }
+
+    .speed-btn {
+        padding: 0.2rem 0.35rem;
+        font-size: 0.68rem;
+    }
+
+    .pab-right {
+        width: 100%;
+        justify-content: space-between;
+        gap: 0.5rem;
+    }
+
+    .lesson-info-workspace {
+        padding: 1rem 0.75rem;
+    }
+
+    .lesson-main-title {
+        font-size: 1.15rem;
+    }
+
+    .workspace-tabs-bar {
+        overflow-x: auto;
+        white-space: nowrap;
+        padding-bottom: 0.25rem;
+        gap: 0.25rem;
+    }
+
+    .ws-tab-btn {
+        padding: 0.45rem 0.6rem;
+        font-size: 0.74rem;
+        flex-shrink: 0;
+    }
+
+    .lesson-docs-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .doc-attachment-card {
+        padding: 0.65rem 0.75rem;
+    }
+
+    /* 6. Dashboard, KPIs & Fear/Greed */
+    .kpi-grid, .stats-overview-grid {
+        grid-template-columns: repeat(2, 1fr) !important;
+        gap: 0.5rem !important;
+    }
+
+    .fear-greed-panel {
+        padding: 0.75rem !important;
+    }
+
+    .fg-tab-bar {
+        gap: 0.2rem !important;
+    }
+
+    .fg-tab-btn {
+        padding: 0.3rem 0.45rem !important;
+        font-size: 0.65rem !important;
+    }
+
+    .fg-gauge-center {
+        width: 140px !important;
+        height: 75px !important;
+    }
+
+    /* 7. Tables & Horizontal Scroll */
+    .table-container, .table-wrapper, .section-table-wrap, .data-table-wrap {
+        overflow-x: auto !important;
+        -webkit-overflow-scrolling: touch !important;
+        width: 100% !important;
+    }
+
+    /* 8. Filters & Forms */
+    .filters-card {
+        padding: 0.75rem !important;
+    }
+
+    .filters-grid {
+        grid-template-columns: 1fr !important;
+        gap: 0.5rem !important;
+    }
+
+    .form-grid {
+        grid-template-columns: 1fr !important;
+    }
+
+    .modal-content, .trade-modal, .doc-modal-container {
+        width: 95% !important;
+        max-width: 95vw !important;
+        margin: 1rem auto !important;
+        padding: 0 !important;
+    }
+}
+
 
 
 

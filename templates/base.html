@@ -8,8 +8,28 @@
 </head>
 <body>
     <nav class="main-nav">
-        <div class="nav-left">
+        <div class="nav-brand-bar">
             <a href="/" class="nav-brand">TRADING JOURNAL</a>
+            <div class="nav-mobile-controls">
+                <div class="global-year-picker mobile-year-picker">
+                    <select id="globalYearDropdownMobile" onchange="setGlobalActiveYear(this.value)" class="gy-select">
+                        <option value="all">All-Time</option>
+                        <option value="2022">2022</option>
+                        <option value="2023">2023</option>
+                        <option value="2024">2024</option>
+                        <option value="2025">2025</option>
+                        <option value="2026">2026</option>
+                    </select>
+                </div>
+                <button type="button" class="nav-hamburger-btn" onclick="toggleMobileNav()" aria-label="Toggle Menu">
+                    <span class="nh-bar"></span>
+                    <span class="nh-bar"></span>
+                    <span class="nh-bar"></span>
+                </button>
+            </div>
+        </div>
+
+        <div class="nav-links-menu" id="navLinksMenu">
             <a href="/dashboard/">Dashboard</a>
             <a href="/trades/">Trades</a>
             <a href="/ai/">AI Review</a>
@@ -19,7 +39,8 @@
             <a href="/course/">📚 Course</a>
             <a href="/settings/">Settings</a>
         </div>
-        <div class="nav-right">
+
+        <div class="nav-right desktop-year-picker">
             <div class="global-year-picker">
                 <span class="gy-label">ACTIVE YEAR:</span>
                 <select id="globalYearDropdown" onchange="setGlobalActiveYear(this.value)" class="gy-select">
@@ -47,6 +68,13 @@
     </main>
 
     <script>
+    function toggleMobileNav() {
+        const menu = document.getElementById('navLinksMenu');
+        const btn = document.querySelector('.nav-hamburger-btn');
+        if (menu) menu.classList.toggle('mobile-nav-open');
+        if (btn) btn.classList.toggle('active');
+    }
+
     (function() {
         const getCookie = (name) => {
             const v = document.cookie.match('(^|;) ?' + name + '=([^;]*)(;|$)');
@@ -55,9 +83,9 @@
         const params = new URLSearchParams(window.location.search);
         const activeYear = params.get('year') || getCookie('active_year') || '2024';
         const dropdown = document.getElementById('globalYearDropdown');
-        if (dropdown && activeYear) {
-            dropdown.value = activeYear;
-        }
+        const dropdownMobile = document.getElementById('globalYearDropdownMobile');
+        if (dropdown && activeYear) dropdown.value = activeYear;
+        if (dropdownMobile && activeYear) dropdownMobile.value = activeYear;
     })();
 
     function setGlobalActiveYear(year) {
