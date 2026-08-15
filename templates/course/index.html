@@ -1,0 +1,191 @@
+{% extends "base.html" %}
+
+{% block title %}Photon Academy — Zero To Funded 2024{% endblock %}
+
+{% block content %}
+<div class="dash-container">
+    
+    <!-- Hero Header Banner -->
+    <div class="course-hero-banner">
+        <div class="course-hero-content">
+            <div class="course-badge">🎓 OFFICIAL STRATEGY LIBRARY</div>
+            <h1>Photon — Zero To Funded 2024</h1>
+            <p class="course-hero-subtitle">
+                Master the exact institutional market structure, orderflow, and execution models (<strong style="color:#38bdf8;">LC-1, LC-2A, LC Swing</strong>) that power your trading journal.
+            </p>
+            <div class="course-hero-meta">
+                <span class="ch-meta-item">📁 13 Comprehensive Modules</span>
+                <span class="ch-meta-item">🎥 {{ total_videos }} Video Lessons</span>
+                <span class="ch-meta-item">⚡ Instant Range-Streaming</span>
+            </div>
+            
+            <div class="course-hero-actions">
+                {% if first_lesson %}
+                <a href="/course/watch?file={{ first_lesson.rel_path | urlencode }}" class="btn-primary" id="btnResumeCourse">
+                    ▶️ Start / Resume Learning
+                </a>
+                {% endif %}
+                <a href="#modules-list" class="btn-secondary">
+                    📑 Browse All Modules
+                </a>
+            </div>
+        </div>
+
+        <div class="course-progress-card">
+            <div class="cpc-header">
+                <span class="cpc-title">Your Watch Progress</span>
+                <span class="cpc-pct font-bold" id="courseProgressPct">0%</span>
+            </div>
+            <div class="cpc-bar">
+                <div class="cpc-fill" id="courseProgressFill" style="width: 0%;"></div>
+            </div>
+            <div class="cpc-stats">
+                <span id="courseWatchedCount">0</span> of {{ total_videos }} lessons completed
+            </div>
+        </div>
+    </div>
+
+    <!-- Search & Filter Bar -->
+    <div class="course-search-section">
+        <form action="/course/" method="GET" class="course-search-form">
+            <div class="search-input-wrapper">
+                <span class="search-icon">🔍</span>
+                <input 
+                    type="text" 
+                    name="q" 
+                    value="{{ search_query }}" 
+                    placeholder="Search any topic, lesson, setup (e.g. LC-1, Market Structure, Orderflow, Psychology)..." 
+                    class="course-search-input"
+                    id="courseSearchInput"
+                >
+                {% if search_query %}
+                <a href="/course/" class="search-clear-btn">&times;</a>
+                {% endif %}
+            </div>
+            <button type="submit" class="btn-primary">Search Lessons</button>
+        </form>
+    </div>
+
+    {% if search_query %}
+    <!-- Search Results View -->
+    <div class="course-search-results">
+        <div class="section-title-bar" style="border-radius: 8px 8px 0 0; display:flex; justify-content:space-between; align-items:center;">
+            <h3>SEARCH RESULTS FOR "{{ search_query }}" ({{ search_results|length }} found)</h3>
+            <a href="/course/" class="btn-text-link" style="color:#38bdf8;">Clear Search</a>
+        </div>
+        <div class="search-results-grid">
+            {% for item in search_results %}
+            <a href="/course/watch?file={{ item.rel_path | urlencode }}" class="search-result-card">
+                <div class="src-icon">🎥</div>
+                <div class="src-info">
+                    <div class="src-module">{{ item.module_name }}</div>
+                    <div class="src-title font-bold">{{ item.title }}</div>
+                    <div class="src-meta">{{ item.section_name }} &bull; {{ item.size_mb }} MB</div>
+                </div>
+                <div class="src-arrow">&rarr;</div>
+            </a>
+            {% else %}
+            <div class="empty-cell" style="padding: 2.5rem; text-align: center; grid-column: 1 / -1;">
+                <p style="font-size: 1.1rem; color: #64748b; margin-bottom: 0.5rem;">No lessons found matching "{{ search_query }}"</p>
+                <small style="color: #94a3b8;">Try searching for broader keywords like "Structure", "Liquidity", "LC", or "Mindset".</small>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Modules Grid -->
+    <div id="modules-list" class="course-modules-section">
+        <div class="section-title-bar" style="border-radius: 8px 8px 0 0;">
+            <h3>COURSE MODULES & SYLLABUS</h3>
+        </div>
+
+        <div class="modules-cards-grid">
+            {% for mod in modules %}
+            <div class="module-card">
+                <div class="module-card-header">
+                    <div class="mc-title-wrap">
+                        <span class="mc-number">Module {{ loop.index }}</span>
+                        <h4>{{ mod.name }}</h4>
+                    </div>
+                    <div class="mc-badge">{{ mod.total_videos }} videos</div>
+                </div>
+
+                <div class="module-card-body">
+                    {% if mod.subdirs %}
+                        <div class="mc-subdirs-list">
+                            {% for sub in mod.subdirs %}
+                            <div class="mc-subdir-item">
+                                <span class="subdir-name font-bold">📁 {{ sub.name }}</span>
+                                <span class="subdir-count">{{ sub.videos|length }} videos</span>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    {% elif mod.videos %}
+                        <div class="mc-lessons-preview">
+                            {% for v in mod.videos[:4] %}
+                            <a href="/course/watch?file={{ v.rel_path | urlencode }}" class="mc-lesson-row">
+                                <span class="mc-lr-icon">▶</span>
+                                <span class="mc-lr-title">{{ v.title }}</span>
+                            </a>
+                            {% endfor %}
+                            {% if mod.videos|length > 4 %}
+                            <div class="mc-more-count">+ {{ mod.videos|length - 4 }} more lessons...</div>
+                            {% endif %}
+                        </div>
+                    {% else %}
+                        <p class="text-muted" style="font-size:0.8rem; padding:0.5rem 0;">Reference documentation & archive resources.</p>
+                    {% endif %}
+                </div>
+
+                <div class="module-card-footer">
+                    {% if mod.total_videos > 0 %}
+                        {% set first_vid = mod.videos[0] if mod.videos else (mod.subdirs[0].videos[0] if mod.subdirs and mod.subdirs[0].videos else None) %}
+                        {% if first_vid %}
+                        <a href="/course/watch?file={{ first_vid.rel_path | urlencode }}" class="btn-primary btn-block">
+                            Start Module &rarr;
+                        </a>
+                        {% else %}
+                        <a href="/course/watch" class="btn-secondary btn-block">Explore Lessons</a>
+                        {% endif %}
+                    {% else %}
+                        <a href="/course/watch" class="btn-secondary btn-block">View Materials</a>
+                    {% endif %}
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+    // Load watch progress from localStorage
+    try {
+        const completed = JSON.parse(localStorage.getItem('photon_completed_lessons') || '[]');
+        const total = {{ total_videos }};
+        const count = completed.length;
+        const pct = total > 0 ? Math.min(100, Math.round((count / total) * 100)) : 0;
+        
+        const countEl = document.getElementById('courseWatchedCount');
+        const pctEl = document.getElementById('courseProgressPct');
+        const fillEl = document.getElementById('courseProgressFill');
+        
+        if (countEl) countEl.innerText = count;
+        if (pctEl) pctEl.innerText = pct + '%';
+        if (fillEl) fillEl.style.width = pct + '%';
+
+        // Check for last watched lesson
+        const lastWatched = localStorage.getItem('photon_last_watched_file');
+        const resumeBtn = document.getElementById('btnResumeCourse');
+        if (lastWatched && resumeBtn) {
+            resumeBtn.href = '/course/watch?file=' + encodeURIComponent(lastWatched);
+            resumeBtn.innerHTML = '▶️ Resume: ' + (localStorage.getItem('photon_last_watched_title') || 'Next Lesson');
+        }
+    } catch (e) {
+        console.error('Error loading course progress:', e);
+    }
+});
+</script>
+{% endblock %}

@@ -2,7 +2,7 @@ from fastapi import FastAPI, Request
 from fastapi.templating import Jinja2Templates
 from fastapi.staticfiles import StaticFiles
 from database import Base, engine
-from routers import trades, dashboard, ai, automations, settings, summary, analysis
+from routers import trades, dashboard, ai, automations, settings, summary, analysis, course
 from apscheduler.schedulers.background import BackgroundScheduler
 from services.automation_service import check_alerts
 
@@ -94,3 +94,4 @@ app.include_router(automations.router, prefix="/automations", tags=["automations
 app.include_router(settings.router, prefix="/settings", tags=["settings"])
 app.include_router(summary.router, prefix="/summary", tags=["summary"])
 app.include_router(analysis.router, prefix="/analysis", tags=["analysis"])
+app.include_router(course.router)

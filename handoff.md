@@ -60,13 +60,14 @@ Phase 5 complete: automations layer with scheduled alerts, CSV export, weekly re
   - Solved UI clipping by resetting table, card, and section `overflow: visible !important`.
   - Wrapped interactive badges in `.interactive-trade-wrapper` with centered pointer arrow and dark theme contrast.
   - Added interactive trade preview hover popovers and direct filter URLs across all sections:
-    - **Monthly Performance Matrix** (overall month & setup columns)
-    - **Quarterly Performance Matrix** (overall quarter & setup columns)
-    - **Multi-Year Strategy Performance Matrix** (yearly rows, setup columns, & matrix total row)
-    - **Monthly Performance by Session Cards** (months & session totals)
-    - **Time of Day (30-min intervals)**
-    - **Instruments, Probabilities, MTF Phases, Days, Sessions**
-    - **Trade Outcomes & Exits, Leaks/Missed Tags, Mindset & Reflection**
+- **Photon Course & Video Academy Integration**:
+  - Integrated full offline library from `D:\Trading\Photon File\Photon -  Zero To Funded 2024` with 13 modules and 158 video lessons.
+  - Added dedicated navigation bar link (`📚 Course`).
+  - Added modern Academy Hub (`/course/`) with search, module cards, and completion progress.
+  - Added Range-Streaming Video Player (`/course/watch`) with playback speed controls (0.75x-2x), keyboard shortcuts, module playlist tree, accompanying documents download, and auto-saved personal notes notepad.
+- **Trader Fear & Greed Index Dial & Matrix**:
+  - Semicircular speedometer gauge (0-100) with dynamic needle pointer.
+  - Added Overall, Quarterly, Monthly, and Weekly tabs below Trading Rules on the Dashboard.
 - **Direct Drill-Down Filtering on "View All" & Badges**:
   - Updated `routers/trades.py` to support `phase`, `day_idx`, `outcome`, `emotion_before`, `emotion_after`, `tag`, and `probability` query parameters.
   - Fixed SQL query for outcome filtering (`func.coalesce(Trade.outcome_type, 'AUTO')`) to correctly handle `NULL` outcome types in the database when filtering `FULL_SL`, `FULL_TP`, and `BREAK_EVEN`.

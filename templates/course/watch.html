@@ -1,0 +1,458 @@
+{% extends "base.html" %}
+
+{% block title %}{{ current_lesson.title }} — Photon Academy{% endblock %}
+
+{% block content %}
+<div class="course-watch-layout">
+
+    <!-- Left Playlist Sidebar -->
+    <aside class="course-sidebar" id="courseSidebar">
+        <div class="sidebar-header">
+            <div>
+                <a href="/course/" class="back-to-hub-link">&larr; Academy Hub</a>
+                <h3 class="sidebar-course-title">Zero To Funded 2024</h3>
+            </div>
+            <button type="button" class="sidebar-toggle-btn" onclick="toggleSidebar()" title="Toggle Sidebar">
+                &times;
+            </button>
+        </div>
+
+        <!-- Instant Lesson Search Filter -->
+        <div class="sidebar-search-box">
+            <input 
+                type="text" 
+                id="sidebarLessonSearch" 
+                placeholder="Filter lessons in list..." 
+                oninput="filterSidebarLessons(this.value)"
+                class="sidebar-filter-input"
+            >
+        </div>
+
+        <!-- Playlist Accordion -->
+        <div class="sidebar-modules-tree" id="sidebarModulesTree">
+            {% for mod in modules %}
+            <div class="sidebar-module-group" data-module="{{ mod.name }}">
+                <div class="sm-group-header" onclick="toggleModuleGroup(this)">
+                    <span class="sm-group-icon">▼</span>
+                    <span class="sm-group-title font-bold">{{ mod.name }}</span>
+                    <span class="sm-group-badge">{{ mod.total_videos }}</span>
+                </div>
+
+                <div class="sm-group-content">
+                    {% if mod.subdirs %}
+                        {% for sub in mod.subdirs %}
+                        <div class="sm-subdir-group" data-subdir="{{ sub.name }}">
+                            <div class="sm-subdir-header" onclick="toggleSubdirGroup(this)">
+                                <span class="sm-subdir-icon">▼</span>
+                                <span class="sm-subdir-title font-bold">📁 {{ sub.name }}</span>
+                            </div>
+                            <div class="sm-subdir-content">
+                                {% for v in sub.videos %}
+                                {% set is_active = (v.rel_path == current_lesson.rel_path) %}
+                                <a 
+                                    href="/course/watch?file={{ v.rel_path | urlencode }}" 
+                                    class="sm-lesson-item {% if is_active %}active-lesson{% endif %}"
+                                    data-title="{{ v.title | lower }}"
+                                    data-relpath="{{ v.rel_path }}"
+                                >
+                                    <span class="lesson-check-icon" id="check-{{ loop.index0 }}-{{ v.rel_path | replace('/', '-') | replace(' ', '-') }}">○</span>
+                                    <span class="lesson-item-title">{{ v.title }}</span>
+                                    <span class="lesson-item-size">{{ v.size_mb }}M</span>
+                                </a>
+                                {% endfor %}
+                            </div>
+                        </div>
+                        {% endfor %}
+                    {% else %}
+                        {% for v in mod.videos %}
+                        {% set is_active = (v.rel_path == current_lesson.rel_path) %}
+                        <a 
+                            href="/course/watch?file={{ v.rel_path | urlencode }}" 
+                            class="sm-lesson-item {% if is_active %}active-lesson{% endif %}"
+                            data-title="{{ v.title | lower }}"
+                            data-relpath="{{ v.rel_path }}"
+                        >
+                            <span class="lesson-check-icon" id="check-{{ loop.index0 }}-{{ v.rel_path | replace('/', '-') | replace(' ', '-') }}">○</span>
+                            <span class="lesson-item-title">{{ v.title }}</span>
+                            <span class="lesson-item-size">{{ v.size_mb }}M</span>
+                        </a>
+                        {% endfor %}
+                    {% endif %}
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </aside>
+
+    <!-- Main Video & Notes Workspace -->
+    <main class="course-main-player">
+        
+        <!-- Top Sticky Breadcrumb Bar -->
+        <div class="player-top-bar">
+            <div class="ptb-left">
+                <button type="button" class="sidebar-open-btn" onclick="toggleSidebar()" title="Toggle Sidebar">
+                    ☰ Modules
+                </button>
+                <div class="ptb-breadcrumbs">
+                    <span class="ptb-mod">{{ current_lesson.module_name }}</span>
+                    {% if current_lesson.section_name and current_lesson.section_name != current_lesson.module_name %}
+                    <span class="ptb-sep">&rsaquo;</span>
+                    <span class="ptb-sec">{{ current_lesson.section_name }}</span>
+                    {% endif %}
+                </div>
+            </div>
+            <div class="ptb-right">
+                <span class="ptb-progress font-bold">Lesson {{ playlist_index }} of {{ playlist_total }}</span>
+            </div>
+        </div>
+
+        <!-- Video Player Stage -->
+        <div class="video-stage-container">
+            <video 
+                id="photonVideoPlayer" 
+                class="video-element" 
+                controls 
+                preload="metadata"
+                controlsList="nodownload"
+                poster=""
+            >
+                <source src="/course/stream?path={{ current_lesson.rel_path | urlencode }}" type="video/mp4">
+                Your browser does not support the video tag.
+            </video>
+        </div>
+
+        <!-- Player Controls & Action Bar -->
+        <div class="player-action-bar">
+            <div class="pab-left">
+                <!-- Speed Switcher -->
+                <div class="speed-switcher-group">
+                    <span class="speed-label">Speed:</span>
+                    <button type="button" class="speed-btn" onclick="setPlaySpeed(0.75)">0.75x</button>
+                    <button type="button" class="speed-btn active" onclick="setPlaySpeed(1.0)">1x</button>
+                    <button type="button" class="speed-btn" onclick="setPlaySpeed(1.25)">1.25x</button>
+                    <button type="button" class="speed-btn" onclick="setPlaySpeed(1.5)">1.5x</button>
+                    <button type="button" class="speed-btn" onclick="setPlaySpeed(1.75)">1.75x</button>
+                    <button type="button" class="speed-btn" onclick="setPlaySpeed(2.0)">2x</button>
+                </div>
+            </div>
+
+            <div class="pab-right">
+                <!-- Mark Completed Toggle -->
+                <label class="completion-toggle-label">
+                    <input type="checkbox" id="chkCompleteLesson" onchange="toggleCompleteCurrentLesson(this.checked)">
+                    <span>Mark Completed</span>
+                </label>
+
+                <!-- Autoplay Next Toggle -->
+                <label class="autoplay-toggle-label">
+                    <input type="checkbox" id="chkAutoplayNext" checked>
+                    <span>Autoplay Next</span>
+                </label>
+
+                <!-- Navigation Prev/Next -->
+                <div class="nav-prev-next-group">
+                    {% if prev_lesson %}
+                    <a href="/course/watch?file={{ prev_lesson.rel_path | urlencode }}" class="btn-secondary btn-sm" title="Previous Lesson">
+                        &larr; Prev
+                    </a>
+                    {% endif %}
+                    {% if next_lesson %}
+                    <a href="/course/watch?file={{ next_lesson.rel_path | urlencode }}" class="btn-primary btn-sm" id="btnNextLesson" title="Next Lesson">
+                        Next &rarr;
+                    </a>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Lesson Info & Tabs Workspace -->
+        <div class="lesson-info-workspace">
+            <div class="liw-header">
+                <h1 class="lesson-main-title">{{ current_lesson.title }}</h1>
+                <div class="lesson-meta-badges">
+                    <span class="lmb-badge">📁 {{ current_lesson.module_name }}</span>
+                    <span class="lmb-badge">📦 {{ current_lesson.size_mb }} MB</span>
+                    <span class="lmb-badge">🎬 {{ current_lesson.ext | upper }}</span>
+                </div>
+            </div>
+
+            <!-- Workspace Tabs Bar -->
+            <div class="workspace-tabs-bar">
+                <button type="button" class="ws-tab-btn active" id="tabBtnFiles" onclick="switchWsTab('files')">
+                    📎 Accompanying Docs & Files ({{ current_lesson.folder_docs|length }})
+                </button>
+                <button type="button" class="ws-tab-btn" id="tabBtnNotes" onclick="switchWsTab('notes')">
+                    📝 My Lesson Notes
+                </button>
+                <button type="button" class="ws-tab-btn" id="tabBtnShortcuts" onclick="switchWsTab('shortcuts')">
+                    ⌨️ Shortcuts
+                </button>
+            </div>
+
+            <!-- Tab 1: Accompanying Files & Resources -->
+            <div id="wsTabFiles" class="ws-tab-content active">
+                {% if current_lesson.folder_docs %}
+                <div class="lesson-docs-grid">
+                    {% for doc in current_lesson.folder_docs %}
+                    <div class="doc-attachment-card">
+                        <div class="doc-card-icon">
+                            {% if doc.type == 'word' %}📝
+                            {% elif doc.type == 'pdf' %}📕
+                            {% elif doc.type == 'image' %}🖼️
+                            {% elif doc.type == 'excel' %}📊
+                            {% elif doc.type == 'link' %}🔗
+                            {% else %}📄{% endif %}
+                        </div>
+                        <div class="doc-card-info">
+                            <div class="doc-card-title font-bold">{{ doc.title }}</div>
+                            <div class="doc-card-meta">{{ doc.ext | upper }} &bull; {{ doc.size_mb }} MB</div>
+                        </div>
+                        <a href="/course/file?path={{ doc.rel_path | urlencode }}" target="_blank" download class="btn-secondary btn-sm">
+                            Open / Download
+                        </a>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% else %}
+                <div class="empty-docs-box">
+                    <p>No accompanying documents attached to this lesson folder.</p>
+                </div>
+                {% endif %}
+            </div>
+
+            <!-- Tab 2: Personal Lesson Notes Pad -->
+            <div id="wsTabNotes" class="ws-tab-content" style="display: none;">
+                <div class="notes-workspace-box">
+                    <div class="notes-box-header">
+                        <span class="font-bold">Personal Study Notes for "{{ current_lesson.title }}"</span>
+                        <span class="notes-saved-status" id="notesSavedStatus">✓ Saved</span>
+                    </div>
+                    <textarea 
+                        id="lessonNotesTextarea" 
+                        class="lesson-notes-textarea" 
+                        placeholder="Type key takeaways, rules, screenshot timestamp notes, or study reflections here... (Automatically saved locally)"
+                        oninput="saveLessonNotes(this.value)"
+                    ></textarea>
+                </div>
+            </div>
+
+            <!-- Tab 3: Keyboard Shortcuts -->
+            <div id="wsTabShortcuts" class="ws-tab-content" style="display: none;">
+                <div class="shortcuts-grid">
+                    <div class="shortcut-item"><kbd>Space</kbd> <span>Play / Pause</span></div>
+                    <div class="shortcut-item"><kbd>&larr;</kbd> / <kbd>&rarr;</kbd> <span>Seek Backward / Forward 5s</span></div>
+                    <div class="shortcut-item"><kbd>&uarr;</kbd> / <kbd>&darr;</kbd> <span>Volume Up / Down</span></div>
+                    <div class="shortcut-item"><kbd>F</kbd> <span>Toggle Fullscreen</span></div>
+                    <div class="shortcut-item"><kbd>M</kbd> <span>Mute / Unmute</span></div>
+                    <div class="shortcut-item"><kbd>&gt;</kbd> / <kbd>&lt;</kbd> <span>Increase / Decrease Playback Speed</span></div>
+                </div>
+            </div>
+
+        </div>
+
+    </main>
+
+</div>
+
+<script>
+const currentLessonPath = {{ current_lesson.rel_path | tojson }};
+const currentLessonTitle = {{ current_lesson.title | tojson }};
+const nextLessonUrl = {% if next_lesson %}"/course/watch?file=" + encodeURIComponent({{ next_lesson.rel_path | tojson }}){% else %}null{% endif %};
+
+document.addEventListener('DOMContentLoaded', () => {
+    const video = document.getElementById('photonVideoPlayer');
+
+    // 1. Remember last watched
+    localStorage.setItem('photon_last_watched_file', currentLessonPath);
+    localStorage.setItem('photon_last_watched_title', currentLessonTitle);
+
+    // 2. Load and reflect completed lessons
+    loadCompletionStatus();
+
+    // 3. Load lesson notes
+    const notesArea = document.getElementById('lessonNotesTextarea');
+    if (notesArea) {
+        notesArea.value = localStorage.getItem('photon_notes_' + currentLessonPath) || '';
+    }
+
+    // 4. Remember speed preference
+    const savedSpeed = parseFloat(localStorage.getItem('photon_video_speed') || '1.0');
+    if (savedSpeed) {
+        setPlaySpeed(savedSpeed);
+    }
+
+    // 5. Restore video timestamp if user was watching this video
+    const savedTime = parseFloat(localStorage.getItem('photon_time_' + currentLessonPath) || '0');
+    if (savedTime && video) {
+        video.currentTime = savedTime;
+    }
+
+    // Periodic time saver
+    if (video) {
+        video.addEventListener('timeupdate', () => {
+            if (video.currentTime > 5) {
+                localStorage.setItem('photon_time_' + currentLessonPath, video.currentTime);
+            }
+        });
+
+        // Autoplay next lesson on finish
+        video.addEventListener('ended', () => {
+            // Auto mark as completed
+            toggleCompleteCurrentLesson(true);
+            const chkComplete = document.getElementById('chkCompleteLesson');
+            if (chkComplete) chkComplete.checked = true;
+
+            const autoplay = document.getElementById('chkAutoplayNext')?.checked;
+            if (autoplay && nextLessonUrl) {
+                window.location.href = nextLessonUrl;
+            }
+        });
+    }
+
+    // Keyboard Shortcuts
+    document.addEventListener('keydown', (e) => {
+        if (['INPUT', 'TEXTAREA'].includes(document.activeElement.tagName)) return;
+        if (!video) return;
+
+        if (e.code === 'Space') {
+            e.preventDefault();
+            if (video.paused) video.play(); else video.pause();
+        } else if (e.code === 'ArrowRight') {
+            e.preventDefault();
+            video.currentTime = Math.min(video.duration || 0, video.currentTime + 5);
+        } else if (e.code === 'ArrowLeft') {
+            e.preventDefault();
+            video.currentTime = Math.max(0, video.currentTime - 5);
+        } else if (e.code === 'KeyF') {
+            e.preventDefault();
+            if (!document.fullscreenElement) {
+                video.requestFullscreen().catch(err => {});
+            } else {
+                document.exitFullscreen().catch(err => {});
+            }
+        } else if (e.code === 'KeyM') {
+            e.preventDefault();
+            video.muted = !video.muted;
+        }
+    });
+
+    // Auto-expand active module accordion
+    const activeItem = document.querySelector('.sm-lesson-item.active-lesson');
+    if (activeItem) {
+        activeItem.scrollIntoView({ block: 'center', behavior: 'smooth' });
+    }
+});
+
+// Speed Controls
+function setPlaySpeed(speed) {
+    const video = document.getElementById('photonVideoPlayer');
+    if (video) video.playbackRate = speed;
+    localStorage.setItem('photon_video_speed', speed);
+
+    document.querySelectorAll('.speed-btn').forEach(btn => {
+        const val = parseFloat(btn.innerText.replace('x', ''));
+        btn.classList.toggle('active', val === speed);
+    });
+}
+
+// Completion Management
+function loadCompletionStatus() {
+    try {
+        const completed = JSON.parse(localStorage.getItem('photon_completed_lessons') || '[]');
+        const isCurrentCompleted = completed.includes(currentLessonPath);
+        
+        const chk = document.getElementById('chkCompleteLesson');
+        if (chk) chk.checked = isCurrentCompleted;
+
+        document.querySelectorAll('.sm-lesson-item').forEach(el => {
+            const relPath = el.getAttribute('data-relpath');
+            const checkIcon = el.querySelector('.lesson-check-icon');
+            if (checkIcon) {
+                if (completed.includes(relPath)) {
+                    checkIcon.innerHTML = '●';
+                    checkIcon.classList.add('completed-dot');
+                } else {
+                    checkIcon.innerHTML = '○';
+                    checkIcon.classList.remove('completed-dot');
+                }
+            }
+        });
+    } catch (e) {}
+}
+
+function toggleCompleteCurrentLesson(isCompleted) {
+    try {
+        let completed = JSON.parse(localStorage.getItem('photon_completed_lessons') || '[]');
+        if (isCompleted) {
+            if (!completed.includes(currentLessonPath)) {
+                completed.push(currentLessonPath);
+            }
+        } else {
+            completed = completed.filter(p => p !== currentLessonPath);
+        }
+        localStorage.setItem('photon_completed_lessons', JSON.stringify(completed));
+        loadCompletionStatus();
+    } catch (e) {}
+}
+
+// Notes Auto-save
+let saveTimeout = null;
+function saveLessonNotes(text) {
+    localStorage.setItem('photon_notes_' + currentLessonPath, text);
+    const status = document.getElementById('notesSavedStatus');
+    if (status) {
+        status.innerText = 'Saving...';
+        clearTimeout(saveTimeout);
+        saveTimeout = setTimeout(() => {
+            status.innerText = '✓ Saved';
+        }, 500);
+    }
+}
+
+// Tabs Switcher in Lesson Workspace
+function switchWsTab(tabId) {
+    document.getElementById('wsTabFiles').style.display = (tabId === 'files') ? 'block' : 'none';
+    document.getElementById('wsTabNotes').style.display = (tabId === 'notes') ? 'block' : 'none';
+    document.getElementById('wsTabShortcuts').style.display = (tabId === 'shortcuts') ? 'block' : 'none';
+
+    document.getElementById('tabBtnFiles').classList.toggle('active', tabId === 'files');
+    document.getElementById('tabBtnNotes').classList.toggle('active', tabId === 'notes');
+    document.getElementById('tabBtnShortcuts').classList.toggle('active', tabId === 'shortcuts');
+}
+
+// Sidebar Filter
+function filterSidebarLessons(query) {
+    const q = query.toLowerCase().trim();
+    document.querySelectorAll('.sm-lesson-item').forEach(item => {
+        const title = item.getAttribute('data-title') || '';
+        const matches = !q || title.includes(q);
+        item.style.display = matches ? 'flex' : 'none';
+    });
+}
+
+function toggleModuleGroup(headerEl) {
+    const content = headerEl.nextElementSibling;
+    const icon = headerEl.querySelector('.sm-group-icon');
+    if (content) {
+        const isHidden = content.style.display === 'none';
+        content.style.display = isHidden ? 'block' : 'none';
+        if (icon) icon.innerText = isHidden ? '▼' : '▶';
+    }
+}
+
+function toggleSubdirGroup(headerEl) {
+    const content = headerEl.nextElementSibling;
+    const icon = headerEl.querySelector('.sm-subdir-icon');
+    if (content) {
+        const isHidden = content.style.display === 'none';
+        content.style.display = isHidden ? 'block' : 'none';
+        if (icon) icon.innerText = isHidden ? '▼' : '▶';
+    }
+}
+
+function toggleSidebar() {
+    const sidebar = document.getElementById('courseSidebar');
+    if (sidebar) sidebar.classList.toggle('sidebar-collapsed');
+}
+</script>
+{% endblock %}
