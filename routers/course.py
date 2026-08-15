@@ -140,8 +140,8 @@ def stream_video(request: Request, path: str):
 
 
 @router.get("/file")
-def download_course_file(path: str):
-    """Direct file download / view endpoint for accompanying course docs, PDFs, images."""
+def view_course_file(path: str):
+    """Direct inline file viewing endpoint. Automatically redirects .url files to target destination."""
     decoded_path = urllib.parse.unquote(path)
     full_path = os.path.normpath(os.path.join(COURSE_ROOT, decoded_path))
 
@@ -151,5 +151,95 @@ def download_course_file(path: str):
     if not os.path.exists(full_path) or not os.path.isfile(full_path):
         raise HTTPException(status_code=404, detail="File not found")
 
+    ext = os.path.splitext(full_path)[1].lower()
+    
+    # If .url internet shortcut, redirect to target URL
+    if ext == ".url":
+        from services.course_service import read_url_shortcut
+        target_url = read_url_shortcut(full_path)
+        if target_url:
+            return RedirectResponse(url=target_url)
+
+    mime_type, _ = mimetypes.guess_type(full_path)
+    if not mime_type:
+        mime_type = "application/octet-stream"
+
     filename = os.path.basename(full_path)
-    return FileResponse(full_path, filename=filename)
+    headers = {
+        "Content-Disposition": f'inline; filename="{filename}"'
+    }
+    return FileResponse(full_path, media_type=mime_type, headers=headers)
+
+
+@router.get("/read-doc")
+def read_doc_endpoint(path: str):
+    """Parses .docx or text document and returns structured JSON for in-app reader modal."""
+    decoded_path = urllib.parse.unquote(path)
+    full_path = os.path.normpath(os.path.join(COURSE_ROOT, decoded_path))
+
+    if not full_path.startswith(os.path.normpath(COURSE_ROOT)) or not os.path.exists(full_path):
+        raise HTTPException(status_code=404, detail="Document not found")
+
+    ext = os.path.splitext(full_path)[1].lower()
+    filename = os.path.basename(full_path)
+    title = os.path.splitext(filename)[0]
+
+    from services.course_service import read_docx_paragraphs, read_url_shortcut
+
+    if ext in [".docx", ".doc"]:
+        paragraphs = read_docx_paragraphs(full_path)
+        return {
+            "status": "ok",
+            "type": "docx",
+            "title": title,
+            "filename": filename,
+            "paragraphs": paragraphs,
+            "rel_path": decoded_path,
+        }
+    elif ext == ".url":
+        url = read_url_shortcut(full_path)
+        return {
+            "status": "ok",
+            "type": "url",
+            "title": title,
+            "filename": filename,
+            "url": url,
+            "rel_path": decoded_path,
+        }
+    elif ext in [".txt", ".md"]:
+        try:
+            with open(full_path, "r", encoding="utf-8", errors="ignore") as f:
+                lines = f.readlines()
+            paragraphs = [{"text": line.strip(), "is_heading": False} for line in lines if line.strip()]
+            return {
+                "status": "ok",
+                "type": "text",
+                "title": title,
+                "filename": filename,
+                "paragraphs": paragraphs,
+                "rel_path": decoded_path,
+            }
+        except Exception as e:
+            raise HTTPException(status_code=500, detail=str(e))
+
+    return {
+        "status": "ok",
+        "type": "other",
+        "title": title,
+        "filename": filename,
+        "rel_path": decoded_path,
+    }
+
+
+@router.post("/open-desktop")
+def open_desktop_file(request: Request, path: str = Query(...)):
+    """Launches the file in its default desktop application on the host machine without downloading."""
+    decoded_path = urllib.parse.unquote(path)
+    full_path = os.path.normpath(os.path.join(COURSE_ROOT, decoded_path))
+
+    if not full_path.startswith(os.path.normpath(COURSE_ROOT)) or not os.path.exists(full_path):
+        raise HTTPException(status_code=404, detail="File not found")
+
+    from services.course_service import open_file_in_desktop
+    success = open_file_in_desktop(full_path)
+    return {"status": "ok" if success else "error"}

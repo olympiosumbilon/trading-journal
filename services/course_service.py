@@ -10,6 +10,66 @@ VIDEO_EXTENSIONS = {".mp4", ".ts", ".mkv", ".mov", ".webm", ".avi", ".m4v"}
 DOC_EXTENSIONS = {".docx", ".doc", ".pdf", ".txt", ".xlsx", ".xls", ".png", ".jpg", ".jpeg", ".url"}
 
 
+def read_url_shortcut(file_path: str) -> Optional[str]:
+    """Extracts target URL from a Windows .url InternetShortcut file."""
+    try:
+        with open(file_path, "r", encoding="utf-8", errors="ignore") as f:
+            for line in f:
+                line = line.strip()
+                if line.upper().startswith("URL="):
+                    return line[4:].strip()
+    except Exception:
+        pass
+    return None
+
+
+def read_docx_paragraphs(file_path: str) -> List[Dict[str, Any]]:
+    """Extracts paragraphs and headings from a .docx file without third-party dependencies."""
+    import zipfile
+    import xml.etree.ElementTree as ET
+
+    paragraphs = []
+    try:
+        with zipfile.ZipFile(file_path, "r") as z:
+            if "word/document.xml" not in z.namelist():
+                return []
+            xml_content = z.read("word/document.xml")
+            tree = ET.fromstring(xml_content)
+            ns = {"w": "http://schemas.openxmlformats.org/wordprocessingml/2006/main"}
+
+            for p_elem in tree.iterfind(".//w:p", ns):
+                texts = [node.text for node in p_elem.iterfind(".//w:t", ns) if node.text]
+                if texts:
+                    full_text = "".join(texts).strip()
+                    if full_text:
+                        # Check if heading
+                        is_heading = False
+                        pStyle = p_elem.find(".//w:pStyle", ns)
+                        if pStyle is not None:
+                            val = pStyle.attrib.get(f"{{{ns['w']}}}val", "").lower()
+                            if "heading" in val or "title" in val:
+                                is_heading = True
+                        paragraphs.append({"text": full_text, "is_heading": is_heading})
+    except Exception as e:
+        print(f"Error parsing docx {file_path}: {e}")
+    return paragraphs
+
+
+def open_file_in_desktop(file_path: str) -> bool:
+    """Launches the file in its default desktop application (e.g. Microsoft Word, PDF viewer)."""
+    try:
+        if os.name == "nt":
+            os.startfile(file_path)
+            return True
+        elif os.name == "posix":
+            import subprocess
+            subprocess.run(["open" if sys.platform == "darwin" else "xdg-open", file_path])
+            return True
+    except Exception as e:
+        print(f"Failed to open desktop file {file_path}: {e}")
+    return False
+
+
 def natural_sort_key(s: str) -> List[Any]:
     """Provides natural alphanumeric sorting for human-readable numbered items (e.g. 1, 2, 10)."""
     return [int(text) if text.isdigit() else text.lower() for text in re.split(r"(\d+)", s)]
