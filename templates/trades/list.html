@@ -162,60 +162,36 @@
                 🎯 {{ active_filter_label if active_filter_label else 'Filtered' }}
                 <a href="/trades/" class="af-remove-link" title="Clear filter">✕</a>
             </span>
-            {% endif %}
-        </div>
-        <div class="tmb-right view-mode-switch">
-            <button type="button" class="vm-btn active" id="btnModeCard" onclick="switchTradeViewMode('card')">📱 Cards</button>
+              <div class="tmb-right view-mode-switch">
+            <button type="button" class="vm-btn active" id="btnModeCard" onclick="switchTradeViewMode('card')">📱 List</button>
             <button type="button" class="vm-btn" id="btnModeTable" onclick="switchTradeViewMode('table')">📊 Table</button>
         </div>
     </div>
 
-    <!-- 📱 1. MOBILE RESPONSIVE TRADE CARDS (Primary on Mobile) -->
-    <div class="trades-cards-container" id="tradesCardsContainer">
+    <!-- 📱 1. PRO TRADING APP ROW VIEW (Streamlined mobile trade rows) -->
+    <div class="trades-cards-container trade-pro-list" id="tradesCardsContainer">
         {% for trade in trades %}
-        <div class="trade-mobile-card {% if trade.fixed_r_target and trade.fixed_r_target > 0 %}card-win{% elif trade.fixed_r_target and trade.fixed_r_target < 0 %}card-loss{% else %}card-be{% endif %}">
-            <!-- Top Bar: Instrument, Session & Outcome R -->
-            <div class="tmc-top">
-                <div class="tmc-pair-info">
-                    <span class="tmc-id">#{{ trade.id }}</span>
-                    <span class="tmc-instrument">{{ trade.instrument_obj.name if trade.instrument_obj else "—" }}</span>
-                    <span class="tmc-session">{{ trade.session_obj.name if trade.session_obj else "" }}</span>
-                </div>
-                <div class="tmc-outcome-wrap">
-                    {% if trade.fixed_r_target and trade.fixed_r_target > 0 %}
-                    <span class="tmc-badge badge-win">WIN +{{ "%.2f"|format(trade.fixed_r_target) }}R</span>
-                    {% elif trade.fixed_r_target and trade.fixed_r_target < 0 %}
-                    <span class="tmc-badge badge-loss">LOSS {{ "%.2f"|format(trade.fixed_r_target) }}R</span>
-                    {% else %}
-                    <span class="tmc-badge badge-be">BE 0.00R</span>
-                    {% endif %}
-                </div>
-            </div>
-
-            <!-- Middle Details -->
-            <div class="tmc-details">
-                <div class="tmc-detail-item">
-                    <span class="tmc-dt-label">Date & Time</span>
-                    <span class="tmc-dt-val">{{ trade.entry_date }} &bull; {{ trade.entry_time | time_12h }}</span>
-                </div>
-                <div class="tmc-detail-item">
-                    <span class="tmc-dt-label">Setup & Model</span>
-                    <span class="tmc-dt-val font-bold">{{ trade.strategy_obj.name if trade.strategy_obj else "—" }}</span>
-                </div>
-                <div class="tmc-detail-item">
-                    <span class="tmc-dt-label">Max R / Exit</span>
-                    <span class="tmc-dt-val">
-                        Max: <strong>{{ "%.2f"|format(trade.max_r) if trade.max_r is not none else "—" }}R</strong>
-                        {% if trade.outcome_type %}
-                        <span class="tmc-sub-pill">{{ trade.outcome_type }}</span>
+        {% set is_win = trade.fixed_r_target and trade.fixed_r_target > 0 %}
+        {% set is_loss = trade.fixed_r_target and trade.fixed_r_target < 0 %}
+        
+        <div class="trade-pro-row {% if is_win %}row-win{% elif is_loss %}row-loss{% else %}row-be{% endif %}">
+            <!-- Clickable main area to view trade details -->
+            <a href="/trades/{{ trade.id }}" class="trade-pro-main-link">
+                <!-- Left: Instrument, Session & Subline -->
+                <div class="tpr-left">
+                    <div class="tpr-id-pair">
+                        <span class="tpr-id">#{{ trade.id }}</span>
+                        <span class="tpr-pair">{{ trade.instrument_obj.name if trade.instrument_obj else "—" }}</span>
+                        {% if trade.session_obj %}
+                        <span class="tpr-session-tag">{{ trade.session_obj.name }}</span>
                         {% endif %}
-                    </span>
-                </div>
-                <div class="tmc-detail-item">
-                    <span class="tmc-dt-label">Mindset / Status</span>
-                    <span class="tmc-dt-val">
+                    </div>
+                    <div class="tpr-subline">
+                        <span class="tpr-date">{{ trade.entry_date }} &bull; {{ trade.entry_time | time_12h }}</span>
+                        <span class="tpr-dot">&bull;</span>
+                        <span class="tpr-setup font-bold">{{ trade.strategy_obj.name if trade.strategy_obj else "—" }}</span>
                         {% if trade.emotion_before %}
-                        <span class="tmc-sub-pill">
+                        <span class="tpr-emotion-pill">
                             {% if trade.emotion_before == 'CALM' %}🧘 Calm
                             {% elif trade.emotion_before == 'FOMO' %}⚡ FOMO
                             {% elif trade.emotion_before == 'HESITANT' %}😨 Fear
@@ -225,22 +201,46 @@
                         </span>
                         {% endif %}
                         {% if trade.execution_status and trade.execution_status != 'LIVE' %}
-                        <span class="tmc-sub-pill tag-warning">{{ trade.execution_status }}</span>
+                        <span class="tpr-status-pill tag-warning">{{ trade.execution_status }}</span>
                         {% endif %}
                         {% if trade.is_sl_swept %}
-                        <span class="tmc-sub-pill tag-danger">SWEPT</span>
+                        <span class="tpr-status-pill tag-danger">SWEPT</span>
                         {% endif %}
-                    </span>
+                    </div>
                 </div>
-            </div>
 
-            <!-- Actions -->
-            <div class="tmc-actions">
-                <a href="/trades/{{ trade.id }}" class="tmc-btn tmc-btn-view">View</a>
-                <a href="/trades/{{ trade.id }}/edit" class="tmc-btn tmc-btn-edit">Edit</a>
-                <form method="post" action="/trades/{{ trade.id }}/delete" onsubmit="return confirm('Sigurado ka nga gusto nimo i-delete kini nga Trade #{{ trade.id }}?')" class="tmc-del-form">
-                    <button type="submit" class="tmc-btn tmc-btn-del">Delete</button>
-                </form>
+                <!-- Right: Return R & Max R -->
+                <div class="tpr-right">
+                    <div class="tpr-pnl {% if is_win %}pnl-win{% elif is_loss %}pnl-loss{% else %}pnl-be{% endif %}">
+                        {% if is_win %}
+                        +{{ "%.2f"|format(trade.fixed_r_target) }}R
+                        {% elif is_loss %}
+                        {{ "%.2f"|format(trade.fixed_r_target) }}R
+                        {% else %}
+                        0.00R
+                        {% endif %}
+                    </div>
+                    <div class="tpr-max-r">
+                        Max: <strong>{{ "%.2f"|format(trade.max_r) if trade.max_r is not none else "—" }}R</strong>
+                        {% if trade.outcome_type and trade.outcome_type != 'AUTO' %}
+                        <span class="tpr-exit-pill">{{ trade.outcome_type }}</span>
+                        {% endif %}
+                    </div>
+                </div>
+            </a>
+
+            <!-- Quick Action Menu (3 dots) -->
+            <div class="tpr-actions-dropdown">
+                <button type="button" class="tpr-more-btn" onclick="toggleTradeMenu(event, 'tm-{{ trade.id }}')" title="More actions">
+                    &#8942;
+                </button>
+                <div class="tpr-pop-menu" id="tm-{{ trade.id }}">
+                    <a href="/trades/{{ trade.id }}" class="tpm-item">👁️ View Details</a>
+                    <a href="/trades/{{ trade.id }}/edit" class="tpm-item">✏️ Edit Trade</a>
+                    <form method="post" action="/trades/{{ trade.id }}/delete" onsubmit="return confirm('Sigurado ka nga gusto nimo i-delete kini nga Trade #{{ trade.id }}?')">
+                        <button type="submit" class="tpm-item tpm-delete">🗑️ Delete Trade</button>
+                    </form>
+                </div>
             </div>
         </div>
         {% else %}
@@ -382,6 +382,28 @@ function toggleFiltersPanel() {
     if (btn) btn.classList.toggle('active');
 }
 
+function toggleTradeMenu(e, menuId) {
+    e.stopPropagation();
+    e.preventDefault();
+    const menu = document.getElementById(menuId);
+    if (!menu) return;
+    const isShown = menu.classList.contains('active');
+    
+    // Close all open menus first
+    document.querySelectorAll('.tpr-pop-menu.active').forEach(m => m.classList.remove('active'));
+    
+    if (!isShown) {
+        menu.classList.add('active');
+    }
+}
+
+// Close trade popover menu when clicking outside
+document.addEventListener('click', function(e) {
+    if (!e.target.closest('.tpr-actions-dropdown')) {
+        document.querySelectorAll('.tpr-pop-menu.active').forEach(m => m.classList.remove('active'));
+    }
+});
+
 function switchTradeViewMode(mode) {
     const cards = document.getElementById('tradesCardsContainer');
     const table = document.getElementById('tradesTableContainer');
@@ -395,7 +417,7 @@ function switchTradeViewMode(mode) {
         if (btnTable) btnTable.classList.add('active');
         localStorage.setItem('trade_view_mode', 'table');
     } else {
-        if (cards) cards.style.display = 'grid';
+        if (cards) cards.style.display = 'flex';
         if (table) table.style.display = 'none';
         if (btnCard) btnCard.classList.add('active');
         if (btnTable) btnTable.classList.remove('active');
