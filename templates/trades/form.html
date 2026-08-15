@@ -318,18 +318,7 @@
     <div class="form-section-block">
         <h4 class="form-section-title">🎯 Trade Outcome & Realized Return (Actual Exit)</h4>
         <div class="outcome-selector-container">
-            <div class="outcome-presets-row">
-                <span class="preset-label">Quick Presets:</span>
-                <button type="button" class="btn-outcome-preset {% if not trade or trade.outcome_type == 'AUTO' %}active{% endif %}" onclick="setOutcomePreset('AUTO', '', this)">⚡ Auto (By Target)</button>
-                <button type="button" class="btn-outcome-preset {% if trade and trade.outcome_type == 'FULL_TP' %}active{% endif %}" onclick="setOutcomePreset('FULL_TP', 'TARGET', this)">🎯 Hit TP</button>
-                <button type="button" class="btn-outcome-preset {% if trade and trade.outcome_type == 'RUNNER' %}active{% endif %}" onclick="setOutcomePreset('RUNNER', '5.0', this)">🚀 Runner / Exceeded</button>
-                <button type="button" class="btn-outcome-preset {% if trade and trade.outcome_type == 'BREAK_EVEN' %}active{% endif %}" onclick="setOutcomePreset('BREAK_EVEN', '0.00', this)">⚖️ Break Even (0.0R)</button>
-                <button type="button" class="btn-outcome-preset {% if trade and trade.outcome_type == 'TRAILING_STOP' %}active{% endif %}" onclick="setOutcomePreset('TRAILING_STOP', '1.50', this)">🛡️ Trailing Stop</button>
-                <button type="button" class="btn-outcome-preset {% if trade and trade.outcome_type == 'CUT_LOSS' %}active{% endif %}" onclick="setOutcomePreset('CUT_LOSS', '-0.50', this)">✂️ Cut Loss</button>
-                <button type="button" class="btn-outcome-preset {% if trade and trade.outcome_type == 'FULL_SL' %}active{% endif %}" onclick="setOutcomePreset('FULL_SL', '-1.00', this)">❌ Full SL (-1.0R)</button>
-            </div>
-            
-            <div class="form-section-grid grid-outcome-inputs" style="margin-top: 0.75rem;">
+            <div class="form-section-grid grid-outcome-inputs">
                 <div class="form-group">
                     <label>Outcome Classification</label>
                     <select name="outcome_type" id="outcomeTypeSelect" onchange="onOutcomeSelectChange(this.value)">
