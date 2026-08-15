@@ -96,6 +96,73 @@
         }
         window.location.href = url.toString();
     }
+
+    // Global Mobile Trade Preview Bottom Sheet Modal
+    function openTradePreviewModal(title, htmlContent, viewAllUrl) {
+        const modal = document.getElementById('globalTradePreviewModal');
+        const titleEl = document.getElementById('tpsModalTitle');
+        const bodyEl = document.getElementById('tpsModalBody');
+        const viewAllEl = document.getElementById('tpsModalViewAll');
+
+        if (modal && titleEl && bodyEl) {
+            titleEl.textContent = title;
+            bodyEl.innerHTML = htmlContent;
+            if (viewAllEl && viewAllUrl) {
+                viewAllEl.href = viewAllUrl;
+                viewAllEl.style.display = 'block';
+            } else if (viewAllEl) {
+                viewAllEl.style.display = 'none';
+            }
+            modal.classList.add('active');
+            document.body.style.overflow = 'hidden';
+        }
+    }
+
+    function closeTradePreviewModal(event) {
+        if (event && event.target && event.target.closest('.trade-preview-sheet') && !event.target.classList.contains('tps-close')) {
+            return;
+        }
+        const modal = document.getElementById('globalTradePreviewModal');
+        if (modal) {
+            modal.classList.remove('active');
+            document.body.style.overflow = '';
+        }
+    }
+
+    // Global mobile delegate click listener for trade count badges
+    document.addEventListener('click', function(e) {
+        const badge = e.target.closest('.trade-count-badge');
+        if (badge && window.innerWidth <= 768) {
+            const wrapper = badge.closest('.interactive-trade-wrapper');
+            if (wrapper) {
+                const popover = wrapper.querySelector('.trade-hover-popover');
+                if (popover) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    const title = popover.querySelector('.popover-title') ? popover.querySelector('.popover-title').textContent : 'Trades List';
+                    const tradesList = popover.querySelector('.popover-trades-list') ? popover.querySelector('.popover-trades-list').innerHTML : '';
+                    const viewAllLink = popover.querySelector('.popover-view-all') ? popover.querySelector('.popover-view-all').getAttribute('href') : '';
+                    openTradePreviewModal(title, tradesList, viewAllLink);
+                }
+            }
+        }
+    });
     </script>
+
+    <!-- Global Mobile Trade Preview Modal Overlay -->
+    <div id="globalTradePreviewModal" class="trade-preview-backdrop" onclick="closeTradePreviewModal(event)">
+        <div class="trade-preview-sheet" onclick="event.stopPropagation()">
+            <div class="tps-header">
+                <span id="tpsModalTitle" class="tps-title">Trades List</span>
+                <button type="button" class="tps-close" onclick="closeTradePreviewModal()">&times;</button>
+            </div>
+            <div id="tpsModalBody" class="tps-body">
+                <!-- Dynamically Populated -->
+            </div>
+            <div class="tps-footer">
+                <a id="tpsModalViewAll" href="/trades/" class="tps-view-all-btn">View All Trades &rarr;</a>
+            </div>
+        </div>
+    </div>
 </body>
 </html>

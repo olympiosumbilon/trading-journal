@@ -7328,6 +7328,7 @@ a {
         padding-right: 0.05rem !important;
     }
 
+    /* Mobile Modal & Trade Count Badges */
     .trade-count-badge {
         padding: 0.15rem 0.35rem !important;
         font-size: 0.72rem !important;
@@ -7336,43 +7337,130 @@ a {
         cursor: pointer !important;
     }
 
-    /* Mobile Bottom Sheet Modal for Trade Preview Popovers */
     .interactive-trade-wrapper {
-        position: static !important;
+        position: relative !important;
     }
 
+    /* On mobile screens, hide the desktop hover tooltip so it doesn't clip */
     .trade-hover-popover {
-        position: fixed !important;
-        top: auto !important;
-        bottom: 1.5rem !important;
-        left: 1rem !important;
-        right: 1rem !important;
-        width: auto !important;
-        max-width: calc(100vw - 2rem) !important;
-        max-height: 70vh !important;
-        overflow-y: auto !important;
-        transform: translateY(30px) scale(0.96) !important;
-        z-index: 999999 !important;
-        box-shadow: 0 15px 40px rgba(0, 0, 0, 0.85), 0 0 0 100vw rgba(0, 0, 0, 0.55) !important;
-        border: 1px solid #38bdf8 !important;
-        border-radius: 12px !important;
-        padding: 1rem !important;
-        background: #090d16 !important;
-        transition: opacity 0.2s cubic-bezier(0.16, 1, 0.3, 1), transform 0.2s cubic-bezier(0.16, 1, 0.3, 1), visibility 0.2s !important;
-    }
-
-    .interactive-trade-wrapper:hover .trade-hover-popover,
-    .interactive-trade-wrapper.active .trade-hover-popover {
-        transform: translateY(0) scale(1) !important;
-        opacity: 1 !important;
-        visibility: visible !important;
-        pointer-events: auto !important;
-    }
-
-    .trade-hover-popover::before,
-    .trade-hover-popover::after {
         display: none !important;
     }
+}
+
+/* ==========================================================================
+   Global Mobile Trade Preview Modal Overlay
+   ========================================================================== */
+.trade-preview-backdrop {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background: rgba(15, 23, 42, 0.75);
+    backdrop-filter: blur(4px);
+    -webkit-backdrop-filter: blur(4px);
+    z-index: 9999999;
+    display: flex;
+    align-items: flex-end;
+    justify-content: center;
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.2s ease, visibility 0.2s ease;
+    padding: 1rem;
+    box-sizing: border-box;
+}
+
+.trade-preview-backdrop.active {
+    opacity: 1;
+    visibility: visible;
+}
+
+.trade-preview-sheet {
+    background: #090d16;
+    border: 1px solid #38bdf8;
+    border-radius: 14px;
+    width: 100%;
+    max-width: 440px;
+    max-height: 75vh;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.95);
+    transform: translateY(20px);
+    transition: transform 0.22s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.trade-preview-backdrop.active .trade-preview-sheet {
+    transform: translateY(0);
+}
+
+.tps-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0.85rem 1rem;
+    background: #141c2e;
+    border-bottom: 1px solid #334155;
+}
+
+.tps-title {
+    font-size: 0.85rem;
+    font-weight: 800;
+    color: #38bdf8;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+}
+
+.tps-close {
+    background: transparent;
+    border: none;
+    color: #94a3b8;
+    font-size: 1.35rem;
+    cursor: pointer;
+    padding: 0.2rem 0.4rem;
+    line-height: 1;
+    border-radius: 6px;
+}
+
+.tps-body {
+    padding: 0.75rem 1rem;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 0.45rem;
+    flex: 1;
+    max-height: 55vh;
+}
+
+.tps-body .popover-trade-item {
+    padding: 0.6rem 0.75rem !important;
+    font-size: 0.82rem !important;
+    background: #141c2e !important;
+    border: 1px solid #1e293b !important;
+    border-radius: 6px !important;
+    min-height: 38px !important;
+    box-sizing: border-box !important;
+}
+
+.tps-footer {
+    padding: 0.75rem 1rem;
+    background: #141c2e;
+    border-top: 1px solid #334155;
+    text-align: center;
+}
+
+.tps-view-all-btn {
+    display: block;
+    width: 100%;
+    padding: 0.65rem;
+    background: #0284c7;
+    color: #ffffff;
+    font-size: 0.82rem;
+    font-weight: 800;
+    border-radius: 8px;
+    text-decoration: none;
+    text-align: center;
+    box-sizing: border-box;
 }
 
 
