@@ -242,13 +242,10 @@ h1, h2, h3 {
     align-items: center;
     justify-content: center;
     gap: 0.35rem;
-    margin-top: 1.5rem;
-    margin-bottom: 2rem;
-    flex-wrap: nowrap;
-    overflow-x: auto;
-    -webkit-overflow-scrolling: touch;
-    padding: 0.5rem 0.25rem;
-    width: 100%;
+    margin: 1.5rem auto 2.5rem auto;
+    padding: 0.25rem;
+    width: auto;
+    max-width: 100%;
     box-sizing: border-box;
 }
 
@@ -256,11 +253,12 @@ h1, h2, h3 {
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    min-width: 2.25rem;
-    height: 2.25rem;
-    padding: 0 0.65rem;
-    border-radius: 6px;
-    font-size: 0.84rem;
+    width: 36px;
+    height: 36px;
+    min-width: 36px;
+    padding: 0;
+    border-radius: 8px;
+    font-size: 0.85rem;
     font-weight: 700;
     text-decoration: none;
     border: 1px solid #cbd5e1;
@@ -269,10 +267,17 @@ h1, h2, h3 {
     cursor: pointer;
     white-space: nowrap;
     flex-shrink: 0;
+    box-sizing: border-box;
     transition: all 0.15s ease;
 }
 
-.page-btn:hover {
+.page-arrow {
+    font-size: 1.25rem;
+    font-weight: 800;
+    line-height: 1;
+}
+
+.page-btn:hover:not(.disabled):not(.current) {
     background: #f1f5f9;
     border-color: #94a3b8;
     color: #0f172a;
@@ -293,13 +298,17 @@ h1, h2, h3 {
     border-color: #e2e8f0;
     cursor: default;
     pointer-events: none;
-    opacity: 0.7;
+    opacity: 0.6;
 }
 
 .page-ellipsis {
-    color: #aaa;
-    font-size: 0.875rem;
-    padding: 0 0.25rem;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 24px;
+    color: #94a3b8;
+    font-size: 0.9rem;
+    flex-shrink: 0;
 }
 
 
