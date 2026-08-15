@@ -1210,5 +1210,31 @@ createPieChart('chartProbPie', chartPayload.probability_pie.labels, chartPayload
 
 // 8. Days Chart
 createComboChart('chartDays', chartPayload.days.labels, chartPayload.days.r_data, chartPayload.days.sr_data, '#3b82f6');
+
+// Mobile Tap-to-toggle trade preview popovers
+document.addEventListener('click', function(e) {
+    const isBadge = e.target.closest('.trade-count-badge');
+    const isPopover = e.target.closest('.trade-hover-popover');
+    
+    // If clicked inside popover, let links work normally
+    if (isPopover && !e.target.closest('.popover-close-btn')) return;
+
+    // Toggle active state on badge click on mobile screens
+    if (isBadge) {
+        const wrapper = isBadge.closest('.interactive-trade-wrapper');
+        if (wrapper) {
+            const wasActive = wrapper.classList.contains('active');
+            document.querySelectorAll('.interactive-trade-wrapper.active').forEach(el => el.classList.remove('active'));
+            if (!wasActive && window.innerWidth <= 768) {
+                e.preventDefault();
+                e.stopPropagation();
+                wrapper.classList.add('active');
+            }
+        }
+    } else {
+        // Tapping anywhere outside closes active popovers
+        document.querySelectorAll('.interactive-trade-wrapper.active').forEach(el => el.classList.remove('active'));
+    }
+});
 </script>
 {% endblock %}

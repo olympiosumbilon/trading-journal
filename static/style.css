@@ -7279,7 +7279,15 @@ a {
         width: 100% !important;
         max-width: 100% !important;
         box-sizing: border-box !important;
-        overflow: hidden !important;
+        overflow: visible !important;
+        position: relative !important;
+    }
+
+    .breakdown-card table,
+    .breakdown-card tbody,
+    .breakdown-card tr,
+    .breakdown-card td {
+        overflow: visible !important;
     }
 
     .breakdown-card h4 {
@@ -7321,10 +7329,49 @@ a {
     }
 
     .trade-count-badge {
-        padding: 0.1rem 0.3rem !important;
-        font-size: 0.7rem !important;
-        min-width: 18px !important;
+        padding: 0.15rem 0.35rem !important;
+        font-size: 0.72rem !important;
+        min-width: 20px !important;
         border-radius: 4px !important;
+        cursor: pointer !important;
+    }
+
+    /* Mobile Bottom Sheet Modal for Trade Preview Popovers */
+    .interactive-trade-wrapper {
+        position: static !important;
+    }
+
+    .trade-hover-popover {
+        position: fixed !important;
+        top: auto !important;
+        bottom: 1.5rem !important;
+        left: 1rem !important;
+        right: 1rem !important;
+        width: auto !important;
+        max-width: calc(100vw - 2rem) !important;
+        max-height: 70vh !important;
+        overflow-y: auto !important;
+        transform: translateY(30px) scale(0.96) !important;
+        z-index: 999999 !important;
+        box-shadow: 0 15px 40px rgba(0, 0, 0, 0.85), 0 0 0 100vw rgba(0, 0, 0, 0.55) !important;
+        border: 1px solid #38bdf8 !important;
+        border-radius: 12px !important;
+        padding: 1rem !important;
+        background: #090d16 !important;
+        transition: opacity 0.2s cubic-bezier(0.16, 1, 0.3, 1), transform 0.2s cubic-bezier(0.16, 1, 0.3, 1), visibility 0.2s !important;
+    }
+
+    .interactive-trade-wrapper:hover .trade-hover-popover,
+    .interactive-trade-wrapper.active .trade-hover-popover {
+        transform: translateY(0) scale(1) !important;
+        opacity: 1 !important;
+        visibility: visible !important;
+        pointer-events: auto !important;
+    }
+
+    .trade-hover-popover::before,
+    .trade-hover-popover::after {
+        display: none !important;
     }
 }
 
