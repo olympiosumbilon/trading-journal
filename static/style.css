@@ -6977,19 +6977,86 @@ a {
         -webkit-overflow-scrolling: touch !important;
         gap: 0.4rem !important;
         padding: 0.4rem 0.2rem !important;
-        flex-wrap: nowrap !important;
+    /* 10. Market Terminal & News Section on Mobile */
+    .hub-section-card {
+        padding: 1rem 0.85rem !important;
+        border-radius: 10px !important;
         margin-bottom: 1rem !important;
     }
 
-    .hqb-label {
-        display: none !important;
+    .hub-section-header {
+        flex-direction: column !important;
+        align-items: stretch !important;
+        gap: 0.75rem !important;
+        padding-bottom: 0.75rem !important;
+        margin-bottom: 1rem !important;
     }
 
-    .hqb-pill {
-        flex-shrink: 0 !important;
-        font-size: 0.72rem !important;
-        padding: 0.35rem 0.65rem !important;
+    .hsh-right {
+        flex-direction: column !important;
+        align-items: stretch !important;
+        width: 100% !important;
+        gap: 0.5rem !important;
+    }
+
+    .heatmap-tabs {
+        display: grid !important;
+        grid-template-columns: repeat(2, 1fr) !important;
+        gap: 0.35rem !important;
+        width: 100% !important;
+        box-sizing: border-box !important;
+    }
+
+    .hm-tab-btn {
+        text-align: center !important;
+        justify-content: center !important;
+        font-size: 0.76rem !important;
+        padding: 0.5rem 0.3rem !important;
         white-space: nowrap !important;
+        border-radius: 6px !important;
+    }
+
+    .btn-open-ext {
+        width: 100% !important;
+        text-align: center !important;
+        justify-content: center !important;
+        display: flex !important;
+        box-sizing: border-box !important;
+        padding: 0.55rem !important;
+        font-size: 0.8rem !important;
+        border-radius: 6px !important;
+    }
+
+    .coinglass-iframe-wrapper {
+        height: 480px !important;
+        border-radius: 8px !important;
+    }
+
+    .news-category-pills {
+        display: flex !important;
+        overflow-x: auto !important;
+        -webkit-overflow-scrolling: touch !important;
+        flex-wrap: nowrap !important;
+        width: 100% !important;
+        padding: 0.3rem 0.2rem !important;
+        gap: 0.35rem !important;
+        box-sizing: border-box !important;
+    }
+
+    .news-cat-btn {
+        flex-shrink: 0 !important;
+        font-size: 0.74rem !important;
+        white-space: nowrap !important;
+        padding: 0.35rem 0.65rem !important;
+    }
+
+    .btn-refresh-news {
+        width: 100% !important;
+        text-align: center !important;
+        justify-content: center !important;
+        display: flex !important;
+        padding: 0.5rem !important;
+        box-sizing: border-box !important;
     }
 }
 
