@@ -7274,54 +7274,57 @@ a {
     }
 
     .breakdown-card {
-        padding: 0.85rem 0.75rem !important;
+        padding: 0.75rem 0.5rem !important;
         border-radius: 8px !important;
         width: 100% !important;
         max-width: 100% !important;
         box-sizing: border-box !important;
-        overflow: visible !important;
+        overflow: hidden !important;
     }
 
     .breakdown-card h4 {
         font-size: 0.78rem !important;
-        margin-bottom: 0.5rem !important;
-        padding-bottom: 0.35rem !important;
+        margin-bottom: 0.45rem !important;
+        padding-bottom: 0.3rem !important;
     }
 
     .breakdown-card table {
         width: 100% !important;
-        min-width: 0 !important;
+        min-width: 100% !important;
         table-layout: auto !important;
-        font-size: 0.76rem !important;
+        font-size: 0.73rem !important;
         border-collapse: collapse !important;
     }
 
     .breakdown-card th, 
     .breakdown-card td {
-        padding: 0.35rem 0.2rem !important;
-        font-size: 0.76rem !important;
+        padding: 0.35rem 0.15rem !important;
+        font-size: 0.73rem !important;
         box-sizing: border-box !important;
+        word-break: break-word !important;
     }
 
     .breakdown-card td.num-cell,
     .breakdown-card th.num-cell {
         white-space: nowrap !important;
+        font-size: 0.73rem !important;
     }
 
     .breakdown-card th:first-child,
     .breakdown-card td:first-child {
-        padding-left: 0.1rem !important;
+        padding-left: 0.05rem !important;
     }
 
     .breakdown-card th:last-child,
     .breakdown-card td:last-child {
-        padding-right: 0.1rem !important;
+        padding-right: 0.05rem !important;
     }
 
     .trade-count-badge {
-        padding: 0.15rem 0.35rem !important;
-        font-size: 0.72rem !important;
-        min-width: 20px !important;
+        padding: 0.1rem 0.3rem !important;
+        font-size: 0.7rem !important;
+        min-width: 18px !important;
+        border-radius: 4px !important;
     }
 }
 

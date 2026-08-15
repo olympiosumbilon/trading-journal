@@ -670,7 +670,7 @@
         <h4>🎯 TRADE OUTCOME & EXITS</h4>
         <table>
             <thead>
-                <tr><th>Outcome Type</th><th style="text-align:center;"># Trades</th><th style="text-align:right;">Share%</th><th style="text-align:right;">Total Return</th></tr>
+                <tr><th>Outcome</th><th style="text-align:center;">Trades</th><th style="text-align:right;">Share</th><th style="text-align:right;">Total R</th></tr>
             </thead>
             <tbody>
                 {% for cat in outcome_stats.categories %}
@@ -726,7 +726,7 @@
         <h4>⚠️ MISSED & LEAKAGE TAGS</h4>
         <table>
             <thead>
-                <tr><th>Execution Tag</th><th style="text-align:center;"># Trades</th><th style="text-align:right;">Opportunity / Leak</th></tr>
+                <tr><th>Execution Tag</th><th style="text-align:center;">Trades</th><th style="text-align:right;">Impact (R)</th></tr>
             </thead>
             <tbody>
                 {% for tag in exec_status_stats.tags_summary %}
@@ -769,9 +769,9 @@
                     </td>
                     <td class="num-cell font-bold {% if tag.impact_type == 'lost' %}val-neg{% else %}text-accent{% endif %}" style="text-align:right; color: {% if tag.impact_type == 'lost' %}#e11d48{% else %}#d97706{% endif %};">
                         {% if tag.impact_type == 'lost' %}
-                        -{{ "%.2f"|format(tag.impact_r) }}R Lost
+                        -{{ "%.2f"|format(tag.impact_r) }}R
                         {% else %}
-                        +{{ "%.2f"|format(tag.impact_r) }}R Missed
+                        +{{ "%.2f"|format(tag.impact_r) }}R
                         {% endif %}
                     </td>
                 </tr>
@@ -785,7 +785,7 @@
         <h4>🧘 PRE-TRADE MINDSET</h4>
         <table>
             <thead>
-                <tr><th>Mindset State</th><th style="text-align:center;"># Trades</th><th style="text-align:right;">Win Rate</th><th style="text-align:right;">Total Return</th></tr>
+                <tr><th>Mindset</th><th style="text-align:center;">Trades</th><th style="text-align:right;">Win%</th><th style="text-align:right;">Total R</th></tr>
             </thead>
             <tbody>
                 {% for b in psychology_stats.before_stats %}
@@ -798,13 +798,13 @@
                     <td class="num-cell" style="text-align:center;">
                         {% if b.trades_list and b.trades_list|length > 0 %}
                         <div class="interactive-trade-wrapper">
-                            <a href="/trades/?emotion_before={{ b.key }}&year={{ selected_year }}" class="trade-count-badge">
+                            <a href="/trades/?emotion_before={{ b.key }}" class="trade-count-badge">
                                 {{ b.count }}
                             </a>
                             <div class="trade-hover-popover">
                                 <div class="popover-header">
                                     <span class="popover-title">{{ b.icon }} {{ b.name }} ({{ b.count }})</span>
-                                    <a href="/trades/?emotion_before={{ b.key }}&year={{ selected_year }}" class="popover-view-all">View All &rarr;</a>
+                                    <a href="/trades/?emotion_before={{ b.key }}" class="popover-view-all">View All &rarr;</a>
                                 </div>
                                 <div class="popover-trades-list">
                                     {% for tr in b.trades_list %}
@@ -832,7 +832,7 @@
                     </td>
                 </tr>
                 {% else %}
-                <tr><td colspan="4" class="empty-cell" style="text-align:center; padding:1.25rem; color:#94a3b8;">No pre-trade tags logged for this period.</td></tr>
+                <tr><td colspan="4" class="empty-cell" style="text-align:center; padding:1.25rem; color:#94a3b8;">No pre-trade tags logged yet.</td></tr>
                 {% endfor %}
             </tbody>
         </table>
@@ -843,7 +843,7 @@
         <h4>🏁 POST-TRADE REFLECTION</h4>
         <table>
             <thead>
-                <tr><th>Execution Feeling</th><th style="text-align:center;"># Trades</th><th style="text-align:right;">Win Rate</th><th style="text-align:right;">Total Return</th></tr>
+                <tr><th>Execution</th><th style="text-align:center;">Trades</th><th style="text-align:right;">Win%</th><th style="text-align:right;">Total R</th></tr>
             </thead>
             <tbody>
                 {% for a in psychology_stats.after_stats %}
