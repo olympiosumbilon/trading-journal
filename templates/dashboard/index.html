@@ -228,27 +228,7 @@
 
         </div>
 
-        <!-- 🚦 EXECUTION EFFICIENCY & MISSED OPPORTUNITY BANNER -->
-        <div class="dash-opportunity-banner" style="background:#fff; border:1px solid #e2e8f0; border-radius:8px; padding:0.9rem 1.25rem; margin-bottom:1.5rem; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:1rem;">
-            <div style="display:flex; align-items:center; gap:1.25rem; flex-wrap:wrap;">
-                <div>
-                    <span style="font-size:0.72rem; font-weight:800; color:#64748b; text-transform:uppercase; letter-spacing:0.05em; display:block;">Execution Discipline</span>
-                    <span style="font-size:1.25rem; font-weight:800; color:#1e293b;">{{ exec_status_stats.execution_rate }}% Live Execution Rate</span>
-                </div>
-                <div style="height:32px; width:1px; background:#e2e8f0;"></div>
-                <div style="display:flex; gap:0.5rem; align-items:center; flex-wrap:wrap;">
-                    <span class="status-pill status-live">🟢 {{ exec_status_stats.live_count }} Live Trades (+{{ "%.2f"|format(exec_status_stats.live_r) }}R)</span>
-                    <span class="status-pill status-front-run">🟡 {{ exec_status_stats.front_run_count }} Front-Run (+{{ "%.2f"|format(exec_status_stats.front_run_missed_r) }}R Missed)</span>
-                    <span class="status-pill status-missed">⚪ {{ exec_status_stats.missed_count }} Missed (+{{ "%.2f"|format(exec_status_stats.missed_trade_r) }}R Missed)</span>
-                    <span class="status-pill status-swept">🪤 {{ exec_status_stats.sl_swept_count }} SL Swept (-{{ "%.2f"|format(exec_status_stats.sl_swept_lost_r) }}R Lost)</span>
-                </div>
-            </div>
-            <div style="text-align:right;">
-                <span style="font-size:0.72rem; font-weight:700; color:#94a3b8; text-transform:uppercase; display:block;">Total Missed Opportunity</span>
-                <span class="font-bold" style="font-size:1.15rem; color:#d97706;">+{{ "%.2f"|format(exec_status_stats.total_missed_r) }}R</span>
-                <small style="color:#64748b; font-size:0.7rem; display:block;">(Theoretical Edge: +{{ "%.2f"|format(exec_status_stats.theoretical_r) }}R)</small>
-            </div>
-        </div>
+
 
         <!-- 🎯 EXECUTION OUTCOMES & 🧠 PSYCHOLOGY EDGE -->
         <div class="rankings-two-col-grid">
