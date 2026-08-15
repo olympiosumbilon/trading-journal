@@ -194,17 +194,19 @@
                 <div class="lesson-docs-grid">
                     {% for doc in current_lesson.folder_docs %}
                     <div class="doc-attachment-card">
-                        <div class="doc-card-icon">
-                            {% if doc.type == 'word' %}📝
-                            {% elif doc.type == 'pdf' %}📕
-                            {% elif doc.type == 'image' %}🖼️
-                            {% elif doc.type == 'excel' %}📊
-                            {% elif doc.type == 'link' %}🔗
-                            {% else %}📄{% endif %}
-                        </div>
-                        <div class="doc-card-info">
-                            <div class="doc-card-title font-bold">{{ doc.title }}</div>
-                            <div class="doc-card-meta">{{ doc.ext | upper }} &bull; {{ doc.size_mb }} MB</div>
+                        <div class="doc-card-top">
+                            <div class="doc-card-icon">
+                                {% if doc.type == 'word' %}📝
+                                {% elif doc.type == 'pdf' %}📕
+                                {% elif doc.type == 'image' %}🖼️
+                                {% elif doc.type == 'excel' %}📊
+                                {% elif doc.type == 'link' %}🔗
+                                {% else %}📄{% endif %}
+                            </div>
+                            <div class="doc-card-info">
+                                <div class="doc-card-title font-bold" title="{{ doc.title }}">{{ doc.title }}</div>
+                                <div class="doc-card-meta">{{ doc.ext | upper }} &bull; {{ doc.size_mb }} MB</div>
+                            </div>
                         </div>
                         <div class="doc-card-actions">
                             {% if doc.type == 'link' %}
@@ -213,17 +215,17 @@
                             </a>
                             {% elif doc.type in ['word', 'document'] %}
                             <button type="button" onclick="previewDoc({{ doc.rel_path | tojson }})" class="btn-primary btn-sm">
-                                👁️ View Document
+                                👁️ View
                             </button>
                             <button type="button" onclick="openOnDesktop({{ doc.rel_path | tojson }})" class="btn-secondary btn-sm" title="Open directly in Microsoft Word on your PC">
-                                🖥️ Open in Word
+                                🖥️ Word
                             </button>
                             {% elif doc.type in ['pdf', 'image'] %}
                             <a href="/course/file?path={{ doc.rel_path | urlencode }}" target="_blank" class="btn-primary btn-sm">
-                                👁️ View in Browser
+                                👁️ View
                             </a>
                             <button type="button" onclick="openOnDesktop({{ doc.rel_path | tojson }})" class="btn-secondary btn-sm" title="Open on PC">
-                                🖥️ Open on PC
+                                🖥️ Desktop
                             </button>
                             {% else %}
                             <button type="button" onclick="openOnDesktop({{ doc.rel_path | tojson }})" class="btn-primary btn-sm">
