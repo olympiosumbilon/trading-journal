@@ -101,13 +101,29 @@ OLLAMA_MODEL=llama3
 *(Make sure the database `trading_journal` exists in your PostgreSQL instance, e.g. `CREATE DATABASE trading_journal;`)*
 
 ### 6. Run the Application
+
+#### Option A: Run on your PC only (Localhost)
 ```bash
 uvicorn main:app --reload --port 8000
 ```
-Open your browser and navigate to:
-**[http://localhost:8000](http://localhost:8000)**
+Open your browser and navigate to: **[http://localhost:8000](http://localhost:8000)**
 
-*(On initial startup, tables, indexes, and initial lookup categories will be automatically initialized).*
+#### Option B: Access from Tablet / iPad / Mobile on the same Wi-Fi
+To access the journal and watch course videos from your **Tablet, iPad, or Smartphone** connected to the same Wi-Fi network:
+
+1. Start the server bound to `0.0.0.0`:
+   ```bash
+   uvicorn main:app --host 0.0.0.0 --port 8000 --reload
+   ```
+2. Find your computer's local IPv4 address (run `ipconfig` on Windows, e.g. `192.168.1.11`).
+3. Open the browser (Safari, Chrome, etc.) on your tablet/phone and navigate to:
+   ```
+   http://YOUR_LOCAL_IP:8000
+   ```
+   *(Example: `http://192.168.1.11:8000`)*
+
+> [!TIP]
+> If your tablet cannot connect, ensure that your Wi-Fi network in Windows is set to **Private**, or allow Python through the Windows Defender Firewall prompt.
 
 ---
 
@@ -124,7 +140,7 @@ Open your browser and navigate to:
 ### 2. Yearly Analysis (`/analysis/`)
 - Switch the active year via the top-right dropdown selector.
 - Inspect KPI statistics, Equity Curves, and Session/Strategy performance.
-- Hover over any trade count cell to view popovers containing individual trade details.
+- Hover over any trade count cell to view interactive popovers containing individual trade details.
 
 ### 3. All-Time Summary (`/summary/`)
 - View multi-year historical progression, composite equity curves, and breakdown metrics across all logged years.
@@ -132,6 +148,11 @@ Open your browser and navigate to:
 ### 4. Trade List & Filtering (`/trades/`)
 - Filter trades by Year, Month, Session, Instrument, Setup, Probability, MTF Phase, Tag, or Outcome.
 - Sort by Date, Max R, Fixed R, or Total R.
+
+### 5. 🎓 Photon Academy & Course Player (`/course/`)
+- **13 Complete Modules (158 Video Lessons)**: Instant range-streamed video playback covering Market Structure, Liquidity, Orderflow, LC-1, LC-2A, and Trading Psychology.
+- **Dedicated Document Reader**: View lesson `.docx`, `.pdf`, and study guides directly in your browser without downloading files to your disk.
+- **Speed & Progress Tracking**: Playback speed controls (0.75x–2x), autoplay next lesson, completion checkmarks, and integrated local study notepad.
 
 ---
 
@@ -147,6 +168,7 @@ Trading Journal/
 ├── routers/
 │   ├── analysis.py           # Yearly analytics and photon breakdown router
 │   ├── automations.py        # Automated sync & maintenance jobs
+│   ├── course.py             # Photon Course Academy & video streaming router
 │   ├── dashboard.py          # Dashboard homepage router
 │   ├── review.py             # AI trade review router
 │   ├── settings.py           # Lookup configuration router (Pairs, Setups, etc.)
@@ -154,12 +176,14 @@ Trading Journal/
 │   └── trades.py             # CRUD trade logging, pagination & filtering
 ├── services/
 │   ├── calculation_service.py # Core R-multiple math, KPIs, and preview serializers
+│   ├── course_service.py     # Recursive course tree scanner & doc parser
 │   └── import_service.py     # Excel backtesting spreadsheet migration engine
 ├── static/
 │   ├── style.css             # Complete design system tokens & component styles
 │   └── js/                   # Frontend helpers & calculator scripts
 ├── templates/
 │   ├── analysis/             # Yearly analysis views
+│   ├── course/               # Academy hub, video watch player & doc reader views
 │   ├── dashboard/            # Overview dashboard views
 │   ├── layout.html           # Master navigation & responsive shell
 │   ├── summary/              # Multi-year summary views
