@@ -5753,28 +5753,209 @@ a {
         padding: 0.65rem 0.75rem;
     }
 
-    /* 6. Dashboard, KPIs & Fear/Greed */
-    .kpi-grid, .stats-overview-grid {
+    /* 6. Dashboard Header, KPIs & Charts */
+    .dash-header {
+        flex-direction: column !important;
+        align-items: stretch !important;
+        gap: 0.75rem !important;
+        margin-bottom: 1rem !important;
+    }
+
+    .dash-header h1 {
+        font-size: 1.25rem !important;
+        line-height: 1.25 !important;
+    }
+
+    .dash-header-actions {
+        display: flex !important;
+        gap: 0.5rem !important;
+        width: 100% !important;
+    }
+
+    .btn-primary-action, .btn-secondary-action {
+        flex: 1 !important;
+        text-align: center !important;
+        justify-content: center !important;
+        padding: 0.55rem 0.5rem !important;
+        font-size: 0.78rem !important;
+        white-space: nowrap !important;
+    }
+
+    .dash-kpi-grid {
         grid-template-columns: repeat(2, 1fr) !important;
+        gap: 0.5rem !important;
+        margin-bottom: 1rem !important;
+    }
+
+    .dash-kpi-card {
+        padding: 0.75rem 0.65rem !important;
+        border-radius: 8px !important;
+    }
+
+    .kpi-big-val {
+        font-size: 1.3rem !important;
+    }
+
+    .kpi-top .kpi-label {
+        font-size: 0.62rem !important;
+    }
+
+    .kpi-tag {
+        font-size: 0.6rem !important;
+        padding: 0.1rem 0.3rem !important;
+    }
+
+    .kpi-subtext {
+        font-size: 0.65rem !important;
+    }
+
+    .smart-insights-strip {
+        grid-template-columns: 1fr !important;
+        gap: 0.5rem !important;
+        margin-bottom: 1rem !important;
+    }
+
+    .insight-pill-card {
+        padding: 0.6rem 0.85rem !important;
+    }
+
+    .dash-main-grid {
+        display: flex !important;
+        flex-direction: column !important;
+        width: 100% !important;
+        gap: 1rem !important;
+    }
+
+    .dash-left-col, .dash-right-col {
+        width: 100% !important;
+        gap: 1rem !important;
+    }
+
+    .dash-panel-box {
+        border-radius: 8px !important;
+    }
+
+    .dash-panel-header {
+        padding: 0.75rem 0.85rem !important;
+        flex-wrap: wrap !important;
         gap: 0.5rem !important;
     }
 
-    .fear-greed-panel {
+    .dash-panel-header h3 {
+        font-size: 0.88rem !important;
+    }
+
+    .dash-chart-container {
+        height: 200px !important;
+        padding: 0.5rem !important;
+    }
+
+    .rankings-two-col-grid {
+        grid-template-columns: 1fr !important;
+        gap: 1rem !important;
+    }
+
+    /* Execution Discipline Banner */
+    .dash-opportunity-banner {
+        flex-direction: column !important;
+        align-items: stretch !important;
+        padding: 0.85rem !important;
+        gap: 0.75rem !important;
+    }
+
+    .dash-opportunity-banner > div:first-child {
+        flex-direction: column !important;
+        align-items: stretch !important;
+        gap: 0.65rem !important;
+    }
+
+    .dash-opportunity-banner > div:first-child > div:nth-child(2) {
+        display: none !important;
+    }
+
+    .dash-opportunity-banner .status-pill {
+        font-size: 0.72rem !important;
+        padding: 0.3rem 0.5rem !important;
+        width: 100% !important;
+        box-sizing: border-box !important;
+        text-align: center !important;
+    }
+
+    .dash-opportunity-banner > div:last-child {
+        text-align: left !important;
+        border-top: 1px dashed #e2e8f0;
+        padding-top: 0.6rem;
+    }
+
+    /* Outcome & Psychology Grids */
+    .outcome-matrix-grid {
+        grid-template-columns: repeat(2, 1fr) !important;
+        gap: 0.5rem !important;
         padding: 0.75rem !important;
     }
 
+    .outcome-stat-card {
+        padding: 0.6rem 0.5rem !important;
+    }
+
+    .osc-title {
+        font-size: 0.72rem !important;
+    }
+
+    .osc-pct {
+        font-size: 0.75rem !important;
+    }
+
+    .psych-tab-bar {
+        flex-wrap: wrap !important;
+        gap: 0.25rem !important;
+    }
+
+    .psych-tab-bar button {
+        flex: 1 !important;
+        font-size: 0.7rem !important;
+        padding: 0.35rem 0.45rem !important;
+    }
+
+    .psych-row {
+        padding: 0.5rem 0.6rem !important;
+    }
+
+    .psych-name {
+        font-size: 0.75rem !important;
+    }
+
+    /* Fear & Greed Panel on Mobile */
+    .fear-greed-panel {
+        padding: 0.75rem 0.85rem !important;
+    }
+
     .fg-tab-bar {
+        display: flex !important;
+        width: 100% !important;
         gap: 0.2rem !important;
     }
 
     .fg-tab-btn {
-        padding: 0.3rem 0.45rem !important;
-        font-size: 0.65rem !important;
+        flex: 1 !important;
+        text-align: center !important;
+        padding: 0.35rem 0.2rem !important;
+        font-size: 0.66rem !important;
     }
 
     .fg-gauge-center {
-        width: 140px !important;
+        width: 150px !important;
+        height: 80px !important;
+        margin: 0 auto 0.5rem auto !important;
+    }
+
+    .fg-gauge-svg {
+        width: 150px !important;
         height: 75px !important;
+    }
+
+    .fg-gauge-score {
+        font-size: 1.4rem !important;
     }
 
     /* 7. Tables & Horizontal Scroll */
@@ -5782,6 +5963,11 @@ a {
         overflow-x: auto !important;
         -webkit-overflow-scrolling: touch !important;
         width: 100% !important;
+    }
+
+    .ranking-table th, .ranking-table td {
+        padding: 0.55rem 0.45rem !important;
+        font-size: 0.74rem !important;
     }
 
     /* 8. Filters & Forms */
@@ -5805,6 +5991,7 @@ a {
         padding: 0 !important;
     }
 }
+
 
 
 
