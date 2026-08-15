@@ -5,6 +5,9 @@
 {% block content %}
 <div class="course-watch-layout">
 
+    <!-- Mobile Sidebar Backdrop Overlay -->
+    <div id="courseSidebarBackdrop" class="course-sidebar-backdrop" onclick="toggleSidebar(false)"></div>
+
     <!-- Left Playlist Sidebar -->
     <aside class="course-sidebar" id="courseSidebar">
         <div class="sidebar-header">
@@ -12,7 +15,7 @@
                 <a href="/course/" class="back-to-hub-link">&larr; Academy Hub</a>
                 <h3 class="sidebar-course-title">Zero To Funded 2024</h3>
             </div>
-            <button type="button" class="sidebar-toggle-btn" onclick="toggleSidebar()" title="Toggle Sidebar">
+            <button type="button" class="sidebar-toggle-btn" onclick="toggleSidebar(false)" title="Close Sidebar">
                 &times;
             </button>
         </div>
@@ -90,8 +93,8 @@
         <!-- Top Sticky Breadcrumb Bar -->
         <div class="player-top-bar">
             <div class="ptb-left">
-                <button type="button" class="sidebar-open-btn" onclick="toggleSidebar()" title="Toggle Sidebar">
-                    ☰ Modules
+                <button type="button" class="sidebar-open-btn" onclick="toggleSidebar(true)" title="Open Syllabus Menu">
+                    ☰ Lessons Menu
                 </button>
                 <div class="ptb-breadcrumbs">
                     <span class="ptb-mod">{{ current_lesson.module_name }}</span>
@@ -105,6 +108,11 @@
                 <span class="ptb-progress font-bold">Lesson {{ playlist_index }} of {{ playlist_total }}</span>
             </div>
         </div>
+
+        <!-- Mobile Floating Syllabus Button -->
+        <button type="button" class="mobile-floating-syllabus-btn" onclick="toggleSidebar(true)" aria-label="Open Lessons Menu">
+            ☰ Lessons ({{ playlist_index }}/{{ playlist_total }})
+        </button>
 
         <!-- Video Player Stage -->
         <div class="video-stage-container">
@@ -569,9 +577,29 @@ function toggleSubdirGroup(headerEl) {
     }
 }
 
-function toggleSidebar() {
+function toggleSidebar(forceOpen) {
     const sidebar = document.getElementById('courseSidebar');
-    if (sidebar) sidebar.classList.toggle('sidebar-collapsed');
+    const backdrop = document.getElementById('courseSidebarBackdrop');
+    if (!sidebar) return;
+
+    if (window.innerWidth <= 768) {
+        if (forceOpen === true) {
+            sidebar.classList.add('mobile-sidebar-open');
+            sidebar.classList.remove('sidebar-collapsed');
+            if (backdrop) backdrop.classList.add('active');
+            document.body.style.overflow = 'hidden';
+        } else if (forceOpen === false) {
+            sidebar.classList.remove('mobile-sidebar-open');
+            sidebar.classList.add('sidebar-collapsed');
+            if (backdrop) backdrop.classList.remove('active');
+            document.body.style.overflow = '';
+        } else {
+            const isOpen = sidebar.classList.contains('mobile-sidebar-open');
+            toggleSidebar(!isOpen);
+        }
+    } else {
+        sidebar.classList.toggle('sidebar-collapsed');
+    }
 }
 
 // In-App Document Preview Modal
