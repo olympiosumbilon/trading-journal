@@ -162,7 +162,9 @@
                 🎯 {{ active_filter_label if active_filter_label else 'Filtered' }}
                 <a href="/trades/" class="af-remove-link" title="Clear filter">✕</a>
             </span>
-              <div class="tmb-right view-mode-switch">
+            {% endif %}
+        </div>
+        <div class="tmb-right view-mode-switch">
             <button type="button" class="vm-btn active" id="btnModeCard" onclick="switchTradeViewMode('card')">📱 List</button>
             <button type="button" class="vm-btn" id="btnModeTable" onclick="switchTradeViewMode('table')">📊 Table</button>
         </div>

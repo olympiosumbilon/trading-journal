@@ -6,9 +6,13 @@ from routers import trades, dashboard, ai, automations, settings, summary, analy
 from apscheduler.schedulers.background import BackgroundScheduler
 from services.automation_service import check_alerts
 
+from utils.template_helpers import format_time_12h, format_duration
+
 app = FastAPI(title="Trading Journal System")
 
 templates = Jinja2Templates(directory="templates")
+templates.env.filters["time_12h"] = format_time_12h
+templates.env.filters["duration"] = format_duration
 
 # Static files
 app.mount("/static", StaticFiles(directory="static"), name="static")
