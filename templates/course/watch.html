@@ -132,45 +132,46 @@
 
         <!-- Player Controls & Action Bar -->
         <div class="player-action-bar">
-            <div class="pab-left">
-                <!-- Speed Switcher -->
-                <div class="speed-switcher-group">
-                    <span class="speed-label">Speed:</span>
-                    <button type="button" class="speed-btn" onclick="setPlaySpeed(0.75)">0.75x</button>
-                    <button type="button" class="speed-btn active" onclick="setPlaySpeed(1.0)">1x</button>
-                    <button type="button" class="speed-btn" onclick="setPlaySpeed(1.25)">1.25x</button>
-                    <button type="button" class="speed-btn" onclick="setPlaySpeed(1.5)">1.5x</button>
-                    <button type="button" class="speed-btn" onclick="setPlaySpeed(1.75)">1.75x</button>
-                    <button type="button" class="speed-btn" onclick="setPlaySpeed(2.0)">2x</button>
-                </div>
+            <!-- Row 1: Speed Controls -->
+            <div class="speed-switcher-group">
+                <span class="speed-label">Speed:</span>
+                <button type="button" class="speed-btn" onclick="setPlaySpeed(0.75)">0.75x</button>
+                <button type="button" class="speed-btn active" onclick="setPlaySpeed(1.0)">1x</button>
+                <button type="button" class="speed-btn" onclick="setPlaySpeed(1.25)">1.25x</button>
+                <button type="button" class="speed-btn" onclick="setPlaySpeed(1.5)">1.5x</button>
+                <button type="button" class="speed-btn" onclick="setPlaySpeed(1.75)">1.75x</button>
+                <button type="button" class="speed-btn" onclick="setPlaySpeed(2.0)">2x</button>
             </div>
 
-            <div class="pab-right">
-                <!-- Mark Completed Toggle -->
+            <!-- Row 2: Completion & Autoplay Switches -->
+            <div class="player-toggles-row">
                 <label class="completion-toggle-label">
                     <input type="checkbox" id="chkCompleteLesson" onchange="toggleCompleteCurrentLesson(this.checked)">
                     <span>Mark Completed</span>
                 </label>
-
-                <!-- Autoplay Next Toggle -->
                 <label class="autoplay-toggle-label">
                     <input type="checkbox" id="chkAutoplayNext" checked>
                     <span>Autoplay Next</span>
                 </label>
+            </div>
 
-                <!-- Navigation Prev/Next -->
-                <div class="nav-prev-next-group">
-                    {% if prev_lesson %}
-                    <a href="/course/watch?file={{ prev_lesson.rel_path | urlencode }}" class="btn-secondary btn-sm" title="Previous Lesson">
-                        &larr; Prev
-                    </a>
-                    {% endif %}
-                    {% if next_lesson %}
-                    <a href="/course/watch?file={{ next_lesson.rel_path | urlencode }}" class="btn-primary btn-sm" id="btnNextLesson" title="Next Lesson">
-                        Next &rarr;
-                    </a>
-                    {% endif %}
-                </div>
+            <!-- Row 3: Prev / Next Lesson Navigation (Balanced Grid) -->
+            <div class="nav-prev-next-group">
+                {% if prev_lesson %}
+                <a href="/course/watch?file={{ prev_lesson.rel_path | urlencode }}" class="btn-secondary btn-nav-step" title="Previous Lesson">
+                    &larr; Prev Lesson
+                </a>
+                {% else %}
+                <span class="btn-secondary btn-nav-step btn-disabled">&larr; First Lesson</span>
+                {% endif %}
+
+                {% if next_lesson %}
+                <a href="/course/watch?file={{ next_lesson.rel_path | urlencode }}" class="btn-primary btn-nav-step" id="btnNextLesson" title="Next Lesson">
+                    Next Lesson &rarr;
+                </a>
+                {% else %}
+                <span class="btn-primary btn-nav-step btn-disabled">Course Completed 🎉</span>
+                {% endif %}
             </div>
         </div>
 
@@ -203,7 +204,8 @@
                 {% if current_lesson.folder_docs %}
                 <div class="lesson-docs-grid">
                     {% for doc in current_lesson.folder_docs %}
-                    <div class="doc-attachment-card">
+                    {% set doc_url = ('/course/file?path=' ~ (doc.rel_path | urlencode)) if doc.type == 'link' else ('/course/doc?path=' ~ (doc.rel_path | urlencode)) %}
+                    <a href="{{ doc_url }}" target="_blank" class="doc-attachment-card">
                         <div class="doc-card-left">
                             <div class="doc-card-icon">
                                 {% if doc.type == 'word' %}📝
@@ -219,17 +221,11 @@
                             </div>
                         </div>
                         <div class="doc-card-right">
-                            {% if doc.type == 'link' %}
-                            <a href="/course/file?path={{ doc.rel_path | urlencode }}" target="_blank" class="btn-primary btn-sm btn-doc-action">
-                                Open
-                            </a>
-                            {% else %}
-                            <a href="/course/doc?path={{ doc.rel_path | urlencode }}" target="_blank" class="btn-primary btn-sm btn-doc-action">
-                                View
-                            </a>
-                            {% endif %}
+                            <span class="btn-primary btn-sm btn-doc-action">
+                                {% if doc.type == 'link' %}Open &rarr;{% else %}View &rarr;{% endif %}
+                            </span>
                         </div>
-                    </div>
+                    </a>
                     {% endfor %}
                 </div>
                 {% else %}
