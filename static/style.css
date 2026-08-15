@@ -5566,17 +5566,28 @@ a {
     }
 
     /* 2. Global Layout & Containers */
+    html, body {
+        overflow-x: hidden !important;
+        max-width: 100vw !important;
+        width: 100% !important;
+        box-sizing: border-box !important;
+    }
+
     main {
         padding: 0.75rem 0.5rem;
         width: 100%;
+        max-width: 100vw;
         box-sizing: border-box;
+        overflow-x: hidden;
     }
 
     .dash-container {
         padding: 0;
         margin: 0;
         width: 100%;
+        max-width: 100vw;
         box-sizing: border-box;
+        overflow-x: hidden;
     }
 
     /* 3. Document Reader View */
@@ -5889,21 +5900,62 @@ a {
 
     /* Outcome & Psychology Grids */
     .outcome-matrix-grid {
-        grid-template-columns: repeat(2, 1fr) !important;
+        grid-template-columns: 1fr !important;
         gap: 0.5rem !important;
         padding: 0.75rem !important;
     }
 
     .outcome-stat-card {
-        padding: 0.6rem 0.5rem !important;
+        padding: 0.65rem 0.85rem !important;
+        display: flex !important;
+        flex-direction: row !important;
+        align-items: center !important;
+        justify-content: space-between !important;
+        gap: 0.5rem !important;
+        min-width: 0 !important;
+        width: 100% !important;
+        box-sizing: border-box !important;
+    }
+
+    .osc-top {
+        display: flex !important;
+        align-items: center !important;
+        gap: 0.45rem !important;
+        min-width: 0 !important;
+        flex: 1 !important;
     }
 
     .osc-title {
-        font-size: 0.72rem !important;
+        font-size: 0.78rem !important;
+        font-weight: 700 !important;
+        white-space: nowrap !important;
+        overflow: hidden !important;
+        text-overflow: ellipsis !important;
     }
 
     .osc-pct {
         font-size: 0.75rem !important;
+        font-weight: 800 !important;
+        color: #0284c7 !important;
+        margin-left: 0.25rem !important;
+    }
+
+    .osc-bottom {
+        display: flex !important;
+        align-items: center !important;
+        gap: 0.65rem !important;
+        flex-shrink: 0 !important;
+        margin-left: auto !important;
+    }
+
+    .osc-count {
+        font-size: 0.72rem !important;
+        color: #94a3b8 !important;
+    }
+
+    .osc-r {
+        font-size: 0.85rem !important;
+        font-weight: 800 !important;
     }
 
     .psych-tab-bar {
@@ -5919,6 +5971,8 @@ a {
 
     .psych-row {
         padding: 0.5rem 0.6rem !important;
+        width: 100% !important;
+        box-sizing: border-box !important;
     }
 
     .psych-name {
@@ -5928,6 +5982,8 @@ a {
     /* Fear & Greed Panel on Mobile */
     .fear-greed-panel {
         padding: 0.75rem 0.85rem !important;
+        width: 100% !important;
+        box-sizing: border-box !important;
     }
 
     .fg-tab-bar {
@@ -5962,6 +6018,14 @@ a {
     .table-container, .table-wrapper, .section-table-wrap, .data-table-wrap {
         overflow-x: auto !important;
         -webkit-overflow-scrolling: touch !important;
+        width: 100% !important;
+        max-width: 100% !important;
+        display: block !important;
+        box-sizing: border-box !important;
+    }
+
+    .ranking-table {
+        min-width: 320px !important;
         width: 100% !important;
     }
 
