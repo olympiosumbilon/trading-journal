@@ -211,20 +211,12 @@
                         <div class="doc-card-right">
                             {% if doc.type == 'link' %}
                             <a href="/course/file?path={{ doc.rel_path | urlencode }}" target="_blank" class="btn-primary btn-sm btn-doc-action">
-                                🔗 Open
-                            </a>
-                            {% elif doc.type in ['word', 'document'] %}
-                            <button type="button" onclick="previewDoc({{ doc.rel_path | tojson }})" class="btn-primary btn-sm btn-doc-action">
-                                👁️ View
-                            </button>
-                            {% elif doc.type in ['pdf', 'image'] %}
-                            <a href="/course/file?path={{ doc.rel_path | urlencode }}" target="_blank" class="btn-primary btn-sm btn-doc-action">
-                                👁️ View
+                                Open
                             </a>
                             {% else %}
-                            <button type="button" onclick="previewDoc({{ doc.rel_path | tojson }})" class="btn-primary btn-sm btn-doc-action">
-                                👁️ View
-                            </button>
+                            <a href="/course/doc?path={{ doc.rel_path | urlencode }}" target="_blank" class="btn-primary btn-sm btn-doc-action">
+                                View
+                            </a>
                             {% endif %}
                         </div>
                     </div>

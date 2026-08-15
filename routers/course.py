@@ -171,6 +171,50 @@ def view_course_file(path: str):
     return FileResponse(full_path, media_type=mime_type, headers=headers)
 
 
+@router.get("/doc")
+def view_document_page(request: Request, path: str):
+    """Clean, dedicated document reader for course docs and notes without downloads."""
+    decoded_path = urllib.parse.unquote(path)
+    full_path = os.path.normpath(os.path.join(COURSE_ROOT, decoded_path))
+
+    if not full_path.startswith(os.path.normpath(COURSE_ROOT)) or not os.path.exists(full_path):
+        raise HTTPException(status_code=404, detail="Document not found")
+
+    ext = os.path.splitext(full_path)[1].lower()
+    filename = os.path.basename(full_path)
+    title = os.path.splitext(filename)[0]
+
+    from services.course_service import read_docx_paragraphs, read_url_shortcut
+
+    if ext in [".docx", ".doc"]:
+        paragraphs = read_docx_paragraphs(full_path)
+    elif ext in [".txt", ".md"]:
+        try:
+            with open(full_path, "r", encoding="utf-8", errors="ignore") as f:
+                lines = f.readlines()
+            paragraphs = [{"text": line.strip(), "is_heading": False} for line in lines if line.strip()]
+        except Exception:
+            paragraphs = []
+    elif ext == ".url":
+        url = read_url_shortcut(full_path)
+        if url:
+            return RedirectResponse(url=url)
+        paragraphs = []
+    else:
+        return RedirectResponse(url=f"/course/file?path={urllib.parse.quote(decoded_path)}")
+
+    return templates.TemplateResponse(
+        request,
+        "course/doc_view.html",
+        {
+            "title": title,
+            "filename": filename,
+            "paragraphs": paragraphs,
+            "rel_path": decoded_path,
+        },
+    )
+
+
 @router.get("/read-doc")
 def read_doc_endpoint(path: str):
     """Parses .docx or text document and returns structured JSON for in-app reader modal."""

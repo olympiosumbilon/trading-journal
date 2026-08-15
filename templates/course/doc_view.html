@@ -1,0 +1,120 @@
+{% extends "base.html" %}
+
+{% block title %}{{ title }} — Document Reader{% endblock %}
+
+{% block content %}
+<div class="dash-container" style="max-width: 900px; margin: 2rem auto; padding: 0 1rem;">
+    
+    <div class="doc-reader-card">
+        <!-- Reader Header -->
+        <div class="doc-reader-header">
+            <div class="drh-left">
+                <a href="javascript:history.back()" class="btn-secondary btn-sm" style="text-decoration:none;">
+                    &larr; Back to Lesson
+                </a>
+                <div>
+                    <h1 class="doc-reader-title">{{ title }}</h1>
+                    <span class="doc-reader-sub">{{ filename }}</span>
+                </div>
+            </div>
+            <div class="drh-actions">
+                <button type="button" onclick="window.print()" class="btn-secondary btn-sm">
+                    🖨️ Print
+                </button>
+            </div>
+        </div>
+
+        <!-- Reader Body -->
+        <div class="doc-reader-body">
+            {% if paragraphs %}
+                <div class="doc-formatted-content">
+                    {% for p in paragraphs %}
+                        {% if p.is_heading %}
+                            <h3 class="doc-p-heading">{{ p.text }}</h3>
+                        {% else %}
+                            <p class="doc-p-text">{{ p.text }}</p>
+                        {% endif %}
+                    {% endfor %}
+                </div>
+            {% else %}
+                <div class="empty-docs-box">
+                    <p>No text content found in this document.</p>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+
+</div>
+
+<style>
+.doc-reader-card {
+    background: #0f172a;
+    border: 1px solid #1e293b;
+    border-radius: 12px;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+    overflow: hidden;
+}
+
+.doc-reader-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1.25rem 1.75rem;
+    background: #1e293b;
+    border-bottom: 1px solid #334155;
+    flex-wrap: wrap;
+    gap: 1rem;
+}
+
+.drh-left {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+.doc-reader-title {
+    margin: 0;
+    font-size: 1.35rem;
+    font-weight: 800;
+    color: #f8fafc;
+    line-height: 1.2;
+}
+
+.doc-reader-sub {
+    font-size: 0.75rem;
+    color: #94a3b8;
+    display: block;
+    margin-top: 0.2rem;
+}
+
+.doc-reader-body {
+    padding: 2.25rem 2.5rem;
+    background: #090d16;
+    min-height: 400px;
+}
+
+.doc-formatted-content {
+    color: #e2e8f0;
+    line-height: 1.8;
+    font-size: 0.98rem;
+}
+
+.doc-p-heading {
+    font-size: 1.2rem;
+    font-weight: 800;
+    color: #38bdf8;
+    margin: 1.75rem 0 0.65rem 0;
+    border-bottom: 1px solid #1e293b;
+    padding-bottom: 0.35rem;
+}
+
+.doc-p-heading:first-child {
+    margin-top: 0;
+}
+
+.doc-p-text {
+    margin-bottom: 1.15rem;
+    color: #cbd5e1;
+}
+</style>
+{% endblock %}
