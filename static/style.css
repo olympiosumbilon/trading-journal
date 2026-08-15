@@ -6862,15 +6862,39 @@ a {
 
     /* 6. Psychology & Mindset Tags */
     .emotion-tags-row {
-        display: flex !important;
-        flex-wrap: wrap !important;
-        gap: 0.35rem !important;
+        display: grid !important;
+        grid-template-columns: repeat(2, 1fr) !important;
+        gap: 0.45rem !important;
+        width: 100% !important;
+        box-sizing: border-box !important;
+        margin-top: 0.4rem !important;
     }
 
     .btn-emotion-tag {
-        font-size: 0.74rem !important;
-        padding: 0.4rem 0.65rem !important;
-        border-radius: 9999px !important;
+        display: flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        font-size: 0.76rem !important;
+        font-weight: 700 !important;
+        padding: 0.55rem 0.35rem !important;
+        border-radius: 8px !important;
+        text-align: center !important;
+        min-height: 40px !important;
+        width: 100% !important;
+        box-sizing: border-box !important;
+        background: #f8fafc !important;
+        border: 1px solid #cbd5e1 !important;
+        color: #334155 !important;
+        line-height: 1.2 !important;
+        transition: all 0.15s ease !important;
+    }
+
+    .btn-emotion-tag.active {
+        background: #0284c7 !important;
+        color: #ffffff !important;
+        border-color: #0284c7 !important;
+        font-weight: 800 !important;
+        box-shadow: 0 2px 8px rgba(2, 132, 199, 0.35) !important;
     }
 
     /* 7. Screenshot Manager */
