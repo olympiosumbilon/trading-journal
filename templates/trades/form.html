@@ -466,8 +466,10 @@
         </div>
     </div>
     <div class="form-actions-bar">
-        <button type="submit" class="btn-primary-action">{% if trade %}Update Trade #{{ trade.id }}{% else %}Save & Log Trade{% endif %}</button>
-        <a href="/trades/" class="btn-secondary-action">Cancel</a>
+        <button type="submit" class="btn-save-trade-submit">
+            💾 {% if trade %}Update Trade #{{ trade.id }}{% else %}Save & Log Trade{% endif %}
+        </button>
+        <a href="/trades/" class="btn-cancel-trade">Cancel</a>
         {% if trade %}
         <button type="button" class="btn-danger-action" style="margin-left: auto;" onclick="if(confirm('Sigurado ka nga gusto nimo i-delete kini nga Trade #{{ trade.id }}?')) { document.getElementById('deleteTradeForm').submit(); }">🗑️ Delete Trade #{{ trade.id }}</button>
         {% endif %}
