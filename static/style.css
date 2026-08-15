@@ -6056,6 +6056,501 @@ a {
     }
 }
 
+/* ==========================================================================
+   ✨ TRADES LIST & MOBILE CARDS UI/UX DESIGN SYSTEM
+   ========================================================================== */
+
+.trades-header-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1.25rem;
+    flex-wrap: wrap;
+    gap: 1rem;
+}
+
+.thr-left .page-title {
+    margin: 0;
+    font-size: 1.5rem;
+    font-weight: 800;
+    color: #0f172a;
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+}
+
+.title-count-pill {
+    background: #e0f2fe;
+    color: #0369a1;
+    font-size: 0.8rem;
+    font-weight: 700;
+    padding: 0.15rem 0.6rem;
+    border-radius: 9999px;
+}
+
+.page-subtitle {
+    margin: 0.2rem 0 0 0;
+    font-size: 0.82rem;
+    color: #64748b;
+}
+
+.thr-actions {
+    display: flex;
+    align-items: center;
+    gap: 0.65rem;
+}
+
+.btn-filter-toggle {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.45rem;
+    background: #fff;
+    border: 1px solid #cbd5e1;
+    color: #334155;
+    padding: 0.55rem 0.95rem;
+    border-radius: 6px;
+    font-size: 0.84rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.15s ease;
+}
+
+.btn-filter-toggle:hover, .btn-filter-toggle.active {
+    background: #f1f5f9;
+    border-color: #94a3b8;
+    color: #0f172a;
+}
+
+.filter-count-badge {
+    background: #2563eb;
+    color: #fff;
+    font-size: 0.68rem;
+    padding: 0.1rem 0.4rem;
+    border-radius: 9999px;
+    font-weight: 800;
+}
+
+/* Collapsible Filter Panel */
+.filters-card-collapsible {
+    background: #fff;
+    border: 1px solid #e2e8f0;
+    border-radius: 10px;
+    padding: 1.25rem;
+    margin-bottom: 1.25rem;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+}
+
+.fc-header-mobile {
+    display: none;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1rem;
+    padding-bottom: 0.5rem;
+    border-bottom: 1px solid #e2e8f0;
+}
+
+.fch-title {
+    font-weight: 800;
+    font-size: 0.95rem;
+    color: #0f172a;
+}
+
+.fch-close-btn {
+    background: transparent;
+    border: none;
+    font-size: 1.1rem;
+    color: #64748b;
+    cursor: pointer;
+}
+
+.filters-grid-modern {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+    gap: 0.75rem;
+    margin-bottom: 1rem;
+}
+
+.filter-field {
+    display: flex;
+    flex-direction: column;
+    gap: 0.3rem;
+}
+
+.filter-field label {
+    font-size: 0.7rem;
+    font-weight: 800;
+    color: #475569;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+}
+
+.filter-field select {
+    background: #f8fafc;
+    border: 1px solid #cbd5e1;
+    border-radius: 6px;
+    padding: 0.45rem 0.6rem;
+    font-size: 0.82rem;
+    font-weight: 600;
+    color: #1e293b;
+    outline: none;
+    transition: border-color 0.15s;
+    cursor: pointer;
+}
+
+.filter-field select:focus {
+    border-color: #2563eb;
+    background: #fff;
+    box-shadow: 0 0 0 2px rgba(37,99,235,0.1);
+}
+
+.filters-btn-row {
+    display: flex;
+    gap: 0.6rem;
+    align-items: center;
+}
+
+.btn-apply-filter {
+    padding: 0.5rem 1.25rem;
+    font-size: 0.84rem;
+    font-weight: 700;
+    background: #2563eb;
+    color: #fff;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+}
+
+.btn-apply-filter:hover {
+    background: #1d4ed8;
+}
+
+.btn-clear-filter {
+    padding: 0.5rem 1rem;
+    font-size: 0.84rem;
+    font-weight: 600;
+    color: #64748b;
+    text-decoration: none;
+    border-radius: 6px;
+    background: #f1f5f9;
+}
+
+.btn-clear-filter:hover {
+    color: #0f172a;
+    background: #e2e8f0;
+}
+
+/* Meta Bar & View Mode Switcher */
+.trades-meta-bar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1rem;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+}
+
+.tmb-left {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    flex-wrap: wrap;
+}
+
+.trade-count-text {
+    font-size: 0.84rem;
+    color: #64748b;
+}
+
+.active-filter-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    background: #eff6ff;
+    color: #1d4ed8;
+    padding: 0.2rem 0.6rem;
+    border-radius: 9999px;
+    font-size: 0.76rem;
+    font-weight: 700;
+    border: 1px solid #bfdbfe;
+}
+
+.af-remove-link {
+    color: #1d4ed8;
+    text-decoration: none;
+    font-weight: 800;
+    margin-left: 0.2rem;
+}
+
+.view-mode-switch {
+    display: flex;
+    background: #e2e8f0;
+    padding: 2px;
+    border-radius: 6px;
+}
+
+.vm-btn {
+    background: transparent;
+    border: none;
+    padding: 0.3rem 0.75rem;
+    font-size: 0.78rem;
+    font-weight: 700;
+    color: #64748b;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: all 0.15s;
+}
+
+.vm-btn.active {
+    background: #fff;
+    color: #0f172a;
+    box-shadow: 0 1px 2px rgba(0,0,0,0.08);
+}
+
+/* 📱 Responsive Mobile Trade Cards */
+.trades-cards-container {
+    display: none;
+    grid-template-columns: 1fr;
+    gap: 0.85rem;
+    margin-bottom: 1.5rem;
+}
+
+.trade-mobile-card {
+    background: #fff;
+    border-radius: 10px;
+    border: 1px solid #e2e8f0;
+    padding: 0.95rem 1.1rem;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    transition: all 0.15s ease;
+    border-left: 4px solid #cbd5e1;
+}
+
+.trade-mobile-card.card-win {
+    border-left-color: #16a34a;
+}
+
+.trade-mobile-card.card-loss {
+    border-left-color: #dc2626;
+}
+
+.trade-mobile-card.card-be {
+    border-left-color: #eab308;
+}
+
+.tmc-top {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.tmc-pair-info {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.tmc-id {
+    font-size: 0.75rem;
+    font-weight: 800;
+    color: #64748b;
+}
+
+.tmc-instrument {
+    font-size: 1.05rem;
+    font-weight: 900;
+    color: #0f172a;
+    letter-spacing: 0.02em;
+}
+
+.tmc-session {
+    font-size: 0.7rem;
+    font-weight: 700;
+    background: #f1f5f9;
+    color: #475569;
+    padding: 0.15rem 0.45rem;
+    border-radius: 4px;
+}
+
+.tmc-badge {
+    font-size: 0.85rem;
+    font-weight: 800;
+    padding: 0.25rem 0.65rem;
+    border-radius: 6px;
+    letter-spacing: 0.02em;
+}
+
+.badge-win {
+    background: #dcfce7;
+    color: #15803d;
+}
+
+.badge-loss {
+    background: #fee2e2;
+    color: #b91c1c;
+}
+
+.badge-be {
+    background: #fef9c3;
+    color: #854d0e;
+}
+
+.tmc-details {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 0.5rem 0.75rem;
+    background: #f8fafc;
+    padding: 0.65rem 0.85rem;
+    border-radius: 6px;
+}
+
+.tmc-detail-item {
+    display: flex;
+    flex-direction: column;
+    gap: 0.15rem;
+}
+
+.tmc-dt-label {
+    font-size: 0.65rem;
+    font-weight: 800;
+    color: #94a3b8;
+    text-transform: uppercase;
+}
+
+.tmc-dt-val {
+    font-size: 0.78rem;
+    color: #334155;
+}
+
+.tmc-sub-pill {
+    display: inline-block;
+    font-size: 0.68rem;
+    padding: 0.1rem 0.35rem;
+    border-radius: 4px;
+    background: #e2e8f0;
+    color: #475569;
+    font-weight: 700;
+}
+
+.tmc-actions {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding-top: 0.4rem;
+    border-top: 1px solid #f1f5f9;
+}
+
+.tmc-btn {
+    flex: 1;
+    text-align: center;
+    text-decoration: none;
+    font-size: 0.78rem;
+    font-weight: 700;
+    padding: 0.45rem 0.5rem;
+    border-radius: 6px;
+    border: none;
+    cursor: pointer;
+    transition: all 0.15s ease;
+}
+
+.tmc-btn-view {
+    background: #0f172a;
+    color: #f8fafc;
+}
+
+.tmc-btn-edit {
+    background: #f1f5f9;
+    color: #334155;
+    border: 1px solid #cbd5e1;
+}
+
+.tmc-btn-del {
+    background: #fff;
+    color: #dc2626;
+    border: 1px solid #fecaca;
+}
+
+/* ==========================================================================
+   📱 TRADES MOBILE SPECIFIC MEDIA QUERY (< 768px)
+   ========================================================================== */
+
+@media (max-width: 768px) {
+    .trades-header-row {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 0.75rem;
+        margin-bottom: 0.85rem;
+    }
+
+    .thr-actions {
+        display: flex;
+        gap: 0.5rem;
+        width: 100%;
+    }
+
+    .btn-filter-toggle {
+        flex: 1;
+        justify-content: center;
+    }
+
+    .thr-actions .btn-primary-action {
+        flex: 1;
+        justify-content: center;
+    }
+
+    /* By default on mobile, collapse filter panel */
+    .filters-card-collapsible {
+        display: none;
+        padding: 1rem;
+        margin-bottom: 1rem;
+    }
+
+    .filters-card-collapsible.panel-open {
+        display: block;
+        animation: fadeIn 0.2s ease;
+    }
+
+    .fc-header-mobile {
+        display: flex;
+    }
+
+    .filters-grid-modern {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 0.6rem;
+    }
+
+    .filters-btn-row {
+        flex-direction: column;
+        width: 100%;
+    }
+
+    .btn-apply-filter, .btn-clear-filter {
+        width: 100%;
+        text-align: center;
+        box-sizing: border-box;
+    }
+
+    /* Show Mobile Cards by default on phone */
+    .trades-cards-container {
+        display: grid;
+    }
+
+    .trades-table-container {
+        display: none;
+    }
+
+    .trades-meta-bar {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 0.5rem;
+    }
+
+    .tmb-right {
+        justify-content: flex-end;
+    }
+}
+
 
 
 
