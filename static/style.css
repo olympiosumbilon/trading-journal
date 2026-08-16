@@ -642,20 +642,88 @@ a {
     font-size: 0.9rem;
 }
 
-/* Alert Toasts */
-.settings-alert {
+/* Floating Alert Toasts */
+.settings-alert-toast-container {
+    position: fixed;
+    top: 1.5rem;
+    right: 1.5rem;
+    z-index: 99999999;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    pointer-events: none;
+    max-width: 440px;
+    width: calc(100vw - 3rem);
+}
+
+.settings-alert-toast {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.75rem;
+    padding: 0.75rem 1.15rem;
+    border-radius: 10px;
+    font-size: 0.86rem;
+    font-weight: 600;
+    pointer-events: auto;
+    box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.25), 0 8px 10px -6px rgba(0, 0, 0, 0.15);
+    animation: toastSlideIn 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    transition: opacity 0.35s ease, transform 0.35s ease;
+}
+
+.settings-alert-toast.alert-success {
+    background: #064e3b;
+    color: #a7f3d0;
+    border: 1px solid #059669;
+}
+
+.settings-alert-toast.alert-warning {
+    background: #78350f;
+    color: #fde68a;
+    border: 1px solid #d97706;
+}
+
+.settings-alert-toast-content {
     display: flex;
     align-items: center;
     gap: 0.6rem;
-    padding: 0.75rem 1rem;
-    border-radius: 8px;
-    margin-bottom: 1.25rem;
-    font-size: 0.875rem;
-    font-weight: 500;
 }
 
-.settings-alert svg {
+.settings-alert-toast-content svg {
     flex-shrink: 0;
+}
+
+.settings-alert-toast-close {
+    background: transparent;
+    border: none;
+    color: inherit;
+    opacity: 0.7;
+    font-size: 1.3rem;
+    line-height: 1;
+    cursor: pointer;
+    padding: 0.1rem 0.3rem;
+    border-radius: 4px;
+    transition: opacity 0.15s ease;
+}
+
+.settings-alert-toast-close:hover {
+    opacity: 1;
+}
+
+@keyframes toastSlideIn {
+    from {
+        opacity: 0;
+        transform: translateY(-20px) scale(0.95);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+}
+
+.toast-fade-out {
+    opacity: 0 !important;
+    transform: translateY(-15px) scale(0.95) !important;
 }
 
 /* Segmented Navigation Tabs */
