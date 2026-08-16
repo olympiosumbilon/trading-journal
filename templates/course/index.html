@@ -31,16 +31,17 @@
             </div>
         </div>
 
+        {% set completed_pct = ((completed_count / total_videos * 100) | round | int) if total_videos > 0 else 0 %}
         <div class="course-progress-card">
             <div class="cpc-header">
                 <span class="cpc-title">Your Watch Progress</span>
-                <span class="cpc-pct font-bold" id="courseProgressPct">0%</span>
+                <span class="cpc-pct font-bold" id="courseProgressPct">{{ completed_pct }}%</span>
             </div>
             <div class="cpc-bar">
-                <div class="cpc-fill" id="courseProgressFill" style="width: 0%;"></div>
+                <div class="cpc-fill" id="courseProgressFill" style="width: {{ completed_pct }}%;"></div>
             </div>
             <div class="cpc-stats">
-                <span id="courseWatchedCount">0</span> of {{ total_videos }} lessons completed
+                <span id="courseWatchedCount">{{ completed_count }}</span> of {{ total_videos }} lessons completed
             </div>
         </div>
     </div>
@@ -160,13 +161,31 @@
 </div>
 
 <script>
+const serverCompletedCount = {{ completed_count }};
+const totalVideos = {{ total_videos }};
+const serverCompletedLessons = {{ completed_lessons | tojson | safe }};
+
 document.addEventListener('DOMContentLoaded', () => {
-    // Load watch progress from localStorage
+    // 1. Sync local cache with server SQLite database
     try {
-        const completed = JSON.parse(localStorage.getItem('photon_completed_lessons') || '[]');
-        const total = {{ total_videos }};
-        const count = completed.length;
-        const pct = total > 0 ? Math.min(100, Math.round((count / total) * 100)) : 0;
+        let localList = JSON.parse(localStorage.getItem('photon_completed_lessons') || '[]');
+        const combined = new Set([...serverCompletedLessons, ...localList]);
+        
+        // If there were any un-synced lessons in localStorage, send them to server SQLite
+        localList.forEach(path => {
+            if (!serverCompletedLessons.includes(path)) {
+                fetch('/course/api/progress', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({lesson_path: path, is_completed: true})
+                }).catch(() => {});
+            }
+        });
+
+        localStorage.setItem('photon_completed_lessons', JSON.stringify(Array.from(combined)));
+
+        const count = combined.size;
+        const pct = totalVideos > 0 ? Math.min(100, Math.round((count / totalVideos) * 100)) : 0;
         
         const countEl = document.getElementById('courseWatchedCount');
         const pctEl = document.getElementById('courseProgressPct');
@@ -181,7 +200,8 @@ document.addEventListener('DOMContentLoaded', () => {
         const resumeBtn = document.getElementById('btnResumeCourse');
         if (lastWatched && resumeBtn) {
             resumeBtn.href = '/course/watch?file=' + encodeURIComponent(lastWatched);
-            resumeBtn.innerHTML = '▶️ Resume: ' + (localStorage.getItem('photon_last_watched_title') || 'Next Lesson');
+            const title = localStorage.getItem('photon_last_watched_title') || 'Next Lesson';
+            resumeBtn.innerHTML = '▶️ Resume: ' + title;
         }
     } catch (e) {
         console.error('Error loading course progress:', e);
