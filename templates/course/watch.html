@@ -33,7 +33,41 @@
             >
         </div>
 
-        <!-- Playlist Accordion -->
+        <!-- Playlist Accordion (Recursive for Any Depth of Subfolders) -->
+        {% macro render_sidebar_node(node, depth=0) %}
+            {% if node.subdirs %}
+                {% for sub in node.subdirs %}
+                <div class="sm-subdir-group" data-subdir="{{ sub.name }}" style="{% if depth > 0 %}margin-left: {{ depth * 0.45 }}rem;{% endif %}">
+                    <div class="sm-subdir-header" onclick="toggleSubdirGroup(this)">
+                        <span class="sm-subdir-icon">▼</span>
+                        <span class="sm-subdir-title font-bold">📁 {{ sub.name }}</span>
+                        {% if sub.total_videos > 0 %}
+                        <span class="sm-group-badge" style="font-size: 0.68rem; margin-left: auto;">{{ sub.total_videos }}</span>
+                        {% endif %}
+                    </div>
+                    <div class="sm-subdir-content">
+                        {{ render_sidebar_node(sub, depth + 1) }}
+                    </div>
+                </div>
+                {% endfor %}
+            {% endif %}
+
+            {% for v in node.videos %}
+            {% set is_active = (v.rel_path == current_lesson.rel_path) %}
+            <a 
+                href="/course/watch?file={{ v.rel_path | urlencode }}" 
+                class="sm-lesson-item {% if is_active %}active-lesson{% endif %}"
+                data-title="{{ v.title | lower }}"
+                data-relpath="{{ v.rel_path }}"
+                style="{% if depth > 0 %}padding-left: {{ 0.75 + depth * 0.35 }}rem;{% endif %}"
+            >
+                <span class="lesson-check-icon">○</span>
+                <span class="lesson-item-title">{{ v.title }}</span>
+                <span class="lesson-item-size">{{ v.size_mb }}M</span>
+            </a>
+            {% endfor %}
+        {% endmacro %}
+
         <div class="sidebar-modules-tree" id="sidebarModulesTree">
             {% for mod in modules %}
             <div class="sidebar-module-group" data-module="{{ mod.name }}">
@@ -44,45 +78,7 @@
                 </div>
 
                 <div class="sm-group-content">
-                    {% if mod.subdirs %}
-                        {% for sub in mod.subdirs %}
-                        <div class="sm-subdir-group" data-subdir="{{ sub.name }}">
-                            <div class="sm-subdir-header" onclick="toggleSubdirGroup(this)">
-                                <span class="sm-subdir-icon">▼</span>
-                                <span class="sm-subdir-title font-bold">📁 {{ sub.name }}</span>
-                            </div>
-                            <div class="sm-subdir-content">
-                                {% for v in sub.videos %}
-                                {% set is_active = (v.rel_path == current_lesson.rel_path) %}
-                                <a 
-                                    href="/course/watch?file={{ v.rel_path | urlencode }}" 
-                                    class="sm-lesson-item {% if is_active %}active-lesson{% endif %}"
-                                    data-title="{{ v.title | lower }}"
-                                    data-relpath="{{ v.rel_path }}"
-                                >
-                                    <span class="lesson-check-icon" id="check-{{ loop.index0 }}-{{ v.rel_path | replace('/', '-') | replace(' ', '-') }}">○</span>
-                                    <span class="lesson-item-title">{{ v.title }}</span>
-                                    <span class="lesson-item-size">{{ v.size_mb }}M</span>
-                                </a>
-                                {% endfor %}
-                            </div>
-                        </div>
-                        {% endfor %}
-                    {% else %}
-                        {% for v in mod.videos %}
-                        {% set is_active = (v.rel_path == current_lesson.rel_path) %}
-                        <a 
-                            href="/course/watch?file={{ v.rel_path | urlencode }}" 
-                            class="sm-lesson-item {% if is_active %}active-lesson{% endif %}"
-                            data-title="{{ v.title | lower }}"
-                            data-relpath="{{ v.rel_path }}"
-                        >
-                            <span class="lesson-check-icon" id="check-{{ loop.index0 }}-{{ v.rel_path | replace('/', '-') | replace(' ', '-') }}">○</span>
-                            <span class="lesson-item-title">{{ v.title }}</span>
-                            <span class="lesson-item-size">{{ v.size_mb }}M</span>
-                        </a>
-                        {% endfor %}
-                    {% endif %}
+                    {{ render_sidebar_node(mod, 0) }}
                 </div>
             </div>
             {% endfor %}
