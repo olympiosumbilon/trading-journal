@@ -163,6 +163,13 @@ def scan_directory_tree(dir_path: str, base_root: str) -> Dict[str, Any]:
                     "size_mb": file_size_mb,
                 })
 
+    first_vid = videos[0] if videos else None
+    if not first_vid:
+        for sub in subdirs:
+            if sub.get("first_video"):
+                first_vid = sub["first_video"]
+                break
+
     return {
         "name": os.path.basename(dir_path),
         "rel_path": os.path.relpath(dir_path, base_root).replace("\\", "/"),
@@ -171,6 +178,7 @@ def scan_directory_tree(dir_path: str, base_root: str) -> Dict[str, Any]:
         "docs": docs,
         "total_videos": total_videos,
         "total_docs": len(docs),
+        "first_video": first_vid,
     }
 
 

@@ -118,7 +118,7 @@
                             {% for sub in mod.subdirs %}
                             <div class="mc-subdir-item">
                                 <span class="subdir-name font-bold">📁 {{ sub.name }}</span>
-                                <span class="subdir-count">{{ sub.videos|length }} videos</span>
+                                <span class="subdir-count">{{ sub.total_videos }} videos</span>
                             </div>
                             {% endfor %}
                         </div>
@@ -140,15 +140,14 @@
                 </div>
 
                 <div class="module-card-footer">
-                    {% if mod.total_videos > 0 %}
-                        {% set first_vid = mod.videos[0] if mod.videos else (mod.subdirs[0].videos[0] if mod.subdirs and mod.subdirs[0].videos else None) %}
-                        {% if first_vid %}
-                        <a href="/course/watch?file={{ first_vid.rel_path | urlencode }}" class="btn-primary btn-block">
+                    {% if mod.first_video %}
+                        <a href="/course/watch?file={{ mod.first_video.rel_path | urlencode }}" class="btn-primary btn-block">
                             Start Module &rarr;
                         </a>
-                        {% else %}
-                        <a href="/course/watch" class="btn-secondary btn-block">Explore Lessons</a>
-                        {% endif %}
+                    {% elif mod.total_videos > 0 %}
+                        <a href="/course/watch" class="btn-primary btn-block">
+                            Start Module &rarr;
+                        </a>
                     {% else %}
                         <a href="/course/watch" class="btn-secondary btn-block">View Materials</a>
                     {% endif %}
