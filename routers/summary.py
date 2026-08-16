@@ -127,6 +127,12 @@ def summary(request: Request, year: str = ""):
             trades = all_raw_trades
 
         strategies = db.query(Strategy).order_by(Strategy.name).all()
+        # Smart Strategy Scoping: Only include strategies traded in current view or active
+        if filter_year:
+            strategies = [st for st in strategies if any(t.strategy_id == st.id for t in trades) or bool(getattr(st, "is_active", True))]
+        else:
+            strategies = [st for st in strategies if any(t.strategy_id == st.id for t in all_raw_trades) or bool(getattr(st, "is_active", True))]
+
         instruments = db.query(Instrument).order_by(Instrument.name).all()
         sessions = db.query(Session).order_by(Session.name).all()
         probabilities = db.query(ProbabilityLevel).order_by(ProbabilityLevel.name).all()

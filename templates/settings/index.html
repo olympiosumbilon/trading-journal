@@ -206,16 +206,22 @@
                         <thead>
                             <tr>
                                 <th>Strategy / Setup Name</th>
-                                <th style="width: 25%;">Usage</th>
-                                <th style="width: 30%; text-align: right;">Actions</th>
+                                <th style="width: 20%;">Status</th>
+                                <th style="width: 15%;">Usage</th>
+                                <th style="width: 32%; text-align: right;">Actions</th>
                             </tr>
                         </thead>
                         <tbody>
                             {% for st in strategies %}
-                            <tr class="settings-row">
+                            <tr class="settings-row {% if not st.is_active %}row-archived{% endif %}">
                                 <form method="POST" action="/settings/strategy/{{ st.id }}">
                                     <td>
                                         <input type="text" name="name" value="{{ st.name }}" required class="form-input">
+                                    </td>
+                                    <td>
+                                        <button type="submit" formaction="/settings/strategy/{{ st.id }}/toggle-active" formmethod="POST" class="status-toggle-btn {% if st.is_active %}stb-active{% else %}stb-archived{% endif %}" title="Click to {% if st.is_active %}Archive{% else %}Activate{% endif %}">
+                                            {% if st.is_active %}● Active{% else %}📦 Archived{% endif %}
+                                        </button>
                                     </td>
                                     <td>
                                         <span class="status-badge {% if st.trade_count > 0 %}active-usage{% else %}zero-usage{% endif %}">
@@ -225,9 +231,12 @@
                                     <td style="text-align: right;">
                                         <div class="action-btn-group">
                                             <button type="submit" class="action-btn btn-save">Save</button>
+                                            <button type="submit" formaction="/settings/strategy/{{ st.id }}/toggle-active" formmethod="POST" class="action-btn {% if st.is_active %}btn-archive{% else %}btn-unarchive{% endif %}" title="{% if st.is_active %}Archive this strategy{% else %}Set as Active{% endif %}">
+                                                {% if st.is_active %}Archive{% else %}Activate{% endif %}
+                                            </button>
                                 </form>
                                             <form method="POST" action="/settings/strategy/{{ st.id }}/delete" onsubmit="return confirm('Delete strategy {{ st.name }}?');" style="display:inline;">
-                                                <button type="submit" class="action-btn btn-del">Delete</button>
+                                                <button type="submit" class="action-btn btn-del" {% if st.trade_count > 0 %}title="Used by trades. Archive it instead." disabled style="opacity: 0.35; cursor: not-allowed;"{% endif %}>Delete</button>
                                             </form>
                                         </div>
                                     </td>

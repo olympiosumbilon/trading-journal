@@ -145,6 +145,9 @@ def analysis(request: Request, year: str = ""):
             .all()
         )
 
+        # Smart Strategy Scoping: Only include strategies traded in this year or currently active
+        strategies = [st for st in strategies if any(t.strategy_id == st.id for t in trades) or bool(getattr(st, "is_active", True))]
+
         # 1. Summary KPI Card
         kpi_summary = calc_kpi_stats(trades)
 

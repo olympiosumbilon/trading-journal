@@ -60,7 +60,7 @@ def settings_index(request: Request, msg: str = "", error: str = ""):
         for s in sessions:
             s.trade_count = db.query(Trade).filter(Trade.session_id == s.id).count()
 
-        strategies = db.query(Strategy).order_by(Strategy.name).all()
+        strategies = db.query(Strategy).order_by(Strategy.is_active.desc(), Strategy.name.asc()).all()
         for st in strategies:
             st.trade_count = db.query(Trade).filter(Trade.strategy_id == st.id).count()
 
@@ -262,6 +262,18 @@ def update_strategy(strategy_id: int, name: str = Form("")):
     return RedirectResponse(url=f"/settings/?msg=Strategy+{quote(name)}+updated", status_code=303)
 
 
+@router.post("/strategy/{strategy_id}/toggle-active")
+def toggle_strategy_active(strategy_id: int):
+    with SessionLocal() as db:
+        st = db.query(Strategy).get(strategy_id)
+        if not st:
+            raise HTTPException(status_code=404, detail="Strategy not found")
+        st.is_active = not bool(st.is_active)
+        db.commit()
+        status_msg = "activated" if st.is_active else "archived"
+    return RedirectResponse(url=f"/settings/?msg=Strategy+{quote(st.name)}+has+been+{status_msg}", status_code=303)
+
+
 @router.post("/strategy/{strategy_id}/delete")
 def delete_strategy(strategy_id: int):
     with SessionLocal() as db:
@@ -272,7 +284,7 @@ def delete_strategy(strategy_id: int):
         trade_count = db.query(Trade).filter(Trade.strategy_id == strategy_id).count()
         if trade_count > 0:
             return RedirectResponse(
-                url=f"/settings/?error=Cannot+delete+{quote(st.name)}+because+it+is+used+by+{trade_count}+trade(s)",
+                url=f"/settings/?error=Cannot+delete+{quote(st.name)}+because+it+is+used+by+{trade_count}+trade(s).+You+can+archive+it+instead.",
                 status_code=303,
             )
 

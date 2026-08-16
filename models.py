@@ -40,6 +40,7 @@ class Strategy(Base):
     id = Column(Integer, primary_key=True)
     name = Column(String, nullable=False)
     slug = Column(String, nullable=False, unique=True)
+    is_active = Column(Boolean, default=True, nullable=False)
 
     trades = relationship("Trade", back_populates="strategy_obj")
 

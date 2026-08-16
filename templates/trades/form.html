@@ -269,9 +269,17 @@
                 <label>Setup / Strategy</label>
                 <select name="strategy_id" id="strategySelect">
                     <option value="">-- Select --</option>
-                    {% for st in strategies %}
+                    {% for st in strategies if st.is_active %}
                     <option value="{{ st.id }}" {% if trade and trade.strategy_id == st.id %}selected{% endif %}>{{ st.name }}</option>
                     {% endfor %}
+                    {% set archived_strats = strategies | selectattr('is_active', 'equalto', False) | list %}
+                    {% if archived_strats %}
+                    <optgroup label="📦 Archived / Past Setups">
+                        {% for st in archived_strats %}
+                        <option value="{{ st.id }}" {% if trade and trade.strategy_id == st.id %}selected{% endif %}>{{ st.name }} (Archived)</option>
+                        {% endfor %}
+                    </optgroup>
+                    {% endif %}
                 </select>
             </div>
             <div class="form-group">

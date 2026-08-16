@@ -899,6 +899,70 @@ a {
     color: #be123c;
 }
 
+.status-toggle-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    padding: 0.28rem 0.65rem;
+    border-radius: 9999px;
+    font-size: 0.72rem;
+    font-weight: 700;
+    cursor: pointer;
+    border: none;
+    transition: all 0.15s ease;
+}
+
+.stb-active {
+    background: rgba(16, 185, 129, 0.15);
+    color: #10b981;
+    border: 1px solid rgba(16, 185, 129, 0.3);
+}
+
+.stb-active:hover {
+    background: rgba(16, 185, 129, 0.25);
+}
+
+.stb-archived {
+    background: rgba(148, 163, 184, 0.12);
+    color: #94a3b8;
+    border: 1px solid rgba(148, 163, 184, 0.25);
+}
+
+.stb-archived:hover {
+    background: rgba(148, 163, 184, 0.22);
+    color: #cbd5e1;
+}
+
+.btn-archive {
+    background: rgba(245, 158, 11, 0.12);
+    color: #f59e0b;
+    border: 1px solid rgba(245, 158, 11, 0.25);
+}
+
+.btn-archive:hover {
+    background: rgba(245, 158, 11, 0.22);
+    color: #fbbf24;
+}
+
+.btn-unarchive {
+    background: rgba(16, 185, 129, 0.12);
+    color: #10b981;
+    border: 1px solid rgba(16, 185, 129, 0.25);
+}
+
+.btn-unarchive:hover {
+    background: rgba(16, 185, 129, 0.22);
+}
+
+.row-archived {
+    opacity: 0.68;
+    background: rgba(15, 23, 42, 0.4);
+}
+
+.row-archived:hover {
+    opacity: 0.95;
+}
+
 /* Add Item Footers */
 .add-item-card {
     background: #f8fafc;
