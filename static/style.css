@@ -1349,7 +1349,7 @@ a {
 }
 
 .breakdowns-5col {
-    grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+    grid-template-columns: repeat(auto-fit, minmax(235px, 1fr));
 }
 
 .breakdowns-2col {
@@ -1361,44 +1361,57 @@ a {
 }
 
 .breakdowns-4col {
-    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
 }
 
 .breakdown-card {
     background: #fff;
     border-radius: 8px;
-    padding: 0.95rem 1.25rem;
+    padding: 0.85rem 0.75rem;
     box-shadow: 0 1px 3px rgba(0,0,0,0.06);
     border: 1px solid #e2e8f0;
+    min-width: 0;
+    box-sizing: border-box;
 }
 
 .breakdown-card h4 {
-    margin: 0 0 0.75rem 0;
-    font-size: 0.82rem;
+    margin: 0 0 0.65rem 0;
+    font-size: 0.8rem;
     font-weight: 800;
     letter-spacing: 0.05em;
     color: #1e293b;
     border-bottom: 2px solid #0284c7;
-    padding-bottom: 0.45rem;
+    padding-bottom: 0.4rem;
 }
 
 .breakdown-card table {
     width: 100%;
     margin-bottom: 0;
     border-collapse: collapse;
-    font-size: 0.825rem;
+    font-size: 0.8rem;
+    table-layout: auto;
 }
 
 .breakdown-card th, .breakdown-card td {
-    padding: 0.45rem 0.65rem;
+    padding: 0.4rem 0.3rem;
     white-space: nowrap;
+    box-sizing: border-box;
 }
 
 .breakdown-card th {
-    font-size: 0.72rem;
+    font-size: 0.7rem;
     color: #64748b;
     font-weight: 700;
     text-transform: uppercase;
+}
+
+.breakdown-card th:first-child, .breakdown-card td:first-child {
+    padding-left: 0.15rem;
+}
+
+.breakdown-card th:last-child, .breakdown-card td:last-child {
+    padding-right: 0.15rem;
+    text-align: right;
 }
 
 .prob-pill {
