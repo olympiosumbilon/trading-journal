@@ -8082,7 +8082,7 @@ main.main-full-bleed {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    padding: 0.75rem 1rem;
+    padding: 0.85rem 1.1rem;
     background: #141c2e;
     border-bottom: 1px solid #1e293b;
     flex-shrink: 0;
@@ -8105,15 +8105,20 @@ main.main-full-bleed {
     padding: 0.2rem 0.4rem;
     line-height: 1;
     border-radius: 6px;
+    transition: color 0.15s ease;
+}
+
+.tps-close:hover, .tps-close:active {
+    color: #f8fafc;
 }
 
 .tps-body {
-    padding: 0.65rem 0.75rem;
+    padding: 0.85rem 1rem 0.65rem 1rem;
     overflow-y: auto;
     -webkit-overflow-scrolling: touch;
     display: flex;
     flex-direction: column;
-    gap: 0.4rem;
+    gap: 0.45rem;
     flex: 1 1 auto;
     min-height: 80px;
     max-height: 48dvh;
@@ -8121,18 +8126,26 @@ main.main-full-bleed {
 }
 
 .tps-body .popover-trade-item {
-    padding: 0.55rem 0.75rem !important;
+    padding: 0.65rem 0.85rem !important;
     font-size: 0.82rem !important;
     background: #141c2e !important;
     border: 1px solid #1e293b !important;
-    border-radius: 6px !important;
-    min-height: 36px !important;
+    border-radius: 8px !important;
+    min-height: 38px !important;
     box-sizing: border-box !important;
+    transition: all 0.15s ease !important;
+}
+
+.tps-body .popover-trade-item:hover,
+.tps-body .popover-trade-item:active {
+    border-color: #38bdf8 !important;
+    background: #182238 !important;
+    transform: translateY(-1px);
 }
 
 .tps-footer {
-    padding: 0.65rem 0.85rem;
-    background: #141c2e;
+    padding: 0.85rem 1rem 1rem 1rem;
+    background: #0d1527;
     border-top: 1px solid #1e293b;
     text-align: center;
     flex-shrink: 0;
@@ -8144,23 +8157,26 @@ main.main-full-bleed {
     align-items: center;
     justify-content: center;
     width: 100%;
-    height: 42px;
-    min-height: 42px;
+    height: 44px;
+    min-height: 44px;
     padding: 0 1rem;
-    background: #0284c7;
+    background: linear-gradient(135deg, #0284c7 0%, #2563eb 100%);
     color: #ffffff;
-    font-size: 0.84rem;
+    font-size: 0.86rem;
     font-weight: 800;
+    letter-spacing: 0.02em;
     border-radius: 8px;
     text-decoration: none;
     text-align: center;
     box-sizing: border-box;
+    box-shadow: 0 4px 14px rgba(2, 132, 199, 0.35);
     transition: all 0.15s ease;
     cursor: pointer;
 }
 
 .tps-view-all-btn:hover {
-    background: #0369a1;
+    background: linear-gradient(135deg, #0369a1 0%, #1d4ed8 100%);
+    box-shadow: 0 6px 18px rgba(2, 132, 199, 0.45);
 }
 
 .tps-view-all-btn:active {
