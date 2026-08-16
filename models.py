@@ -159,3 +159,21 @@ class TradeScreenshot(Base):
 
     trade = relationship("Trade", back_populates="screenshots_list")
 
+
+class CourseProgress(Base):
+    __tablename__ = "course_progress"
+    id = Column(Integer, primary_key=True)
+    lesson_path = Column(String, nullable=False, unique=True, index=True)
+    is_completed = Column(Boolean, default=False)
+    last_position_seconds = Column(Float, default=0.0)
+    completed_at = Column(DateTime, nullable=True)
+    updated_at = Column(DateTime, server_default=func.now(), onupdate=func.now())
+
+
+class CourseNote(Base):
+    __tablename__ = "course_notes"
+    id = Column(Integer, primary_key=True)
+    lesson_path = Column(String, nullable=False, unique=True, index=True)
+    content = Column(Text, nullable=True)
+    updated_at = Column(DateTime, server_default=func.now(), onupdate=func.now())
+

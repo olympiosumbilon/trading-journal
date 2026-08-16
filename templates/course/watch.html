@@ -297,6 +297,9 @@ const currentLessonTitle = {{ current_lesson.title | tojson }};
 const currentContainer = {{ current_lesson.container | tojson }};
 const streamUrl = "/course/stream?path=" + encodeURIComponent(currentLessonPath);
 const nextLessonUrl = {% if next_lesson %}"/course/watch?file=" + encodeURIComponent({{ next_lesson.rel_path | tojson }}){% else %}null{% endif %};
+const serverCompletedLessons = {{ completed_lessons | tojson | safe }};
+const serverLessonNote = {{ lesson_note | tojson | safe }};
+const playlistTotal = {{ playlist_total }};
 
 document.addEventListener('DOMContentLoaded', () => {
     const video = document.getElementById('photonVideoPlayer');
@@ -308,13 +311,13 @@ document.addEventListener('DOMContentLoaded', () => {
     localStorage.setItem('photon_last_watched_file', currentLessonPath);
     localStorage.setItem('photon_last_watched_title', currentLessonTitle);
 
-    // 3. Load and reflect completed lessons
-    loadCompletionStatus();
+    // 3. Load and reflect completed lessons with server database sync
+    syncInitialCompletionStatus();
 
-    // 4. Load lesson notes
+    // 4. Load lesson notes from server database (with local fallback)
     const notesArea = document.getElementById('lessonNotesTextarea');
     if (notesArea) {
-        notesArea.value = localStorage.getItem('photon_notes_' + currentLessonPath) || '';
+        notesArea.value = serverLessonNote || localStorage.getItem('photon_notes_' + currentLessonPath) || '';
     }
 
     // 5. Remember speed preference
@@ -480,47 +483,82 @@ function setPlaySpeed(speed) {
     });
 }
 
-// Completion Management
-function loadCompletionStatus() {
-    try {
-        const completed = JSON.parse(localStorage.getItem('photon_completed_lessons') || '[]');
-        const isCurrentCompleted = completed.includes(currentLessonPath);
-        
-        const chk = document.getElementById('chkCompleteLesson');
-        if (chk) chk.checked = isCurrentCompleted;
+// Completion Management synchronized across all network/Tailscale devices
+let activeCompletedLessons = new Set(serverCompletedLessons || []);
 
-        document.querySelectorAll('.sm-lesson-item').forEach(el => {
-            const relPath = el.getAttribute('data-relpath');
-            const checkIcon = el.querySelector('.lesson-check-icon');
-            if (checkIcon) {
-                if (completed.includes(relPath)) {
-                    checkIcon.innerHTML = '●';
-                    checkIcon.classList.add('completed-dot');
-                } else {
-                    checkIcon.innerHTML = '○';
-                    checkIcon.classList.remove('completed-dot');
-                }
+function syncInitialCompletionStatus() {
+    try {
+        // Merge local legacy storage into active set if any exist on this machine
+        const localList = JSON.parse(localStorage.getItem('photon_completed_lessons') || '[]');
+        localList.forEach(path => {
+            if (!activeCompletedLessons.has(path)) {
+                activeCompletedLessons.add(path);
+                // Background sync un-synced legacy lessons to server SQLite
+                fetch('/course/api/progress', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({lesson_path: path, is_completed: true})
+                }).catch(() => {});
             }
         });
-    } catch (e) {}
+        localStorage.setItem('photon_completed_lessons', JSON.stringify(Array.from(activeCompletedLessons)));
+        renderCompletionUI();
+    } catch (e) {
+        renderCompletionUI();
+    }
+}
+
+function renderCompletionUI() {
+    const isCurrentCompleted = activeCompletedLessons.has(currentLessonPath);
+    const chk = document.getElementById('chkCompleteLesson');
+    if (chk) chk.checked = isCurrentCompleted;
+
+    let completedCount = 0;
+    document.querySelectorAll('.sm-lesson-item').forEach(el => {
+        const relPath = el.getAttribute('data-relpath');
+        const checkIcon = el.querySelector('.lesson-check-icon');
+        if (checkIcon) {
+            if (activeCompletedLessons.has(relPath)) {
+                checkIcon.innerHTML = '●';
+                checkIcon.classList.add('completed-dot');
+                completedCount++;
+            } else {
+                checkIcon.innerHTML = '○';
+                checkIcon.classList.remove('completed-dot');
+            }
+        }
+    });
+
+    // Update floating syllabus pill count
+    const pill = document.querySelector('.mobile-floating-syllabus-btn');
+    if (pill) {
+        pill.innerHTML = `☰ Lessons (${completedCount}/${playlistTotal})`;
+    }
 }
 
 function toggleCompleteCurrentLesson(isCompleted) {
     try {
-        let completed = JSON.parse(localStorage.getItem('photon_completed_lessons') || '[]');
         if (isCompleted) {
-            if (!completed.includes(currentLessonPath)) {
-                completed.push(currentLessonPath);
-            }
+            activeCompletedLessons.add(currentLessonPath);
         } else {
-            completed = completed.filter(p => p !== currentLessonPath);
+            activeCompletedLessons.delete(currentLessonPath);
         }
-        localStorage.setItem('photon_completed_lessons', JSON.stringify(completed));
-        loadCompletionStatus();
+        localStorage.setItem('photon_completed_lessons', JSON.stringify(Array.from(activeCompletedLessons)));
+        renderCompletionUI();
+
+        // Direct Server SQLite Database Sync (Accessible by all devices & Tailscale)
+        fetch('/course/api/progress', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({
+                lesson_path: currentLessonPath,
+                is_completed: isCompleted
+            })
+        }).catch(err => console.warn('Server sync offline, saved locally:', err));
     } catch (e) {}
 }
 
-// Notes Auto-save
+// Notes Auto-save with Server SQLite Database Sync
 let saveTimeout = null;
 function saveLessonNotes(text) {
     localStorage.setItem('photon_notes_' + currentLessonPath, text);
@@ -529,8 +567,19 @@ function saveLessonNotes(text) {
         status.innerText = 'Saving...';
         clearTimeout(saveTimeout);
         saveTimeout = setTimeout(() => {
-            status.innerText = '✓ Saved';
-        }, 500);
+            fetch('/course/api/notes', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({
+                    lesson_path: currentLessonPath,
+                    content: text
+                })
+            }).then(() => {
+                if (status) status.innerText = '✓ Saved to Database';
+            }).catch(() => {
+                if (status) status.innerText = '✓ Saved Locally';
+            });
+        }, 600);
     }
 }
 
