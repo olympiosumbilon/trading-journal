@@ -8026,6 +8026,7 @@ main.main-full-bleed {
    Global Mobile Trade Preview Modal Overlay
    ========================================================================== */
 .trade-preview-backdrop {
+    display: none;
     position: fixed;
     top: 0;
     left: 0;
@@ -8038,7 +8039,6 @@ main.main-full-bleed {
     backdrop-filter: blur(8px);
     -webkit-backdrop-filter: blur(8px);
     z-index: 99999999;
-    display: flex;
     align-items: center;
     justify-content: center;
     padding: 0.75rem;
@@ -8050,6 +8050,7 @@ main.main-full-bleed {
 }
 
 .trade-preview-backdrop.active {
+    display: flex !important;
     opacity: 1;
     visibility: visible;
 }

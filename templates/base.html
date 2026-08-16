@@ -113,6 +113,7 @@
             } else if (viewAllEl) {
                 viewAllEl.style.display = 'none';
             }
+            modal.style.display = 'flex';
             modal.classList.add('active');
             document.body.style.overflow = 'hidden';
         }
@@ -125,6 +126,7 @@
         const modal = document.getElementById('globalTradePreviewModal');
         if (modal) {
             modal.classList.remove('active');
+            modal.style.display = 'none';
             document.body.style.overflow = '';
         }
     }
@@ -150,7 +152,7 @@
     </script>
 
     <!-- Global Mobile Trade Preview Modal Overlay -->
-    <div id="globalTradePreviewModal" class="trade-preview-backdrop" onclick="closeTradePreviewModal(event)">
+    <div id="globalTradePreviewModal" class="trade-preview-backdrop" style="display: none;" onclick="closeTradePreviewModal(event)">
         <div class="trade-preview-sheet" onclick="event.stopPropagation()">
             <div class="tps-header">
                 <span id="tpsModalTitle" class="tps-title">Trades List</span>
