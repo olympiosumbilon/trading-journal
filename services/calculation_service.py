@@ -25,7 +25,7 @@ def compute_max_r(
     if mfe is None:
         return None
 
-    if mae_sl_buffer is not None and instrument_sl_buffer is not None:
+    if mae_sl_buffer is not None and mae_sl_buffer > 0 and instrument_sl_buffer is not None and instrument_sl_buffer > 0:
         if mae_sl_buffer >= instrument_sl_buffer:
             return -1.0
 
