@@ -9302,6 +9302,115 @@ main.main-full-bleed {
 .phase-c .rm-badge { background: #f59e0b; color: #fff; }
 .phase-d .rm-badge { background: #e11d48; color: #fff; }
 
+/* ==========================================================================
+   🧩 MULTI-TIMEFRAME BREAKDOWN BUILDER STYLES
+   ========================================================================== */
+.wl-tf-builder-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1rem;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+}
+
+.wl-tf-layers-list {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.wl-tf-layer-card {
+    background: #ffffff;
+    border: 1px solid #cbd5e1;
+    border-radius: 10px;
+    padding: 0.85rem;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+}
+
+.wl-tf-layer-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 0.75rem;
+    padding-bottom: 0.5rem;
+    border-bottom: 1px solid #f1f5f9;
+}
+
+.wl-tf-title-box {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    flex: 1;
+    max-width: 500px;
+}
+
+.wl-tf-num {
+    background: #0284c7;
+    color: #ffffff;
+    font-size: 0.75rem;
+    padding: 0.2rem 0.55rem;
+    border-radius: 4px;
+    line-height: 1;
+}
+
+.tf-layer-title {
+    font-size: 0.9rem !important;
+    padding: 0.35rem 0.65rem !important;
+    border: 1px solid #cbd5e1 !important;
+    border-radius: 6px !important;
+}
+
+.wl-tf-btn-del {
+    background: #fee2e2;
+    color: #b91c1c;
+    border: 1px solid #fca5a5;
+    font-size: 0.75rem;
+    font-weight: 700;
+    padding: 0.3rem 0.65rem;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: all 0.15s ease;
+}
+
+.wl-tf-btn-del:hover {
+    background: #fecaca;
+}
+
+.wl-tf-layer-grid {
+    display: grid;
+    grid-template-columns: 1fr 1.2fr;
+    gap: 1rem;
+    align-items: flex-start;
+}
+
+.wl-tf-dropzone-col {
+    display: flex;
+    flex-direction: column;
+}
+
+.wl-tf-note-col {
+    display: flex;
+    flex-direction: column;
+    gap: 0.35rem;
+}
+
+.tf-layer-note {
+    resize: vertical;
+    font-size: 0.85rem;
+    line-height: 1.45;
+}
+
+@media (max-width: 768px) {
+    .wl-tf-layer-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+
 
 
 

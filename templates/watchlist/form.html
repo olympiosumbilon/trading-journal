@@ -17,8 +17,10 @@
     </div>
 
     <!-- Main Idea Form -->
-    <form method="POST" action="{% if idea %}/watchlist/{{ idea.id }}/edit{% else %}/watchlist/new{% endif %}" class="wl-main-form" id="watchlistForm">
+    <form method="POST" action="{% if idea %}/watchlist/{{ idea.id }}/edit{% else %}/watchlist/new{% endif %}" class="wl-main-form" id="watchlistForm" onsubmit="prepareTimeframeLayersBeforeSubmit()">
         
+        <input type="hidden" name="timeframe_layers_json" id="timeframeLayersJsonInput" value="[]">
+
         <!-- Section 1: Setup Title & Direction -->
         <div class="form-section-block">
             <h4 class="form-section-title">Setup Title &amp; Direction</h4>
@@ -151,83 +153,29 @@
             </div>
         </div>
 
-        <!-- Section 4: Chart Snapshots & Clipboard Image Dropzones -->
+        <!-- Section 4: Multi-Timeframe Analysis Breakdown (Title, Image/Link, Note) -->
         <div class="form-section-block">
-            <div class="label-with-hint" style="margin-bottom: 0.75rem;">
-                <h4 class="form-section-title" style="margin-bottom: 0;">Multi-Timeframe Chart Screenshots (Paste Support)</h4>
-                <span class="text-muted" style="font-size: 0.78rem;">Click a box and press <strong>Ctrl + V</strong> to paste from clipboard or click to upload file.</span>
+            <div class="wl-tf-builder-header">
+                <div>
+                    <h4 class="form-section-title" style="margin-bottom: 0.2rem;">Multi-Timeframe Analysis Breakdown</h4>
+                    <p class="text-muted" style="font-size: 0.8rem; margin: 0;">Add your top-down analysis layers (e.g. Weekly, Daily, 4H, 15M, 1M). Paste screenshots with <strong>Ctrl + V</strong> or insert TradingView links.</p>
+                </div>
+                <button type="button" class="btn-secondary" onclick="addTimeframeLayerRow()" style="padding: 0.45rem 0.95rem; font-size: 0.82rem; font-weight: 700;">
+                    + Add Timeframe Layer
+                </button>
             </div>
 
-            <div class="wl-dropzones-grid">
-                
-                <!-- HTF Chart Dropzone -->
-                <div class="wl-dropzone-box" id="htfDropzone" tabindex="0" onclick="triggerFileInput('htfFileInput')">
-                    <div class="wl-dz-header">
-                        <span class="font-bold">1. Higher Timeframe (HTF) Chart</span>
-                        <small class="text-muted">(Daily / 4H / 15M POI Structure)</small>
-                    </div>
-
-                    <input type="hidden" name="htf_image_url" id="htfImageUrlInput" value="{{ idea.htf_image_url if idea and idea.htf_image_url else '' }}">
-                    <input type="file" id="htfFileInput" accept="image/*" style="display: none;" onchange="handleFileSelected(this, 'htf')">
-
-                    <div class="wl-dz-preview" id="htfPreviewWrap" style="{% if not idea or not idea.htf_image_url %}display:none;{% endif %}">
-                        <img id="htfPreviewImg" src="{{ idea.htf_image_url if idea and idea.htf_image_url else '' }}" alt="HTF Preview">
-                        <button type="button" class="wl-dz-clear-btn" onclick="clearDropzone(event, 'htf')">✕ Remove</button>
-                    </div>
-
-                    <div class="wl-dz-placeholder" id="htfPlaceholder" style="{% if idea and idea.htf_image_url %}display:none;{% endif %}">
-                        <span class="font-bold" style="font-size: 0.88rem; color: #0284c7;">Click &amp; Paste HTF Screenshot (Ctrl+V)</span>
-                        <small style="color: #64748b;">or click to browse image</small>
-                    </div>
-                </div>
-
-                <!-- LTF Chart Dropzone -->
-                <div class="wl-dropzone-box" id="ltfDropzone" tabindex="0" onclick="triggerFileInput('ltfFileInput')">
-                    <div class="wl-dz-header">
-                        <span class="font-bold">2. Lower Timeframe (LTF) Entry Chart</span>
-                        <small class="text-muted">(5M / 1M CHoCH, Flip, Confirmation)</small>
-                    </div>
-
-                    <input type="hidden" name="ltf_image_url" id="ltfImageUrlInput" value="{{ idea.ltf_image_url if idea and idea.ltf_image_url else '' }}">
-                    <input type="file" id="ltfFileInput" accept="image/*" style="display: none;" onchange="handleFileSelected(this, 'ltf')">
-
-                    <div class="wl-dz-preview" id="ltfPreviewWrap" style="{% if not idea or not idea.ltf_image_url %}display:none;{% endif %}">
-                        <img id="ltfPreviewImg" src="{{ idea.ltf_image_url if idea and idea.ltf_image_url else '' }}" alt="LTF Preview">
-                        <button type="button" class="wl-dz-clear-btn" onclick="clearDropzone(event, 'ltf')">✕ Remove</button>
-                    </div>
-
-                    <div class="wl-dz-placeholder" id="ltfPlaceholder" style="{% if idea and idea.ltf_image_url %}display:none;{% endif %}">
-                        <span class="font-bold" style="font-size: 0.88rem; color: #0284c7;">Click &amp; Paste LTF Screenshot (Ctrl+V)</span>
-                        <small style="color: #64748b;">or click to browse image</small>
-                    </div>
-                </div>
-
-            </div>
-
-            <!-- TradingView Link Input -->
-            <div class="form-group" style="margin-top: 1rem;">
-                <label>TradingView URL / Direct Link <small class="text-muted">(Optional)</small></label>
-                <input type="url" name="tradingview_url" value="{{ idea.tradingview_url if idea and idea.tradingview_url else '' }}" placeholder="https://www.tradingview.com/x/..." class="form-input">
+            <!-- Timeframe Layers Container -->
+            <div id="tfLayersContainer" class="wl-tf-layers-list">
+                <!-- Javascript will dynamically populate or render layers here -->
             </div>
         </div>
 
-        <!-- Section 5: Structural Bias, Confirmation & Detailed Notes -->
+        <!-- Section 5: Overall Pre-Trade Plan & Management -->
         <div class="form-section-block">
-            <h4 class="form-section-title">Analysis &amp; Execution Playbook Notes</h4>
-            <div class="form-section-grid" style="grid-template-columns: 1fr 1fr;">
-                <div class="form-group">
-                    <label>HTF Bias</label>
-                    <input type="text" name="htf_bias" value="{{ idea.htf_bias if idea and idea.htf_bias else '' }}" placeholder="e.g. 4H Bullish Orderflow, approaching M15 Demand Zone" class="form-input">
-                </div>
-                <div class="form-group">
-                    <label>LTF Confirmation Required</label>
-                    <input type="text" name="ltf_confirmation" value="{{ idea.ltf_confirmation if idea and idea.ltf_confirmation else '' }}" placeholder="e.g. M1 CHoCH + inducement sweep + unmitigated supply tap" class="form-input">
-                </div>
-            </div>
-
-            <div class="form-group" style="margin-top: 0.75rem;">
-                <label>Pre-Trade Plan &amp; Waiting Game Checklist</label>
-                <textarea name="notes" rows="3" placeholder="What are the conditions for invalidation? News events to watch? Management plan..." class="form-input" style="resize: vertical;">{{ idea.notes if idea and idea.notes else '' }}</textarea>
+            <h4 class="form-section-title">General Trade Plan &amp; Waiting Game Notes</h4>
+            <div class="form-group">
+                <textarea name="notes" rows="3" placeholder="Overall trade management plan, invalidation criteria, news events..." class="form-input" style="resize: vertical;">{{ idea.notes if idea and idea.notes else '' }}</textarea>
             </div>
         </div>
 
@@ -242,7 +190,245 @@
     </form>
 </div>
 
+<!-- Initial existing layers data from database if editing -->
 <script>
+const INITIAL_LAYERS = {% if idea and idea.layers_list %}{{ idea.layers_list | tojson }}{% else %}[
+    {
+        "title": "Weekly Timeframe (1W)",
+        "image_url": "",
+        "tv_url": "",
+        "note": ""
+    },
+    {
+        "title": "4-Hour / 15-Minute POI (HTF/MTF)",
+        "image_url": "",
+        "tv_url": "",
+        "note": ""
+    },
+    {
+        "title": "1-Minute Entry Trigger (LTF)",
+        "image_url": "",
+        "tv_url": "",
+        "note": ""
+    }
+]{% endif %};
+</script>
+
+<script>
+// ============================================================================
+// 1. Multi-Timeframe Layers Dynamic Builder
+// ============================================================================
+let layerCounter = 0;
+let activePasteLayerId = null;
+
+const SUGGESTED_TIMEFRAMES = [
+    "Weekly Timeframe (1W)",
+    "Daily Timeframe (1D)",
+    "4-Hour Timeframe (4H)",
+    "1-Hour Timeframe (1H)",
+    "15-Minute POI (15M)",
+    "5-Minute Structure (5M)",
+    "1-Minute Entry Trigger (1M)",
+    "Custom Timeframe"
+];
+
+document.addEventListener('DOMContentLoaded', () => {
+    const container = document.getElementById('tfLayersContainer');
+    container.innerHTML = '';
+    
+    if (INITIAL_LAYERS && INITIAL_LAYERS.length > 0) {
+        INITIAL_LAYERS.forEach(layer => {
+            renderLayerRow(layer);
+        });
+    } else {
+        renderLayerRow({ title: "Weekly Timeframe (1W)", image_url: "", tv_url: "", note: "" });
+        renderLayerRow({ title: "4-Hour POI (4H)", image_url: "", tv_url: "", note: "" });
+        renderLayerRow({ title: "1-Minute Entry (1M)", image_url: "", tv_url: "", note: "" });
+    }
+});
+
+function addTimeframeLayerRow() {
+    renderLayerRow({ title: "Custom Timeframe", image_url: "", tv_url: "", note: "" });
+}
+
+function renderLayerRow(data) {
+    layerCounter++;
+    const layerId = `layer_${layerCounter}`;
+    const container = document.getElementById('tfLayersContainer');
+
+    const card = document.createElement('div');
+    card.className = 'wl-tf-layer-card';
+    card.id = layerId;
+
+    const currentTitle = data.title || '';
+    const currentImg = data.image_url || '';
+    const currentTv = data.tv_url || '';
+    const currentNote = data.note || '';
+
+    card.innerHTML = `
+        <div class="wl-tf-layer-header">
+            <div class="wl-tf-title-box">
+                <span class="wl-tf-num font-bold">#${document.querySelectorAll('.wl-tf-layer-card').length + 1}</span>
+                <input type="text" class="form-input tf-layer-title font-bold" value="${escapeHtml(currentTitle)}" placeholder="Timeframe Title (e.g. Weekly, 4H, 15M, 1M)">
+            </div>
+            <button type="button" class="wl-tf-btn-del" onclick="removeLayerRow('${layerId}')" title="Remove Layer">✕ Remove</button>
+        </div>
+
+        <div class="wl-tf-layer-grid">
+            <!-- Left: Dropzone & Image / TV Link -->
+            <div class="wl-tf-dropzone-col">
+                <div class="wl-dropzone-box" id="dz_${layerId}" tabindex="0" onclick="triggerFileInput('file_${layerId}')" onfocus="setActivePasteLayer('${layerId}')">
+                    <input type="file" id="file_${layerId}" accept="image/*" style="display: none;" onchange="handleLayerFileSelected(this, '${layerId}')">
+                    <input type="hidden" class="tf-layer-img-url" id="imgUrl_${layerId}" value="${escapeHtml(currentImg)}">
+
+                    <div class="wl-dz-preview" id="previewWrap_${layerId}" style="${currentImg ? 'display:block;' : 'display:none;'}">
+                        <img id="previewImg_${layerId}" src="${currentImg}" alt="Chart Preview">
+                        <button type="button" class="wl-dz-clear-btn" onclick="clearLayerDropzone(event, '${layerId}')">✕ Remove Image</button>
+                    </div>
+
+                    <div class="wl-dz-placeholder" id="placeholder_${layerId}" style="${currentImg ? 'display:none;' : 'display:flex;'}">
+                        <span class="font-bold" style="font-size: 0.85rem; color: #0284c7;">Click &amp; Paste Screenshot (Ctrl+V)</span>
+                        <small style="color: #64748b;">or click to browse file</small>
+                    </div>
+                </div>
+
+                <div style="margin-top: 0.5rem;">
+                    <input type="url" class="form-input tf-layer-tv-url" value="${escapeHtml(currentTv)}" placeholder="TradingView link (https://www.tradingview.com/x/...)" style="font-size: 0.78rem; padding: 0.35rem 0.6rem;">
+                </div>
+            </div>
+
+            <!-- Right: Timeframe Note & Analysis -->
+            <div class="wl-tf-note-col">
+                <label style="font-size: 0.75rem; font-weight: 700; color: #64748b; text-transform: uppercase;">Timeframe Analysis &amp; Bias Note</label>
+                <textarea class="form-input tf-layer-note" rows="4" placeholder="e.g. I think the overall is bearish, rejected from supply zone, looking for short after sweep...">${escapeHtml(currentNote)}</textarea>
+            </div>
+        </div>
+    `;
+
+    container.appendChild(card);
+}
+
+function removeLayerRow(layerId) {
+    const card = document.getElementById(layerId);
+    if (card) {
+        card.remove();
+        // Re-number badges
+        document.querySelectorAll('.wl-tf-layer-card').forEach((el, index) => {
+            const numEl = el.querySelector('.wl-tf-num');
+            if (numEl) numEl.textContent = `#${index + 1}`;
+        });
+    }
+}
+
+function setActivePasteLayer(layerId) {
+    activePasteLayerId = layerId;
+}
+
+window.addEventListener('paste', function(e) {
+    if (!activePasteLayerId) {
+        // Default to first layer if none focused
+        const firstCard = document.querySelector('.wl-tf-layer-card');
+        if (firstCard) activePasteLayerId = firstCard.id;
+    }
+    if (!activePasteLayerId) return;
+
+    const items = (e.clipboardData || e.originalEvent.clipboardData).items;
+    for (let i = 0; i < items.length; i++) {
+        if (items[i].type.indexOf('image') !== -1) {
+            const blob = items[i].getAsFile();
+            uploadLayerImageBlob(blob, activePasteLayerId);
+            break;
+        }
+    }
+});
+
+function triggerFileInput(inputId) {
+    const input = document.getElementById(inputId);
+    if (input) input.click();
+}
+
+function handleLayerFileSelected(input, layerId) {
+    if (input.files && input.files[0]) {
+        uploadLayerImageBlob(input.files[0], layerId);
+    }
+}
+
+function uploadLayerImageBlob(blob, layerId) {
+    const formData = new FormData();
+    formData.append('image', blob, `tf_paste.png`);
+
+    const reader = new FileReader();
+    reader.onload = function(e) {
+        showLayerPreview(layerId, e.target.result);
+    };
+    reader.readAsDataURL(blob);
+
+    fetch('/watchlist/api/upload_image', {
+        method: 'POST',
+        body: formData
+    })
+    .then(r => r.json())
+    .then(data => {
+        if (data.status === 'success') {
+            document.getElementById(`imgUrl_${layerId}`).value = data.url;
+            showLayerPreview(layerId, data.url);
+        }
+    })
+    .catch(err => {
+        console.error('Error uploading image:', err);
+    });
+}
+
+function showLayerPreview(layerId, url) {
+    const previewWrap = document.getElementById(`previewWrap_${layerId}`);
+    const previewImg = document.getElementById(`previewImg_${layerId}`);
+    const placeholder = document.getElementById(`placeholder_${layerId}`);
+
+    if (previewImg && previewWrap && placeholder) {
+        previewImg.src = url;
+        previewWrap.style.display = 'block';
+        placeholder.style.display = 'none';
+    }
+}
+
+function clearLayerDropzone(e, layerId) {
+    e.stopPropagation();
+    document.getElementById(`imgUrl_${layerId}`).value = '';
+    document.getElementById(`previewWrap_${layerId}`).style.display = 'none';
+    document.getElementById(`placeholder_${layerId}`).style.display = 'flex';
+}
+
+function prepareTimeframeLayersBeforeSubmit() {
+    const layers = [];
+    document.querySelectorAll('.wl-tf-layer-card').forEach(card => {
+        const title = card.querySelector('.tf-layer-title')?.value || '';
+        const imgUrl = card.querySelector('.tf-layer-img-url')?.value || '';
+        const tvUrl = card.querySelector('.tf-layer-tv-url')?.value || '';
+        const note = card.querySelector('.tf-layer-note')?.value || '';
+
+        if (title.trim() || imgUrl.trim() || tvUrl.trim() || note.trim()) {
+            layers.push({
+                title: title.trim(),
+                image_url: imgUrl.trim(),
+                tv_url: tvUrl.trim(),
+                note: note.trim()
+            });
+        }
+    });
+
+    document.getElementById('timeframeLayersJsonInput').value = JSON.stringify(layers);
+}
+
+function escapeHtml(text) {
+    if (!text) return '';
+    return String(text)
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#039;");
+}
+
 function calcPlannedRR() {
     const entry = parseFloat(document.getElementById('plannedEntry').value);
     const sl = parseFloat(document.getElementById('plannedSL').value);
@@ -264,78 +450,6 @@ function calcPlannedRR() {
         }
     }
     if (badge) badge.textContent = 'Auto';
-}
-
-let activeDropzoneType = 'htf';
-
-document.getElementById('htfDropzone').addEventListener('focus', () => { activeDropzoneType = 'htf'; });
-document.getElementById('ltfDropzone').addEventListener('focus', () => { activeDropzoneType = 'ltf'; });
-
-window.addEventListener('paste', function(e) {
-    const items = (e.clipboardData || e.originalEvent.clipboardData).items;
-    for (let i = 0; i < items.length; i++) {
-        if (items[i].type.indexOf('image') !== -1) {
-            const blob = items[i].getAsFile();
-            uploadImageBlob(blob, activeDropzoneType);
-            break;
-        }
-    }
-});
-
-function triggerFileInput(inputId) {
-    const input = document.getElementById(inputId);
-    if (input) input.click();
-}
-
-function handleFileSelected(input, type) {
-    if (input.files && input.files[0]) {
-        uploadImageBlob(input.files[0], type);
-    }
-}
-
-function uploadImageBlob(blob, type) {
-    const formData = new FormData();
-    formData.append('image', blob, `${type}_paste.png`);
-
-    const reader = new FileReader();
-    reader.onload = function(e) {
-        showPreview(type, e.target.result);
-    };
-    reader.readAsDataURL(blob);
-
-    fetch('/watchlist/api/upload_image', {
-        method: 'POST',
-        body: formData
-    })
-    .then(r => r.json())
-    .then(data => {
-        if (data.status === 'success') {
-            document.getElementById(`${type}ImageUrlInput`).value = data.url;
-            showPreview(type, data.url);
-        }
-    })
-    .catch(err => {
-        console.error('Error uploading image:', err);
-    });
-}
-
-function showPreview(type, url) {
-    const previewWrap = document.getElementById(`${type}PreviewWrap`);
-    const previewImg = document.getElementById(`${type}PreviewImg`);
-    const placeholder = document.getElementById(`${type}Placeholder`);
-
-    if (previewImg && previewWrap && placeholder) {
-        previewImg.src = url;
-        previewWrap.style.display = 'block';
-        placeholder.style.display = 'none';
-    }
-}
-
-function clearDropzone(e, type) {
-    e.stopPropagation();
-    document.getElementById(`${type}ImageUrlInput`).value = '';
-    document.getElementById(`${type}PreviewWrap`).style.display = 'none';
-    document.getElementById(`${type}Placeholder`).style.display = 'flex';
 }
 </script>
 

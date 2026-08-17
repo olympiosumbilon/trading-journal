@@ -193,6 +193,7 @@ def create_watchlist_idea(
     htf_image_url: str = Form(""),
     ltf_image_url: str = Form(""),
     tradingview_url: str = Form(""),
+    timeframe_layers_json: str = Form("[]"),
     status: str = Form("WAITING"),
 ):
     with SessionLocal() as db:
@@ -205,9 +206,37 @@ def create_watchlist_idea(
                     pair_name = inst.name
             title = f"{pair_name or 'Market'} {direction} Setup".strip()
 
-        # Handle pasted images / URLs
-        htf_final = save_base64_or_upload(htf_image_url, prefix="htf")
-        ltf_final = save_base64_or_upload(ltf_image_url, prefix="ltf")
+        # Parse timeframe layers JSON if provided
+        import json
+        layers_data = []
+        if timeframe_layers_json and timeframe_layers_json.strip():
+            try:
+                parsed = json.loads(timeframe_layers_json)
+                if isinstance(parsed, list):
+                    for layer in parsed:
+                        img = layer.get("image_url", "").strip()
+                        if img:
+                            img = save_base64_or_upload(img, prefix="tf")
+                        layers_data.append({
+                            "title": layer.get("title", "").strip(),
+                            "image_url": img,
+                            "tv_url": layer.get("tv_url", "").strip(),
+                            "note": layer.get("note", "").strip(),
+                        })
+            except Exception:
+                pass
+
+        # Handle pasted images / URLs (or fallback from layers)
+        htf_final = save_base64_or_upload(htf_image_url, prefix="htf") if htf_image_url else None
+        ltf_final = save_base64_or_upload(ltf_image_url, prefix="ltf") if ltf_image_url else None
+
+        if layers_data:
+            if not htf_final and len(layers_data) > 0 and layers_data[0].get("image_url"):
+                htf_final = layers_data[0].get("image_url")
+            if not ltf_final and len(layers_data) > 1 and layers_data[1].get("image_url"):
+                ltf_final = layers_data[1].get("image_url")
+            if not tradingview_url and len(layers_data) > 0 and layers_data[0].get("tv_url"):
+                tradingview_url = layers_data[0].get("tv_url")
 
         def parse_float(val):
             try:
@@ -244,6 +273,7 @@ def create_watchlist_idea(
             htf_image_url=htf_final,
             ltf_image_url=ltf_final,
             tradingview_url=tradingview_url.strip() if tradingview_url else None,
+            timeframe_layers=json.dumps(layers_data) if layers_data else None,
             status=status.upper() if status else "WAITING",
         )
         db.add(idea)
@@ -327,12 +357,42 @@ def update_watchlist_idea(
     htf_image_url: str = Form(""),
     ltf_image_url: str = Form(""),
     tradingview_url: str = Form(""),
+    timeframe_layers_json: str = Form("[]"),
     status: str = Form("WAITING"),
 ):
     with SessionLocal() as db:
         idea = db.query(WatchlistIdea).get(idea_id)
         if not idea:
             raise HTTPException(status_code=404, detail="Watchlist Idea not found")
+
+        # Parse timeframe layers JSON
+        import json
+        layers_data = []
+        if timeframe_layers_json and timeframe_layers_json.strip():
+            try:
+                parsed = json.loads(timeframe_layers_json)
+                if isinstance(parsed, list):
+                    for layer in parsed:
+                        img = layer.get("image_url", "").strip()
+                        if img:
+                            img = save_base64_or_upload(img, prefix="tf")
+                        layers_data.append({
+                            "title": layer.get("title", "").strip(),
+                            "image_url": img,
+                            "tv_url": layer.get("tv_url", "").strip(),
+                            "note": layer.get("note", "").strip(),
+                        })
+            except Exception:
+                pass
+
+        if layers_data:
+            idea.timeframe_layers = json.dumps(layers_data)
+            if len(layers_data) > 0 and layers_data[0].get("image_url"):
+                idea.htf_image_url = layers_data[0].get("image_url")
+            if len(layers_data) > 1 and layers_data[1].get("image_url"):
+                idea.ltf_image_url = layers_data[1].get("image_url")
+            if len(layers_data) > 0 and layers_data[0].get("tv_url"):
+                idea.tradingview_url = layers_data[0].get("tv_url")
 
         def parse_float(val):
             try:

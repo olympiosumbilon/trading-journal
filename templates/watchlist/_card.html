@@ -69,8 +69,24 @@
     </div>
     {% endif %}
 
-    <!-- HTF / LTF Chart Previews -->
-    {% if idea.htf_image_url or idea.ltf_image_url or idea.tradingview_url %}
+    <!-- Multi-Timeframe Chart Previews & Links -->
+    {% set layers = idea.layers_list %}
+    {% if layers %}
+    <div class="wl-card-charts">
+        {% for layer in layers if layer.image_url %}
+        <div class="wl-chart-thumb" onclick="openChartModal('{{ layer.image_url }}', '{{ layer.title }} — {{ idea.title }}')">
+            <img src="{{ layer.image_url }}" alt="{{ layer.title }}" loading="lazy">
+            <span class="wl-chart-badge">{{ layer.title }}</span>
+        </div>
+        {% endfor %}
+
+        {% for layer in layers if layer.tv_url and not layer.image_url %}
+        <a href="{{ layer.tv_url }}" target="_blank" rel="noopener noreferrer" class="wl-tv-link">
+            <span>{{ layer.title }}: TradingView &rarr;</span>
+        </a>
+        {% endfor %}
+    </div>
+    {% elif idea.htf_image_url or idea.ltf_image_url or idea.tradingview_url %}
     <div class="wl-card-charts">
         {% if idea.htf_image_url %}
         <div class="wl-chart-thumb" onclick="openChartModal('{{ idea.htf_image_url }}', 'HTF Analysis — {{ idea.title }}')">
@@ -94,8 +110,20 @@
     </div>
     {% endif %}
 
-    <!-- Analysis & Confirmation Notes -->
-    {% if idea.htf_bias or idea.ltf_confirmation or idea.notes %}
+    <!-- Multi-Timeframe Analysis Notes -->
+    {% if layers %}
+    <div class="wl-card-notes">
+        {% for layer in layers if layer.note %}
+        <div class="wl-note-row">
+            <span class="note-key">{{ layer.title }}:</span>
+            <span class="note-text">{{ layer.note | truncate(95) }}</span>
+        </div>
+        {% endfor %}
+        {% if idea.notes %}
+        <p class="wl-note-excerpt" style="margin-top: 0.2rem;">{{ idea.notes | truncate(95) }}</p>
+        {% endif %}
+    </div>
+    {% elif idea.htf_bias or idea.ltf_confirmation or idea.notes %}
     <div class="wl-card-notes">
         {% if idea.htf_bias %}
         <div class="wl-note-row">

@@ -203,6 +203,7 @@ class WatchlistIdea(Base):
     htf_image_url = Column(String, nullable=True)
     ltf_image_url = Column(String, nullable=True)
     tradingview_url = Column(String, nullable=True)
+    timeframe_layers = Column(Text, nullable=True)  # JSON string of timeframe breakdown layers
 
     # Status: WAITING, MONITORING, EXECUTED, INVALIDATED, MISSED
     status = Column(String, default="WAITING", nullable=False, index=True)
@@ -218,4 +219,33 @@ class WatchlistIdea(Base):
     probability_level_obj = relationship("ProbabilityLevel")
     mtf_phase_obj = relationship("MTFPhase")
     promoted_trade_obj = relationship("Trade")
+
+    @property
+    def layers_list(self):
+        import json
+        if self.timeframe_layers:
+            try:
+                data = json.loads(self.timeframe_layers)
+                if isinstance(data, list):
+                    return data
+            except Exception:
+                pass
+        
+        # Fallback to legacy fields
+        res = []
+        if self.htf_image_url or self.htf_bias:
+            res.append({
+                "title": "Higher Timeframe (HTF)",
+                "image_url": self.htf_image_url or "",
+                "tv_url": self.tradingview_url or "",
+                "note": self.htf_bias or ""
+            })
+        if self.ltf_image_url or self.ltf_confirmation:
+            res.append({
+                "title": "Lower Timeframe (LTF)",
+                "image_url": self.ltf_image_url or "",
+                "tv_url": "",
+                "note": self.ltf_confirmation or ""
+            })
+        return res
 
