@@ -15,6 +15,7 @@ import os
 import re
 from pathlib import Path
 from utils.template_helpers import format_time_12h, format_duration
+from datetime import date, datetime
 
 router = APIRouter()
 templates = Jinja2Templates(directory="templates")
@@ -375,11 +376,16 @@ def new_trade(request: Request):
         if prefill[k] and prefill[k].strip():
             prefill_screenshots.append(prefill[k].strip())
 
+    today_str = date.today().strftime("%Y-%m-%d")
+    now_str = datetime.now().strftime("%H:%M")
+
     return templates.TemplateResponse(
         request, "trades/form.html", {
             "trade": None,
             "prefill": prefill,
             "prefill_screenshots": prefill_screenshots,
+            "today_date": today_str,
+            "now_time": now_str,
             **lookups
         }
     )

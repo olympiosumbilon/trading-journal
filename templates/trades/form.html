@@ -221,11 +221,11 @@
         <div class="form-section-grid grid-timing">
             <div class="form-group">
                 <label>Entry Date</label>
-                <input type="date" name="entry_date" id="entryDateInput" value="{{ trade.entry_date if trade else '' }}" oninput="updateHoldingDuration()">
+                <input type="date" name="entry_date" id="entryDateInput" value="{{ trade.entry_date if trade else (prefill.entry_date if prefill and prefill.entry_date else today_date) }}" oninput="updateHoldingDuration()">
             </div>
             <div class="form-group">
                 <label>Entry Time (PH Time)</label>
-                <input type="time" name="entry_time" id="entryTimeInput" value="{{ trade.entry_time.strftime('%H:%M') if trade and trade.entry_time else '' }}" oninput="autoDetectSession(this.value); updateHoldingDuration();">
+                <input type="time" name="entry_time" id="entryTimeInput" value="{{ trade.entry_time.strftime('%H:%M') if trade and trade.entry_time else (prefill.entry_time if prefill and prefill.entry_time else now_time) }}" oninput="autoDetectSession(this.value); updateHoldingDuration();">
             </div>
             <div class="form-group">
                 <div class="label-with-hint">
@@ -1117,6 +1117,15 @@ function importBulkScreenshots() {
 
 // Auto-run geometry and position calculations on page load
 window.addEventListener('DOMContentLoaded', () => {
+    const entryDate = document.getElementById('entryDateInput');
+    if (entryDate && !entryDate.value) {
+        const today = new Date().toISOString().split('T')[0];
+        entryDate.value = today;
+    }
+    const entryTime = document.getElementById('entryTimeInput');
+    if (entryTime && entryTime.value && typeof autoDetectSession === 'function') {
+        autoDetectSession(entryTime.value);
+    }
     if (typeof recalcPositionSize === 'function') {
         recalcPositionSize();
     }

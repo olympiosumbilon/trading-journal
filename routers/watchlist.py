@@ -519,9 +519,14 @@ def promote_idea_to_trade(idea_id: int):
         else:
             combined_notes = "\n\n".join(notes_sections)
 
+        today_str = datetime.now().strftime("%Y-%m-%d")
+        now_str = datetime.now().strftime("%H:%M")
+
         # Build pre-fill URL parameters
         params = {
             "from_watchlist_id": idea.id,
+            "entry_date": idea.resolved_at.strftime("%Y-%m-%d") if idea.resolved_at else today_str,
+            "entry_time": now_str,
             "instrument_id": idea.instrument_id or "",
             "session_id": idea.session_id or "",
             "strategy_id": idea.strategy_id or "",
