@@ -1,0 +1,229 @@
+{% extends "base.html" %}
+
+{% block title %}{{ idea.title }} — Market Watchlist — Trading Journal{% endblock %}
+
+{% block content %}
+<div class="wl-detail-container">
+
+    <!-- Top Header Bar -->
+    <div class="wl-header-bar">
+        <div>
+            <div class="wl-detail-breadcrumb">
+                <a href="/watchlist/">&larr; Watchlist Pipeline</a>
+                <span>/</span>
+                <span class="text-muted">{{ idea.title }}</span>
+            </div>
+            <div class="wl-detail-title-row">
+                <span class="wl-dir-badge dir-{{ idea.direction|lower }}" style="font-size: 0.9rem; padding: 0.35rem 0.75rem;">
+                    {{ "▲ LONG" if idea.direction == 'LONG' else "▼ SHORT" }}
+                </span>
+                <h1 style="margin: 0; font-size: 1.6rem; color: #0f172a;">{{ idea.title }}</h1>
+                <span class="wl-status-pill status-pill-{{ idea.status|lower }}" style="font-size: 0.85rem; padding: 0.35rem 0.85rem;">
+                    {% if idea.status == 'WAITING' %}⏳ Waiting for POI
+                    {% elif idea.status == 'MONITORING' %}👀 Monitoring Trigger
+                    {% elif idea.status == 'EXECUTED' %}🚀 Live / Executed
+                    {% elif idea.status == 'INVALIDATED' %}🚫 Invalidated
+                    {% elif idea.status == 'MISSED' %}💨 Missed Entry
+                    {% else %}{{ idea.status }}{% endif %}
+                </span>
+            </div>
+        </div>
+
+        <div class="wl-header-actions">
+            {% if idea.status != 'EXECUTED' %}
+            <a href="/watchlist/{{ idea.id }}/promote" class="btn-save-trade-submit" style="padding: 0.65rem 1.35rem; font-size: 0.9rem; text-decoration: none; display: inline-flex; align-items: center; gap: 0.4rem;">
+                ⚡ Convert to Live Trade &rarr;
+            </a>
+            {% else %}
+                {% if idea.promoted_trade_id %}
+                <a href="/trades/{{ idea.promoted_trade_id }}" class="btn-secondary" style="padding: 0.65rem 1.25rem;">
+                    ✅ View Live Trade #{{ idea.promoted_trade_id }}
+                </a>
+                {% endif %}
+            {% endif %}
+            <a href="/watchlist/{{ idea.id }}/edit" class="btn-back">✏️ Edit</a>
+        </div>
+    </div>
+
+    <!-- Main Content Layout (2 Columns: Charts & Details) -->
+    <div class="wl-detail-layout">
+
+        <!-- Left Column: Charts -->
+        <div class="wl-detail-charts-pane">
+            
+            {% if idea.htf_image_url %}
+            <div class="wl-chart-section-card">
+                <div class="wl-css-card-header">
+                    <h4>1. Higher Timeframe (HTF) Analysis &amp; POI</h4>
+                    <button type="button" class="btn-zoom" onclick="openChartModal('{{ idea.htf_image_url }}', 'HTF Analysis — {{ idea.title }}')">🔍 Full Screen</button>
+                </div>
+                <div class="wl-chart-img-wrap">
+                    <img src="{{ idea.htf_image_url }}" alt="HTF Analysis" onclick="openChartModal('{{ idea.htf_image_url }}', 'HTF Analysis — {{ idea.title }}')">
+                </div>
+            </div>
+            {% endif %}
+
+            {% if idea.ltf_image_url %}
+            <div class="wl-chart-section-card">
+                <div class="wl-css-card-header">
+                    <h4>2. Lower Timeframe (LTF) Entry Trigger</h4>
+                    <button type="button" class="btn-zoom" onclick="openChartModal('{{ idea.ltf_image_url }}', 'LTF Trigger — {{ idea.title }}')">🔍 Full Screen</button>
+                </div>
+                <div class="wl-chart-img-wrap">
+                    <img src="{{ idea.ltf_image_url }}" alt="LTF Trigger" onclick="openChartModal('{{ idea.ltf_image_url }}', 'LTF Trigger — {{ idea.title }}')">
+                </div>
+            </div>
+            {% endif %}
+
+            {% if idea.tradingview_url %}
+            <div class="wl-chart-section-card">
+                <div class="wl-css-card-header">
+                    <h4>TradingView Chart Link</h4>
+                </div>
+                <div style="padding: 1rem;">
+                    <a href="{{ idea.tradingview_url }}" target="_blank" rel="noopener noreferrer" class="btn-secondary btn-block" style="display: flex; align-items: center; justify-content: center; gap: 0.5rem;">
+                        📈 Open Live TradingView Snapshot in New Tab &rarr;
+                    </a>
+                </div>
+            </div>
+            {% endif %}
+
+            {% if not idea.htf_image_url and not idea.ltf_image_url and not idea.tradingview_url %}
+            <div class="wl-chart-section-card" style="padding: 3rem 1.5rem; text-align: center;">
+                <span style="font-size: 2.5rem;">📸</span>
+                <h4 style="margin: 0.5rem 0; color: #64748b;">No Chart Screenshots Attached</h4>
+                <p class="text-muted" style="font-size: 0.85rem;">You can add HTF/LTF charts by editing this trade idea.</p>
+                <a href="/watchlist/{{ idea.id }}/edit" class="btn-secondary" style="margin-top: 0.75rem; display: inline-block;">+ Add Screenshots</a>
+            </div>
+            {% endif %}
+
+        </div>
+
+        <!-- Right Column: Setup Context, Geometry & Notes -->
+        <div class="wl-detail-meta-pane">
+            
+            <!-- Card 1: Setup Geometry -->
+            <div class="form-section-block" style="margin-bottom: 1.25rem;">
+                <h4 class="form-section-title">📐 Planned Execution Levels</h4>
+                <div class="wl-geo-details-grid">
+                    <div class="wl-geo-card">
+                        <span class="geo-card-label">Planned Entry</span>
+                        <span class="geo-card-val font-mono">{{ idea.planned_entry if idea.planned_entry is not none else "Market" }}</span>
+                    </div>
+                    <div class="wl-geo-card">
+                        <span class="geo-card-label">Stop Loss (SL)</span>
+                        <span class="geo-card-val font-mono val-neg">{{ idea.planned_sl if idea.planned_sl is not none else "—" }}</span>
+                    </div>
+                    <div class="wl-geo-card">
+                        <span class="geo-card-label">Take Profit (TP)</span>
+                        <span class="geo-card-val font-mono val-pos">{{ idea.planned_tp if idea.planned_tp is not none else "—" }}</span>
+                    </div>
+                    <div class="wl-geo-card wl-geo-card-rr">
+                        <span class="geo-card-label">Estimated Target R</span>
+                        <span class="geo-card-val val-rr font-bold">{{ "+%.2f"|format(idea.planned_rr) ~ "R" if idea.planned_rr is not none else "—" }}</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Card 2: Strategy & Market Edge -->
+            <div class="form-section-block" style="margin-bottom: 1.25rem;">
+                <h4 class="form-section-title">🎯 Strategy & Context Tags</h4>
+                <table class="settings-table" style="margin-bottom: 0;">
+                    <tbody>
+                        <tr>
+                            <td class="text-muted" style="width: 40%;">Instrument:</td>
+                            <td class="font-bold">{{ idea.instrument_obj.name if idea.instrument_obj else "—" }}</td>
+                        </tr>
+                        <tr>
+                            <td class="text-muted">Market Session:</td>
+                            <td>{{ idea.session_obj.name if idea.session_obj else "—" }}</td>
+                        </tr>
+                        <tr>
+                            <td class="text-muted">Strategy Model:</td>
+                            <td><span class="wl-tag tag-strat">{{ idea.strategy_obj.name if idea.strategy_obj else "—" }}</span></td>
+                        </tr>
+                        <tr>
+                            <td class="text-muted">Probability Level:</td>
+                            <td>
+                                {% if idea.probability_level_obj %}
+                                <span class="prob-pill prob-{{ idea.probability_level_obj.name|lower }}">{{ idea.probability_level_obj.name }}</span>
+                                {% else %}—{% endif %}
+                            </td>
+                        </tr>
+                        <tr>
+                            <td class="text-muted">MTF Phase:</td>
+                            <td>{{ idea.mtf_phase_obj.name if idea.mtf_phase_obj else "—" }}</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Card 3: Analysis & Waiting Game Notes -->
+            <div class="form-section-block">
+                <h4 class="form-section-title">📝 Analysis & Execution Playbook</h4>
+                
+                {% if idea.htf_bias %}
+                <div style="margin-bottom: 0.75rem;">
+                    <span class="font-bold" style="font-size: 0.78rem; color: #64748b; text-transform: uppercase; display: block;">HTF Structural Bias:</span>
+                    <p style="margin: 0.2rem 0 0 0; font-weight: 600; color: #0f172a;">{{ idea.htf_bias }}</p>
+                </div>
+                {% endif %}
+
+                {% if idea.ltf_confirmation %}
+                <div style="margin-bottom: 0.75rem;">
+                    <span class="font-bold" style="font-size: 0.78rem; color: #64748b; text-transform: uppercase; display: block;">LTF Confirmation Trigger:</span>
+                    <p style="margin: 0.2rem 0 0 0; color: #334155;">{{ idea.ltf_confirmation }}</p>
+                </div>
+                {% endif %}
+
+                {% if idea.notes %}
+                <div>
+                    <span class="font-bold" style="font-size: 0.78rem; color: #64748b; text-transform: uppercase; display: block;">Pre-Trade Checklist & Notes:</span>
+                    <div style="background: #f8fafc; padding: 0.85rem; border-radius: 6px; border: 1px solid #e2e8f0; margin-top: 0.35rem; font-size: 0.86rem; line-height: 1.5; white-space: pre-wrap;">{{ idea.notes }}</div>
+                </div>
+                {% endif %}
+
+                {% if not idea.htf_bias and not idea.ltf_confirmation and not idea.notes %}
+                <p class="text-muted" style="font-size: 0.85rem;">No additional notes added for this idea.</p>
+                {% endif %}
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+<!-- Interactive Chart Modal / Lightbox -->
+<div id="wlChartModal" class="wl-chart-lightbox" onclick="closeChartModal(event)">
+    <div class="wl-lightbox-box">
+        <div class="wl-lightbox-header">
+            <span id="wlLightboxTitle" class="font-bold">Chart Preview</span>
+            <button type="button" class="wl-lightbox-close" onclick="closeChartModal(event)">&times;</button>
+        </div>
+        <div class="wl-lightbox-img-wrap">
+            <img id="wlLightboxImg" src="" alt="Chart Preview">
+        </div>
+    </div>
+</div>
+
+<script>
+function openChartModal(src, title) {
+    const modal = document.getElementById('wlChartModal');
+    const img = document.getElementById('wlLightboxImg');
+    const titleEl = document.getElementById('wlLightboxTitle');
+    if (modal && img) {
+        img.src = src;
+        if (titleEl) titleEl.textContent = title || 'Chart Preview';
+        modal.style.display = 'flex';
+    }
+}
+
+function closeChartModal(e) {
+    if (e.target.id === 'wlChartModal' || e.target.classList.contains('wl-lightbox-close')) {
+        const modal = document.getElementById('wlChartModal');
+        if (modal) modal.style.display = 'none';
+    }
+}
+</script>
+{% endblock %}

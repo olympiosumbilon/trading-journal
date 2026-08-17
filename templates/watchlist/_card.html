@@ -1,0 +1,156 @@
+<div class="wl-card wl-card-{{ idea.status|lower }} {% if idea.direction == 'LONG' %}wl-dir-long{% else %}wl-dir-short{% endif %}">
+    
+    <!-- Card Top Header -->
+    <div class="wl-card-header">
+        <div class="wl-card-title-row">
+            <span class="wl-dir-badge dir-{{ idea.direction|lower }}">
+                {{ "▲ LONG" if idea.direction == 'LONG' else "▼ SHORT" }}
+            </span>
+            <span class="wl-inst-badge font-bold">
+                {{ idea.instrument_obj.name if idea.instrument_obj else "Custom" }}
+            </span>
+            <span class="wl-status-pill status-pill-{{ idea.status|lower }}">
+                {% if idea.status == 'WAITING' %}⏳ Waiting
+                {% elif idea.status == 'MONITORING' %}👀 Monitoring
+                {% elif idea.status == 'EXECUTED' %}🚀 Live
+                {% elif idea.status == 'INVALIDATED' %}🚫 Invalidated
+                {% elif idea.status == 'MISSED' %}💨 Missed
+                {% else %}{{ idea.status }}{% endif %}
+            </span>
+        </div>
+        <h4 class="wl-card-title">
+            <a href="/watchlist/{{ idea.id }}" class="wl-title-link">{{ idea.title }}</a>
+        </h4>
+    </div>
+
+    <!-- Strategy & Context Tags -->
+    <div class="wl-card-tags">
+        {% if idea.strategy_obj %}
+        <span class="wl-tag tag-strat">{{ idea.strategy_obj.name }}</span>
+        {% endif %}
+        {% if idea.session_obj %}
+        <span class="wl-tag tag-session">{{ idea.session_obj.name }}</span>
+        {% endif %}
+        {% if idea.mtf_phase_obj %}
+        <span class="wl-tag tag-phase">Phase: {{ idea.mtf_phase_obj.name }}</span>
+        {% endif %}
+        {% if idea.probability_level_obj %}
+        <span class="wl-tag tag-prob prob-{{ idea.probability_level_obj.name|lower }}">{{ idea.probability_level_obj.name }}</span>
+        {% endif %}
+    </div>
+
+    <!-- Planned Levels & R:R Geometry -->
+    {% if idea.planned_entry or idea.planned_sl or idea.planned_tp or idea.planned_rr %}
+    <div class="wl-card-geometry">
+        {% if idea.planned_entry is not none %}
+        <div class="wl-geo-item">
+            <span class="geo-label">Entry</span>
+            <span class="geo-val font-mono">{{ idea.planned_entry }}</span>
+        </div>
+        {% endif %}
+        {% if idea.planned_sl is not none %}
+        <div class="wl-geo-item">
+            <span class="geo-label">SL</span>
+            <span class="geo-val font-mono val-neg">{{ idea.planned_sl }}</span>
+        </div>
+        {% endif %}
+        {% if idea.planned_tp is not none %}
+        <div class="wl-geo-item">
+            <span class="geo-label">Target</span>
+            <span class="geo-val font-mono val-pos">{{ idea.planned_tp }}</span>
+        </div>
+        {% endif %}
+        {% if idea.planned_rr is not none %}
+        <div class="wl-geo-item wl-geo-rr">
+            <span class="geo-label">Target R</span>
+            <span class="geo-val val-rr font-bold">+{{ "%.2f"|format(idea.planned_rr) }}R</span>
+        </div>
+        {% endif %}
+    </div>
+    {% endif %}
+
+    <!-- HTF / LTF Chart Previews -->
+    {% if idea.htf_image_url or idea.ltf_image_url or idea.tradingview_url %}
+    <div class="wl-card-charts">
+        {% if idea.htf_image_url %}
+        <div class="wl-chart-thumb" onclick="openChartModal('{{ idea.htf_image_url }}', 'HTF Analysis — {{ idea.title }}')">
+            <img src="{{ idea.htf_image_url }}" alt="HTF Chart" loading="lazy">
+            <span class="wl-chart-badge">HTF Chart</span>
+        </div>
+        {% endif %}
+
+        {% if idea.ltf_image_url %}
+        <div class="wl-chart-thumb" onclick="openChartModal('{{ idea.ltf_image_url }}', 'LTF Confirmation — {{ idea.title }}')">
+            <img src="{{ idea.ltf_image_url }}" alt="LTF Chart" loading="lazy">
+            <span class="wl-chart-badge">LTF Entry</span>
+        </div>
+        {% endif %}
+
+        {% if idea.tradingview_url and not idea.htf_image_url and not idea.ltf_image_url %}
+        <a href="{{ idea.tradingview_url }}" target="_blank" rel="noopener noreferrer" class="wl-tv-link">
+            <span>📈 View TradingView Chart Snapshot &rarr;</span>
+        </a>
+        {% endif %}
+    </div>
+    {% endif %}
+
+    <!-- Analysis & Confirmation Notes -->
+    {% if idea.htf_bias or idea.ltf_confirmation or idea.notes %}
+    <div class="wl-card-notes">
+        {% if idea.htf_bias %}
+        <div class="wl-note-row">
+            <span class="note-key">HTF Bias:</span>
+            <span class="note-text font-bold">{{ idea.htf_bias }}</span>
+        </div>
+        {% endif %}
+        {% if idea.ltf_confirmation %}
+        <div class="wl-note-row">
+            <span class="note-key">Confirmation:</span>
+            <span class="note-text">{{ idea.ltf_confirmation }}</span>
+        </div>
+        {% endif %}
+        {% if idea.notes %}
+        <p class="wl-note-excerpt">{{ idea.notes | truncate(110) }}</p>
+        {% endif %}
+    </div>
+    {% endif %}
+
+    <!-- Card Action Bar -->
+    <div class="wl-card-actions">
+        {% if idea.status != 'EXECUTED' %}
+        <a href="/watchlist/{{ idea.id }}/promote" class="wl-btn-promote" title="Promote setup directly into Live Trade Log">
+            ⚡ Convert to Live Trade &rarr;
+        </a>
+        {% else %}
+            {% if idea.promoted_trade_id %}
+            <a href="/trades/{{ idea.promoted_trade_id }}" class="wl-btn-promoted-view">
+                ✅ View Live Trade #{{ idea.promoted_trade_id }}
+            </a>
+            {% else %}
+            <a href="/trades/new" class="wl-btn-promoted-view">
+                ✅ Executed in Live
+            </a>
+            {% endif %}
+        {% endif %}
+
+        <!-- Status & Tools Dropdown -->
+        <div class="wl-card-tools">
+            <form method="POST" action="/watchlist/{{ idea.id }}/status" style="display:inline;">
+                <select name="status" onchange="this.form.submit()" class="wl-status-select" title="Change Stage">
+                    <option value="WAITING" {% if idea.status == 'WAITING' %}selected{% endif %}>⏳ Waiting</option>
+                    <option value="MONITORING" {% if idea.status == 'MONITORING' %}selected{% endif %}>👀 Monitoring</option>
+                    <option value="EXECUTED" {% if idea.status == 'EXECUTED' %}selected{% endif %}>🚀 Live</option>
+                    <option value="INVALIDATED" {% if idea.status == 'INVALIDATED' %}selected{% endif %}>🚫 Invalidated</option>
+                    <option value="MISSED" {% if idea.status == 'MISSED' %}selected{% endif %}>💨 Missed</option>
+                </select>
+            </form>
+
+            <a href="/watchlist/{{ idea.id }}/edit" class="wl-tool-btn" title="Edit Setup">✏️</a>
+            
+            <form method="POST" action="/watchlist/{{ idea.id }}/delete" onsubmit="return confirm('Delete this trade idea?');" style="display:inline;">
+                <button type="submit" class="wl-tool-btn btn-tool-del" title="Delete Setup">🗑️</button>
+            </form>
+        </div>
+    </div>
+
+</div>

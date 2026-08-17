@@ -1,0 +1,351 @@
+{% extends "base.html" %}
+
+{% block title %}{% if idea %}Edit Trade Idea — {{ idea.title }}{% else %}Log New Trade Idea{% endif %} — Trading Journal{% endblock %}
+
+{% block content %}
+<div class="wl-form-container">
+    
+    <!-- Top Header -->
+    <div class="form-page-header">
+        <div>
+            <span class="brand-sub">FORWARD TESTING & EXECUTION STAGING</span>
+            <h1>{% if idea %}Edit Trade Idea: {{ idea.title }}{% else %}Log Pre-Market Trade Idea{% endif %}</h1>
+        </div>
+        <div class="header-actions">
+            <a href="/watchlist/" class="btn-back">&larr; Back to Watchlist</a>
+        </div>
+    </div>
+
+    <!-- Main Idea Form -->
+    <form method="POST" action="{% if idea %}/watchlist/{{ idea.id }}/edit{% else %}/watchlist/new{% endif %}" class="wl-main-form" id="watchlistForm">
+        
+        <!-- Section 1: Setup Title & Direction -->
+        <div class="form-section-block">
+            <h4 class="form-section-title">📌 Core Setup & Direction</h4>
+            <div class="form-section-grid" style="grid-template-columns: 2fr 1fr 1fr;">
+                <div class="form-group">
+                    <label>Setup Title / Name <small class="text-muted">(e.g. SOLUSD LC-1 M15 Demand)</small></label>
+                    <input type="text" name="title" id="ideaTitle" value="{{ idea.title if idea else '' }}" placeholder="Auto-generated if left empty" class="form-input">
+                </div>
+
+                <div class="form-group">
+                    <label>Direction</label>
+                    <div class="direction-toggle-group">
+                        <label class="dir-radio-btn dir-long-label">
+                            <input type="radio" name="direction" value="LONG" {% if not idea or idea.direction == 'LONG' %}checked{% endif %}>
+                            <span>▲ LONG</span>
+                        </label>
+                        <label class="dir-radio-btn dir-short-label">
+                            <input type="radio" name="direction" value="SHORT" {% if idea and idea.direction == 'SHORT' %}checked{% endif %}>
+                            <span>▼ SHORT</span>
+                        </label>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label>Pipeline Status</label>
+                    <select name="status" class="form-input">
+                        <option value="WAITING" {% if not idea or idea.status == 'WAITING' %}selected{% endif %}>⏳ Waiting for POI</option>
+                        <option value="MONITORING" {% if idea and idea.status == 'MONITORING' %}selected{% endif %}>👀 Monitoring Trigger</option>
+                        <option value="EXECUTED" {% if idea and idea.status == 'EXECUTED' %}selected{% endif %}>🚀 Live / Executed</option>
+                        <option value="INVALIDATED" {% if idea and idea.status == 'INVALIDATED' %}selected{% endif %}>🚫 Invalidated</option>
+                        <option value="MISSED" {% if idea and idea.status == 'MISSED' %}selected{% endif %}>💨 Missed Entry</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+
+        <!-- Section 2: Market Context & Strategy Edge -->
+        <div class="form-section-block">
+            <h4 class="form-section-title">🎯 Market Context & Strategy Edge</h4>
+            <div class="form-section-grid grid-setup">
+                <div class="form-group">
+                    <label>Instrument / Coin</label>
+                    <select name="instrument_id" id="instrumentSelect" class="form-input" required>
+                        <option value="">-- Select Instrument --</option>
+                        {% for i in instruments %}
+                        <option value="{{ i.id }}" {% if idea and idea.instrument_id == i.id %}selected{% endif %}>{{ i.name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label>Session</label>
+                    <select name="session_id" class="form-input">
+                        <option value="">-- Select Session --</option>
+                        {% for s in sessions %}
+                        <option value="{{ s.id }}" {% if idea and idea.session_id == s.id %}selected{% endif %}>{{ s.name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label>Strategy / Setup Model</label>
+                    <select name="strategy_id" class="form-input">
+                        <option value="">-- Select Strategy --</option>
+                        {% for st in strategies if st.is_active %}
+                        <option value="{{ st.id }}" {% if idea and idea.strategy_id == st.id %}selected{% endif %}>{{ st.name }}</option>
+                        {% endfor %}
+                        {% set archived_strats = strategies | selectattr('is_active', 'equalto', False) | list %}
+                        {% if archived_strats %}
+                        <optgroup label="📦 Archived / Past Setups">
+                            {% for st in archived_strats %}
+                            <option value="{{ st.id }}" {% if idea and idea.strategy_id == st.id %}selected{% endif %}>{{ st.name }} (Archived)</option>
+                            {% endfor %}
+                        </optgroup>
+                        {% endif %}
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label>Probability Level</label>
+                    <select name="probability_level_id" class="form-input">
+                        <option value="">-- Select Probability --</option>
+                        {% for p in probabilities %}
+                        <option value="{{ p.id }}" {% if idea and idea.probability_level_id == p.id %}selected{% endif %}>{{ p.name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label>MTF Phase</label>
+                    <select name="mtf_phase_id" class="form-input">
+                        <option value="">-- Select Phase --</option>
+                        {% for ph in phases %}
+                        <option value="{{ ph.id }}" {% if idea and idea.mtf_phase_id == ph.id %}selected{% endif %}>{{ ph.name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+            </div>
+        </div>
+
+        <!-- Section 3: Planned Levels & R:R Geometry -->
+        <div class="form-section-block">
+            <h4 class="form-section-title">📐 Planned Execution Levels & Target R:R</h4>
+            <div class="form-section-grid" style="grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));">
+                <div class="form-group">
+                    <label>Planned Entry Price</label>
+                    <input type="number" step="any" name="planned_entry" id="plannedEntry" value="{{ idea.planned_entry if idea and idea.planned_entry is not none else '' }}" placeholder="e.g. 142.50" class="form-input" oninput="calcPlannedRR()">
+                </div>
+
+                <div class="form-group">
+                    <label>Planned Stop Loss (SL)</label>
+                    <input type="number" step="any" name="planned_sl" id="plannedSL" value="{{ idea.planned_sl if idea and idea.planned_sl is not none else '' }}" placeholder="e.g. 140.20" class="form-input" oninput="calcPlannedRR()">
+                </div>
+
+                <div class="form-group">
+                    <label>Planned Take Profit (TP)</label>
+                    <input type="number" step="any" name="planned_tp" id="plannedTP" value="{{ idea.planned_tp if idea and idea.planned_tp is not none else '' }}" placeholder="e.g. 151.70" class="form-input" oninput="calcPlannedRR()">
+                </div>
+
+                <div class="form-group">
+                    <label>Estimated Target R:R (+R)</label>
+                    <div style="display: flex; gap: 0.5rem; align-items: center;">
+                        <input type="number" step="0.01" name="planned_rr" id="plannedRR" value="{{ idea.planned_rr if idea and idea.planned_rr is not none else '' }}" placeholder="e.g. 4.00" class="form-input font-bold" style="color: #10b981;">
+                        <span id="rrBadge" class="wl-rr-calc-badge">Auto</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Section 4: Chart Snapshots & Clipboard Image Dropzones -->
+        <div class="form-section-block">
+            <div class="label-with-hint" style="margin-bottom: 0.75rem;">
+                <h4 class="form-section-title" style="margin-bottom: 0;">📸 Multi-Timeframe Chart Screenshots (Paste Support)</h4>
+                <span class="text-muted" style="font-size: 0.78rem;">Click a box and press <strong>Ctrl + V</strong> to paste from clipboard or click to upload file.</span>
+            </div>
+
+            <div class="wl-dropzones-grid">
+                
+                <!-- HTF Chart Dropzone -->
+                <div class="wl-dropzone-box" id="htfDropzone" tabindex="0" onclick="triggerFileInput('htfFileInput')">
+                    <div class="wl-dz-header">
+                        <span class="font-bold">1. Higher Timeframe (HTF) Chart</span>
+                        <small class="text-muted">(Daily / 4H / 15M POI Structure)</small>
+                    </div>
+
+                    <input type="hidden" name="htf_image_url" id="htfImageUrlInput" value="{{ idea.htf_image_url if idea and idea.htf_image_url else '' }}">
+                    <input type="file" id="htfFileInput" accept="image/*" style="display: none;" onchange="handleFileSelected(this, 'htf')">
+
+                    <div class="wl-dz-preview" id="htfPreviewWrap" style="{% if not idea or not idea.htf_image_url %}display:none;{% endif %}">
+                        <img id="htfPreviewImg" src="{{ idea.htf_image_url if idea and idea.htf_image_url else '' }}" alt="HTF Preview">
+                        <button type="button" class="wl-dz-clear-btn" onclick="clearDropzone(event, 'htf')">✕ Remove</button>
+                    </div>
+
+                    <div class="wl-dz-placeholder" id="htfPlaceholder" style="{% if idea and idea.htf_image_url %}display:none;{% endif %}">
+                        <span style="font-size: 2rem;">📋</span>
+                        <span class="font-bold" style="font-size: 0.85rem; color: #0284c7;">Click &amp; Paste HTF Screenshot (Ctrl+V)</span>
+                        <small style="color: #64748b;">or click to browse image</small>
+                    </div>
+                </div>
+
+                <!-- LTF Chart Dropzone -->
+                <div class="wl-dropzone-box" id="ltfDropzone" tabindex="0" onclick="triggerFileInput('ltfFileInput')">
+                    <div class="wl-dz-header">
+                        <span class="font-bold">2. Lower Timeframe (LTF) Entry Chart</span>
+                        <small class="text-muted">(5M / 1M CHoCH, Flip, Confirmation)</small>
+                    </div>
+
+                    <input type="hidden" name="ltf_image_url" id="ltfImageUrlInput" value="{{ idea.ltf_image_url if idea and idea.ltf_image_url else '' }}">
+                    <input type="file" id="ltfFileInput" accept="image/*" style="display: none;" onchange="handleFileSelected(this, 'ltf')">
+
+                    <div class="wl-dz-preview" id="ltfPreviewWrap" style="{% if not idea or not idea.ltf_image_url %}display:none;{% endif %}">
+                        <img id="ltfPreviewImg" src="{{ idea.ltf_image_url if idea and idea.ltf_image_url else '' }}" alt="LTF Preview">
+                        <button type="button" class="wl-dz-clear-btn" onclick="clearDropzone(event, 'ltf')">✕ Remove</button>
+                    </div>
+
+                    <div class="wl-dz-placeholder" id="ltfPlaceholder" style="{% if idea and idea.ltf_image_url %}display:none;{% endif %}">
+                        <span style="font-size: 2rem;">⚡</span>
+                        <span class="font-bold" style="font-size: 0.85rem; color: #0284c7;">Click &amp; Paste LTF Screenshot (Ctrl+V)</span>
+                        <small style="color: #64748b;">or click to browse image</small>
+                    </div>
+                </div>
+
+            </div>
+
+            <!-- TradingView Link Input -->
+            <div class="form-group" style="margin-top: 1rem;">
+                <label>TradingView URL / Direct Link <small class="text-muted">(Optional)</small></label>
+                <input type="url" name="tradingview_url" value="{{ idea.tradingview_url if idea and idea.tradingview_url else '' }}" placeholder="https://www.tradingview.com/x/..." class="form-input">
+            </div>
+        </div>
+
+        <!-- Section 5: Structural Bias, Confirmation & Detailed Notes -->
+        <div class="form-section-block">
+            <h4 class="form-section-title">📝 Analysis & Execution Playbook Notes</h4>
+            <div class="form-section-grid" style="grid-template-columns: 1fr 1fr;">
+                <div class="form-group">
+                    <label>HTF Bias</label>
+                    <input type="text" name="htf_bias" value="{{ idea.htf_bias if idea and idea.htf_bias else '' }}" placeholder="e.g. 4H Bullish Orderflow, approaching M15 Demand Zone" class="form-input">
+                </div>
+                <div class="form-group">
+                    <label>LTF Confirmation Required</label>
+                    <input type="text" name="ltf_confirmation" value="{{ idea.ltf_confirmation if idea and idea.ltf_confirmation else '' }}" placeholder="e.g. M1 CHoCH + inducement sweep + unmitigated supply tap" class="form-input">
+                </div>
+            </div>
+
+            <div class="form-group" style="margin-top: 0.75rem;">
+                <label>Pre-Trade Plan & Waiting Game Checklist</label>
+                <textarea name="notes" rows="3" placeholder="What are the conditions for invalidation? News events to watch? Management plan..." class="form-input" style="resize: vertical;">{{ idea.notes if idea and idea.notes else '' }}</textarea>
+            </div>
+        </div>
+
+        <!-- Form Actions Bar -->
+        <div class="form-actions-bar">
+            <button type="submit" class="btn-save-trade-submit" style="padding: 0.75rem 1.75rem;">
+                💾 {% if idea %}Update Trade Idea{% else %}Save to Watchlist{% endif %}
+            </button>
+            <a href="/watchlist/" class="btn-cancel-trade">Cancel</a>
+        </div>
+
+    </form>
+</div>
+
+<script>
+// ============================================================================
+// 1. Auto Calculate R:R
+// ============================================================================
+function calcPlannedRR() {
+    const entry = parseFloat(document.getElementById('plannedEntry').value);
+    const sl = parseFloat(document.getElementById('plannedSL').value);
+    const tp = parseFloat(document.getElementById('plannedTP').value);
+    const rrInput = document.getElementById('plannedRR');
+    const badge = document.getElementById('rrBadge');
+
+    if (!isNaN(entry) && !isNaN(sl) && !isNaN(tp)) {
+        const risk = Math.abs(entry - sl);
+        const reward = Math.abs(tp - entry);
+        if (risk > 0) {
+            const rr = (reward / risk).toFixed(2);
+            rrInput.value = rr;
+            if (badge) {
+                badge.textContent = `1:${rr}`;
+                badge.style.color = '#10b981';
+            }
+            return;
+        }
+    }
+    if (badge) badge.textContent = 'Auto';
+}
+
+// ============================================================================
+// 2. Clipboard Paste & Image Upload Handling for HTF & LTF
+// ============================================================================
+let activeDropzoneType = 'htf';
+
+document.getElementById('htfDropzone').addEventListener('focus', () => { activeDropzoneType = 'htf'; });
+document.getElementById('ltfDropzone').addEventListener('focus', () => { activeDropzoneType = 'ltf'; });
+
+window.addEventListener('paste', function(e) {
+    const items = (e.clipboardData || e.originalEvent.clipboardData).items;
+    let foundImage = false;
+
+    for (let i = 0; i < items.length; i++) {
+        if (items[i].type.indexOf('image') !== -1) {
+            foundImage = true;
+            const blob = items[i].getAsFile();
+            uploadImageBlob(blob, activeDropzoneType);
+            break;
+        }
+    }
+});
+
+function triggerFileInput(inputId) {
+    const input = document.getElementById(inputId);
+    if (input) input.click();
+}
+
+function handleFileSelected(input, type) {
+    if (input.files && input.files[0]) {
+        uploadImageBlob(input.files[0], type);
+    }
+}
+
+function uploadImageBlob(blob, type) {
+    const formData = new FormData();
+    formData.append('image', blob, `${type}_paste.png`);
+
+    // Preview immediately using FileReader
+    const reader = new FileReader();
+    reader.onload = function(e) {
+        showPreview(type, e.target.result);
+    };
+    reader.readAsDataURL(blob);
+
+    // Upload to server
+    fetch('/watchlist/api/upload_image', {
+        method: 'POST',
+        body: formData
+    })
+    .then(r => r.json())
+    .then(data => {
+        if (data.status === 'success') {
+            document.getElementById(`${type}ImageUrlInput`).value = data.url;
+            showPreview(type, data.url);
+        }
+    })
+    .catch(err => {
+        console.error('Error uploading image:', err);
+    });
+}
+
+function showPreview(type, url) {
+    const previewWrap = document.getElementById(`${type}PreviewWrap`);
+    const previewImg = document.getElementById(`${type}PreviewImg`);
+    const placeholder = document.getElementById(`${type}Placeholder`);
+
+    if (previewImg && previewWrap && placeholder) {
+        previewImg.src = url;
+        previewWrap.style.display = 'block';
+        placeholder.style.display = 'none';
+    }
+}
+
+function clearDropzone(e, type) {
+    e.stopPropagation();
+    document.getElementById(`${type}ImageUrlInput`).value = '';
+    document.getElementById(`${type}PreviewWrap`).style.display = 'none';
+    document.getElementById(`${type}Placeholder`).style.display = 'flex';
+}
+</script>
+{% endblock %}

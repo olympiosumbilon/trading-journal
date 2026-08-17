@@ -366,8 +366,10 @@ def list_trades(
 def new_trade(request: Request):
     with SessionLocal() as db:
         lookups = get_lookup_data(db)
+    
+    prefill = dict(request.query_params)
     return templates.TemplateResponse(
-        request, "trades/form.html", {"trade": None, **lookups}
+        request, "trades/form.html", {"trade": None, "prefill": prefill, **lookups}
     )
 
 

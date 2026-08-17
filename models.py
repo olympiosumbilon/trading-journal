@@ -178,3 +178,44 @@ class CourseNote(Base):
     content = Column(Text, nullable=True)
     updated_at = Column(DateTime, server_default=func.now(), onupdate=func.now())
 
+
+class WatchlistIdea(Base):
+    __tablename__ = "watchlist_ideas"
+    id = Column(Integer, primary_key=True)
+
+    title = Column(String, nullable=False)  # e.g., "SOLUSD M15 Bullish POI"
+    instrument_id = Column(Integer, ForeignKey("instruments.id"), nullable=True)
+    session_id = Column(Integer, ForeignKey("sessions.id"), nullable=True)
+    strategy_id = Column(Integer, ForeignKey("strategies.id"), nullable=True)
+    probability_level_id = Column(Integer, ForeignKey("probability_levels.id"), nullable=True)
+    mtf_phase_id = Column(Integer, ForeignKey("mtf_phases.id"), nullable=True)
+
+    direction = Column(String, default="LONG")  # LONG / SHORT
+    planned_entry = Column(Float, nullable=True)
+    planned_sl = Column(Float, nullable=True)
+    planned_tp = Column(Float, nullable=True)
+    planned_rr = Column(Float, nullable=True)
+
+    htf_bias = Column(String, nullable=True)  # Bullish, Bearish, Range
+    ltf_confirmation = Column(String, nullable=True)  # CHoCH, Flip, Liquidity Sweep
+    notes = Column(Text, nullable=True)
+
+    htf_image_url = Column(String, nullable=True)
+    ltf_image_url = Column(String, nullable=True)
+    tradingview_url = Column(String, nullable=True)
+
+    # Status: WAITING, MONITORING, EXECUTED, INVALIDATED, MISSED
+    status = Column(String, default="WAITING", nullable=False, index=True)
+    promoted_trade_id = Column(Integer, ForeignKey("trades.id", ondelete="SET NULL"), nullable=True)
+
+    created_at = Column(DateTime, server_default=func.now())
+    updated_at = Column(DateTime, server_default=func.now(), onupdate=func.now())
+    resolved_at = Column(DateTime, nullable=True)
+
+    instrument_obj = relationship("Instrument")
+    session_obj = relationship("Session")
+    strategy_obj = relationship("Strategy")
+    probability_level_obj = relationship("ProbabilityLevel")
+    mtf_phase_obj = relationship("MTFPhase")
+    promoted_trade_obj = relationship("Trade")
+

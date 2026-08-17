@@ -1,0 +1,295 @@
+{% extends "base.html" %}
+
+{% block title %}Market Watchlist & Forward Testing — Trading Journal{% endblock %}
+
+{% block content %}
+<div class="watchlist-page-container">
+
+    <!-- Top Header & Metrics Bar -->
+    <div class="wl-header-bar">
+        <div>
+            <span class="brand-sub">EXECUTION PIPELINE & STAGING</span>
+            <h1 class="wl-title">🎯 Market Watchlist & Forward Testing</h1>
+            <p class="wl-subtitle">Track pre-market setups, monitor POI waiting games, and promote triggered setups into live trades with 1 click.</p>
+        </div>
+        <div class="wl-header-actions">
+            <a href="/watchlist/new" class="btn-primary-add" style="padding: 0.65rem 1.25rem; font-size: 0.9rem;">
+                + Log Trade Idea
+            </a>
+        </div>
+    </div>
+
+    <!-- Metrics Ribbon -->
+    <div class="wl-metrics-ribbon">
+        <a href="/watchlist/?status_filter=ALL" class="wl-metric-card {% if status_filter == 'ALL' %}active-filter{% endif %}">
+            <span class="wl-metric-label">Total Setups</span>
+            <span class="wl-metric-val">{{ ideas|length }}</span>
+        </a>
+        <a href="/watchlist/?status_filter=WAITING" class="wl-metric-card wl-metric-waiting {% if status_filter == 'WAITING' %}active-filter{% endif %}">
+            <span class="wl-metric-label">⏳ Waiting for POI</span>
+            <span class="wl-metric-val">{{ total_waiting }}</span>
+        </a>
+        <a href="/watchlist/?status_filter=MONITORING" class="wl-metric-card wl-metric-monitoring {% if status_filter == 'MONITORING' %}active-filter{% endif %}">
+            <span class="wl-metric-label">👀 Monitoring Trigger</span>
+            <span class="wl-metric-val">{{ total_monitoring }}</span>
+        </a>
+        <a href="/watchlist/?status_filter=EXECUTED" class="wl-metric-card wl-metric-executed {% if status_filter == 'EXECUTED' %}active-filter{% endif %}">
+            <span class="wl-metric-label">🚀 Live / Executed</span>
+            <span class="wl-metric-val">{{ total_executed }}</span>
+        </a>
+        <a href="/watchlist/?status_filter=INVALIDATED" class="wl-metric-card wl-metric-invalidated {% if status_filter == 'INVALIDATED' %}active-filter{% endif %}">
+            <span class="wl-metric-label">🚫 Invalidated / Missed</span>
+            <span class="wl-metric-val">{{ total_invalidated + total_missed }}</span>
+        </a>
+    </div>
+
+    <!-- Filter & View Controls Bar -->
+    <div class="wl-controls-bar">
+        <form method="GET" action="/watchlist/" class="wl-filter-form">
+            <input type="hidden" name="view_mode" id="viewModeInput" value="{{ view_mode }}">
+            
+            <div class="wl-filter-group">
+                <label>Status:</label>
+                <select name="status_filter" onchange="this.form.submit()" class="wl-select">
+                    <option value="ALL" {% if status_filter == 'ALL' %}selected{% endif %}>All Statuses</option>
+                    <option value="WAITING" {% if status_filter == 'WAITING' %}selected{% endif %}>⏳ Waiting for POI</option>
+                    <option value="MONITORING" {% if status_filter == 'MONITORING' %}selected{% endif %}>👀 Monitoring Trigger</option>
+                    <option value="EXECUTED" {% if status_filter == 'EXECUTED' %}selected{% endif %}>🚀 Live / Executed</option>
+                    <option value="INVALIDATED" {% if status_filter == 'INVALIDATED' %}selected{% endif %}>🚫 Invalidated</option>
+                    <option value="MISSED" {% if status_filter == 'MISSED' %}selected{% endif %}>💨 Missed Entry</option>
+                </select>
+            </div>
+
+            <div class="wl-filter-group">
+                <label>Pair:</label>
+                <select name="instrument_id" onchange="this.form.submit()" class="wl-select">
+                    <option value="">All Pairs</option>
+                    {% for inst in instruments %}
+                    <option value="{{ inst.id }}" {% if instrument_id == inst.id|string %}selected{% endif %}>{{ inst.name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <div class="wl-filter-group">
+                <label>Session:</label>
+                <select name="session_id" onchange="this.form.submit()" class="wl-select">
+                    <option value="">All Sessions</option>
+                    {% for s in sessions %}
+                    <option value="{{ s.id }}" {% if session_id == s.id|string %}selected{% endif %}>{{ s.name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <div class="wl-filter-group">
+                <label>Strategy:</label>
+                <select name="strategy_id" onchange="this.form.submit()" class="wl-select">
+                    <option value="">All Strategies</option>
+                    {% for st in strategies %}
+                    <option value="{{ st.id }}" {% if strategy_id == st.id|string %}selected{% endif %}>{{ st.name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            {% if instrument_id or session_id or strategy_id or status_filter != 'ALL' %}
+            <a href="/watchlist/" class="wl-btn-reset">Reset Filters</a>
+            {% endif %}
+        </form>
+
+        <div class="wl-view-switcher">
+            <button type="button" class="wl-vs-btn {% if view_mode == 'kanban' %}active{% endif %}" onclick="switchViewMode('kanban')" title="Kanban Board View">
+                📋 Kanban
+            </button>
+            <button type="button" class="wl-vs-btn {% if view_mode == 'grid' %}active{% endif %}" onclick="switchViewMode('grid')" title="Grid Cards View">
+                🔲 Grid
+            </button>
+        </div>
+    </div>
+
+    <!-- Alert Toasts -->
+    {% if msg or error %}
+    <div class="settings-alert-toast-container" id="toastContainer">
+        {% if msg %}
+        <div class="settings-alert-toast alert-success" id="settingsToast">
+            <div class="settings-alert-toast-content">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+                <span>{{ msg }}</span>
+            </div>
+            <button type="button" class="settings-alert-toast-close" onclick="dismissToast()">&times;</button>
+        </div>
+        {% endif %}
+        {% if error %}
+        <div class="settings-alert-toast alert-warning" id="settingsToast">
+            <div class="settings-alert-toast-content">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+                <span>{{ error }}</span>
+            </div>
+            <button type="button" class="settings-alert-toast-close" onclick="dismissToast()">&times;</button>
+        </div>
+        {% endif %}
+    </div>
+    {% endif %}
+
+    <!-- ========================================================================= -->
+    <!-- VIEW MODE 1: KANBAN PIPELINE BOARD -->
+    <!-- ========================================================================= -->
+    {% if view_mode == 'kanban' %}
+    <div class="wl-kanban-board">
+        
+        <!-- Column 1: WAITING -->
+        <div class="wl-kanban-col">
+            <div class="wl-col-header col-waiting">
+                <div class="col-title-wrap">
+                    <span class="col-dot dot-waiting"></span>
+                    <h3>⏳ Waiting for POI</h3>
+                </div>
+                <span class="col-count-badge">{{ kanban['WAITING']|length }}</span>
+            </div>
+            <div class="wl-col-cards">
+                {% for idea in kanban['WAITING'] %}
+                    {% include "watchlist/_card.html" %}
+                {% else %}
+                    <div class="wl-empty-col">No setups waiting for POI.</div>
+                {% endfor %}
+            </div>
+        </div>
+
+        <!-- Column 2: MONITORING -->
+        <div class="wl-kanban-col">
+            <div class="wl-col-header col-monitoring">
+                <div class="col-title-wrap">
+                    <span class="col-dot dot-monitoring"></span>
+                    <h3>👀 Monitoring Trigger</h3>
+                </div>
+                <span class="col-count-badge">{{ kanban['MONITORING']|length }}</span>
+            </div>
+            <div class="wl-col-cards">
+                {% for idea in kanban['MONITORING'] %}
+                    {% include "watchlist/_card.html" %}
+                {% else %}
+                    <div class="wl-empty-col">No setups currently being monitored.</div>
+                {% endfor %}
+            </div>
+        </div>
+
+        <!-- Column 3: EXECUTED -->
+        <div class="wl-kanban-col">
+            <div class="wl-col-header col-executed">
+                <div class="col-title-wrap">
+                    <span class="col-dot dot-executed"></span>
+                    <h3>🚀 Live / Executed</h3>
+                </div>
+                <span class="col-count-badge">{{ kanban['EXECUTED']|length }}</span>
+            </div>
+            <div class="wl-col-cards">
+                {% for idea in kanban['EXECUTED'] %}
+                    {% include "watchlist/_card.html" %}
+                {% else %}
+                    <div class="wl-empty-col">No executed trades from watchlist yet.</div>
+                {% endfor %}
+            </div>
+        </div>
+
+        <!-- Column 4: RESOLVED (Invalidated / Missed) -->
+        <div class="wl-kanban-col">
+            <div class="wl-col-header col-resolved">
+                <div class="col-title-wrap">
+                    <span class="col-dot dot-resolved"></span>
+                    <h3>🏁 Resolved / Inactive</h3>
+                </div>
+                <span class="col-count-badge">{{ kanban['RESOLVED']|length }}</span>
+            </div>
+            <div class="wl-col-cards">
+                {% for idea in kanban['RESOLVED'] %}
+                    {% include "watchlist/_card.html" %}
+                {% else %}
+                    <div class="wl-empty-col">No invalidated or missed setups.</div>
+                {% endfor %}
+            </div>
+        </div>
+
+    </div>
+
+    <!-- ========================================================================= -->
+    <!-- VIEW MODE 2: GRID VIEW -->
+    <!-- ========================================================================= -->
+    {% else %}
+    <div class="wl-cards-grid">
+        {% for idea in ideas %}
+            {% include "watchlist/_card.html" %}
+        {% else %}
+        <div class="wl-empty-full">
+            <span style="font-size: 2.5rem;">🎯</span>
+            <h3>No trade ideas found</h3>
+            <p>Start tracking your pre-market analysis and waiting game setups!</p>
+            <a href="/watchlist/new" class="btn-primary-add" style="margin-top: 1rem;">+ Log Trade Idea</a>
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+</div>
+
+<!-- Interactive Chart Modal / Lightbox -->
+<div id="wlChartModal" class="wl-chart-lightbox" onclick="closeChartModal(event)">
+    <div class="wl-lightbox-box">
+        <div class="wl-lightbox-header">
+            <span id="wlLightboxTitle" class="font-bold">Chart Preview</span>
+            <button type="button" class="wl-lightbox-close" onclick="closeChartModal(event)">&times;</button>
+        </div>
+        <div class="wl-lightbox-img-wrap">
+            <img id="wlLightboxImg" src="" alt="Chart Preview">
+        </div>
+    </div>
+</div>
+
+<script>
+// Clean URL query string immediately so refreshing does not re-trigger msg/error
+if (window.location.search.includes('msg=') || window.location.search.includes('error=')) {
+    const params = new URLSearchParams(window.location.search);
+    params.delete('msg');
+    params.delete('error');
+    const newSearch = params.toString() ? '?' + params.toString() : '';
+    window.history.replaceState({}, document.title, window.location.pathname + newSearch);
+}
+
+function dismissToast() {
+    const toast = document.getElementById('settingsToast');
+    if (toast) {
+        toast.classList.add('toast-fade-out');
+        setTimeout(() => {
+            const container = document.getElementById('toastContainer');
+            if (container) container.remove();
+        }, 350);
+    }
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+    const toast = document.getElementById('settingsToast');
+    if (toast) setTimeout(dismissToast, 3500);
+});
+
+function switchViewMode(mode) {
+    const url = new URL(window.location.href);
+    url.searchParams.set('view_mode', mode);
+    window.location.href = url.toString();
+}
+
+function openChartModal(src, title) {
+    const modal = document.getElementById('wlChartModal');
+    const img = document.getElementById('wlLightboxImg');
+    const titleEl = document.getElementById('wlLightboxTitle');
+    if (modal && img) {
+        img.src = src;
+        if (titleEl) titleEl.textContent = title || 'Chart Preview';
+        modal.style.display = 'flex';
+    }
+}
+
+function closeChartModal(e) {
+    if (e.target.id === 'wlChartModal' || e.target.classList.contains('wl-lightbox-close')) {
+        const modal = document.getElementById('wlChartModal');
+        if (modal) modal.style.display = 'none';
+    }
+}
+</script>
+{% endblock %}

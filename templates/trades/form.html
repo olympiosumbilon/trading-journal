@@ -244,7 +244,7 @@
                 <select name="session_id" id="sessionSelect">
                     <option value="">-- Select --</option>
                     {% for s in sessions %}
-                    <option value="{{ s.id }}" data-name="{{ s.name }}" {% if trade and trade.session_id == s.id %}selected{% endif %}>{{ s.name }}</option>
+                    <option value="{{ s.id }}" data-name="{{ s.name }}" {% if (trade and trade.session_id == s.id) or (prefill and prefill.session_id == s.id|string) %}selected{% endif %}>{{ s.name }}</option>
                     {% endfor %}
                 </select>
             </div>
@@ -261,7 +261,7 @@
                 <select name="instrument_id" id="instrumentSelect" onchange="onInstrumentSelectChange(this)">
                     <option value="">-- Select --</option>
                     {% for i in instruments %}
-                    <option value="{{ i.id }}" {% if trade and trade.instrument_id == i.id %}selected{% endif %}>{{ i.name }}</option>
+                    <option value="{{ i.id }}" {% if (trade and trade.instrument_id == i.id) or (prefill and prefill.instrument_id == i.id|string) %}selected{% endif %}>{{ i.name }}</option>
                     {% endfor %}
                 </select>
             </div>
@@ -270,13 +270,13 @@
                 <select name="strategy_id" id="strategySelect">
                     <option value="">-- Select --</option>
                     {% for st in strategies if st.is_active %}
-                    <option value="{{ st.id }}" {% if trade and trade.strategy_id == st.id %}selected{% endif %}>{{ st.name }}</option>
+                    <option value="{{ st.id }}" {% if (trade and trade.strategy_id == st.id) or (prefill and prefill.strategy_id == st.id|string) %}selected{% endif %}>{{ st.name }}</option>
                     {% endfor %}
                     {% set archived_strats = strategies | selectattr('is_active', 'equalto', False) | list %}
                     {% if archived_strats %}
                     <optgroup label="📦 Archived / Past Setups">
                         {% for st in archived_strats %}
-                        <option value="{{ st.id }}" {% if trade and trade.strategy_id == st.id %}selected{% endif %}>{{ st.name }} (Archived)</option>
+                        <option value="{{ st.id }}" {% if (trade and trade.strategy_id == st.id) or (prefill and prefill.strategy_id == st.id|string) %}selected{% endif %}>{{ st.name }} (Archived)</option>
                         {% endfor %}
                     </optgroup>
                     {% endif %}
@@ -287,7 +287,7 @@
                 <select name="probability_level_id">
                     <option value="">-- Select --</option>
                     {% for p in probabilities %}
-                    <option value="{{ p.id }}" {% if trade and trade.probability_level_id == p.id %}selected{% endif %}>{{ p.name }}</option>
+                    <option value="{{ p.id }}" {% if (trade and trade.probability_level_id == p.id) or (prefill and prefill.probability_level_id == p.id|string) %}selected{% endif %}>{{ p.name }}</option>
                     {% endfor %}
                 </select>
             </div>
@@ -296,7 +296,7 @@
                 <select name="mtf_phase_id">
                     <option value="">-- Select --</option>
                     {% for ph in phases %}
-                    <option value="{{ ph.id }}" {% if trade and trade.mtf_phase_id == ph.id %}selected{% endif %}>{{ ph.name }}</option>
+                    <option value="{{ ph.id }}" {% if (trade and trade.mtf_phase_id == ph.id) or (prefill and prefill.mtf_phase_id == ph.id|string) %}selected{% endif %}>{{ ph.name }}</option>
                     {% endfor %}
                 </select>
             </div>

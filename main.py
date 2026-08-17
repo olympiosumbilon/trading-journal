@@ -2,7 +2,7 @@ from fastapi import FastAPI, Request
 from fastapi.templating import Jinja2Templates
 from fastapi.staticfiles import StaticFiles
 from database import Base, engine
-from routers import trades, dashboard, ai, automations, settings, summary, analysis, course
+from routers import trades, dashboard, ai, automations, settings, summary, analysis, course, watchlist
 from apscheduler.schedulers.background import BackgroundScheduler
 from services.automation_service import check_alerts
 
@@ -92,6 +92,7 @@ def api_crypto_news(refresh: bool = False):
 
 
 app.include_router(trades.router, prefix="/trades", tags=["trades"])
+app.include_router(watchlist.router, prefix="/watchlist", tags=["watchlist"])
 app.include_router(dashboard.router, prefix="/dashboard", tags=["dashboard"])
 app.include_router(ai.router, prefix="/ai", tags=["ai"])
 app.include_router(automations.router, prefix="/automations", tags=["automations"])
