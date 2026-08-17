@@ -8352,6 +8352,58 @@ main.main-full-bleed {
     max-width: 680px;
 }
 
+.wl-header-actions {
+    display: flex;
+    align-items: center;
+    gap: 0.65rem;
+    flex-shrink: 0;
+}
+
+.wl-btn-roadmap,
+.wl-btn-new-idea {
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    white-space: nowrap !important;
+    height: 40px !important;
+    padding: 0 1.25rem !important;
+    border-radius: 8px !important;
+    font-size: 0.85rem !important;
+    font-weight: 700 !important;
+    text-decoration: none !important;
+    line-height: 1 !important;
+    box-sizing: border-box !important;
+    cursor: pointer !important;
+    transition: all 0.15s ease !important;
+}
+
+.wl-btn-roadmap {
+    background: #ffffff !important;
+    color: #1e293b !important;
+    border: 1px solid #cbd5e1 !important;
+    box-shadow: 0 1px 2px rgba(0,0,0,0.05) !important;
+}
+
+.wl-btn-roadmap:hover {
+    background: #f8fafc !important;
+    border-color: #94a3b8 !important;
+    color: #0f172a !important;
+}
+
+.wl-btn-new-idea {
+    background: #0f172a !important;
+    color: #ffffff !important;
+    border: 1px solid #0f172a !important;
+    box-shadow: 0 2px 4px rgba(15, 23, 42, 0.15) !important;
+}
+
+.wl-btn-new-idea:hover {
+    background: #1e293b !important;
+    border-color: #1e293b !important;
+    color: #ffffff !important;
+    text-decoration: none !important;
+}
+
 /* Metrics Ribbon */
 .wl-metrics-ribbon {
     display: grid;
