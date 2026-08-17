@@ -1,0 +1,69 @@
+<!-- Interactive MTF Phase Roadmap & Structural Vision Modal -->
+<div id="wlRoadmapModal" class="wl-chart-lightbox" style="display: none;" onclick="closeRoadmapModal(event)">
+    <div class="wl-lightbox-box wl-roadmap-box">
+        <div class="wl-lightbox-header">
+            <div class="wl-roadmap-tabs">
+                <button type="button" id="tabBuyRoadmap" class="wl-rm-tab active" onclick="switchRoadmapTab('buying')">
+                    Buying Structure (Bullish Plan)
+                </button>
+                <button type="button" id="tabSellRoadmap" class="wl-rm-tab" onclick="switchRoadmapTab('selling')">
+                    Selling Structure (Bearish Plan)
+                </button>
+            </div>
+            <button type="button" class="wl-lightbox-close" onclick="closeRoadmapModal(event)">&times;</button>
+        </div>
+        <div class="wl-roadmap-body">
+            <div class="wl-roadmap-img-wrap">
+                <img id="roadmapImg" src="/static/images/photon_buying_structure.png" alt="Photon MTF Phase Structure">
+            </div>
+            <div class="wl-roadmap-phase-guide">
+                <div class="rm-phase-pill phase-a">
+                    <span class="rm-badge">Phase A</span> Pro Swing + Pro Internal (Trend Run / Expansion)
+                </div>
+                <div class="rm-phase-pill phase-b">
+                    <span class="rm-badge">Phase B</span> Pro Swing + Counter Internal (End of Pullback / Reversal)
+                </div>
+                <div class="rm-phase-pill phase-c">
+                    <span class="rm-badge">Phase C</span> Counter Swing + Pro Internal (Trading the Pullback)
+                </div>
+                <div class="rm-phase-pill phase-d">
+                    <span class="rm-badge">Phase D</span> Counter Swing + Counter Internal (Aggressive / Avoid)
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+function openRoadmapModal(type = 'buying') {
+    const modal = document.getElementById('wlRoadmapModal');
+    if (modal) {
+        switchRoadmapTab(type);
+        modal.style.display = 'flex';
+    }
+}
+
+function closeRoadmapModal(e) {
+    if (e.target.id === 'wlRoadmapModal' || e.target.classList.contains('wl-lightbox-close')) {
+        const modal = document.getElementById('wlRoadmapModal');
+        if (modal) modal.style.display = 'none';
+    }
+}
+
+function switchRoadmapTab(type) {
+    const img = document.getElementById('roadmapImg');
+    const tabBuy = document.getElementById('tabBuyRoadmap');
+    const tabSell = document.getElementById('tabSellRoadmap');
+    if (!img) return;
+
+    if (type === 'buying') {
+        img.src = '/static/images/photon_buying_structure.png';
+        if (tabBuy) tabBuy.classList.add('active');
+        if (tabSell) tabSell.classList.remove('active');
+    } else {
+        img.src = '/static/images/photon_selling_structure.png';
+        if (tabSell) tabSell.classList.add('active');
+        if (tabBuy) tabBuy.classList.remove('active');
+    }
+}
+</script>

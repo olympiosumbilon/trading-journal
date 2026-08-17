@@ -13,6 +13,9 @@
             <p class="wl-subtitle">Track pre-market setups, monitor POI waiting games, and promote triggered setups into live trades with 1 click.</p>
         </div>
         <div class="wl-header-actions">
+            <button type="button" class="btn-secondary" onclick="openRoadmapModal('buying')" style="padding: 0.65rem 1.15rem; font-size: 0.88rem; font-weight: 700; display: inline-flex; align-items: center; gap: 0.45rem;">
+                MTF Phase Roadmap
+            </button>
             <a href="/watchlist/new" class="btn-primary-add" style="padding: 0.65rem 1.25rem; font-size: 0.9rem;">
                 + Log Trade Idea
             </a>
@@ -291,4 +294,6 @@ function closeChartModal(e) {
     }
 }
 </script>
+
+{% include "watchlist/_roadmap_modal.html" %}
 {% endblock %}

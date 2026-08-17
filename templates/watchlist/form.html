@@ -108,7 +108,10 @@
                 </div>
 
                 <div class="form-group">
-                    <label>MTF Phase</label>
+                    <div class="label-with-hint">
+                        <label>MTF Phase</label>
+                        <button type="button" onclick="openRoadmapModal('buying')" style="background:none; border:none; color:#0284c7; font-size:0.75rem; font-weight:700; cursor:pointer; text-decoration:underline; padding:0;">View Roadmap Guide</button>
+                    </div>
                     <select name="mtf_phase_id" class="form-input">
                         <option value="">-- Select Phase --</option>
                         {% for ph in phases %}
@@ -335,4 +338,6 @@ function clearDropzone(e, type) {
     document.getElementById(`${type}Placeholder`).style.display = 'flex';
 }
 </script>
+
+{% include "watchlist/_roadmap_modal.html" %}
 {% endblock %}
