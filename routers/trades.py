@@ -403,6 +403,7 @@ def create_trade(
     screenshot_3: str = Form(""),
     screenshot_bulk: str = Form(""),
     screenshots: list[str] = Form([]),
+    from_watchlist_id: str = Form(""),
 ):
     with SessionLocal() as db:
         # Resolve instrument: by ID or find/create by name
@@ -538,6 +539,15 @@ def create_trade(
             if s_ind and s_ind.strip():
                 raw_urls.append(s_ind.strip())
         sync_trade_screenshots(db, trade, raw_urls)
+
+        # Link WatchlistIdea if promoted from watchlist
+        if from_watchlist_id and str(from_watchlist_id).isdigit():
+            from models import WatchlistIdea
+            wl_idea = db.get(WatchlistIdea, int(from_watchlist_id))
+            if wl_idea:
+                wl_idea.promoted_trade_id = trade.id
+                wl_idea.status = "EXECUTED"
+
         db.commit()
 
         # Recalculate portfolio stats for all trades

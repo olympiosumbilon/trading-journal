@@ -152,11 +152,11 @@
         {% else %}
             {% if idea.promoted_trade_id %}
             <a href="/trades/{{ idea.promoted_trade_id }}" class="wl-btn-promoted-view">
-                View Live Trade #{{ idea.promoted_trade_id }} &rarr;
+                View in Trades #{{ idea.promoted_trade_id }} &rarr;
             </a>
             {% else %}
-            <a href="/trades/new" class="wl-btn-promoted-view">
-                Executed in Live
+            <a href="/watchlist/{{ idea.id }}/promote" class="wl-btn-promote" style="background:#10b981; border-color:#059669;" title="Log Execution in Official Trades Table">
+                Log in Trades Table &rarr;
             </a>
             {% endif %}
         {% endif %}

@@ -179,6 +179,7 @@
 <!-- MAIN TRADE ENTRY FORM -->
 <!-- ========================================================================= -->
 <form method="post" action="{% if trade %}/trades/{{ trade.id }}/edit{% else %}/trades/{% endif %}" class="trade-form-card">
+    <input type="hidden" name="from_watchlist_id" value="{{ prefill.from_watchlist_id if prefill and prefill.from_watchlist_id else '' }}">
     
     <!-- 0. Execution Status & Quality Tags Banner -->
     <div class="form-section-block execution-status-block">
