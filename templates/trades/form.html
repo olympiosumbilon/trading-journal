@@ -692,7 +692,7 @@ function autoCalcGeometryFromPrices() {
             candleInput.dataset.auto = 'true';
         }
         if (slBufferInput && (!slBufferInput.value || slBufferInput.dataset.auto === 'true')) {
-            slBufferInput.value = candleDist.toFixed(4);
+            slBufferInput.value = '0.0000';
             slBufferInput.dataset.auto = 'true';
         }
         if (tp > 0 && mfeInput && (!mfeInput.value || mfeInput.value === '0' || mfeInput.dataset.auto === 'true')) {
@@ -750,7 +750,7 @@ function applyCalcToForm() {
 
     // Apply to Form fields
     document.getElementById('formCandleSize').value = Math.abs(slDist).toFixed(4);
-    document.getElementById('formSLBuffer').value = Math.abs(slDist).toFixed(4);
+    document.getElementById('formSLBuffer').value = '0.0000';
     if (tp > 0) {
         document.getElementById('formMFE').value = Math.abs(tpDist).toFixed(4);
     }
