@@ -440,9 +440,10 @@ def update_watchlist_idea(
         if new_status in {"EXECUTED", "INVALIDATED", "MISSED"} and old_status not in {"EXECUTED", "INVALIDATED", "MISSED"}:
             idea.resolved_at = datetime.now()
 
+        saved_title = str(idea.title)
         db.commit()
 
-    return RedirectResponse(url=f"/watchlist/?msg=Setup+{quote(idea.title)}+updated", status_code=303)
+    return RedirectResponse(url=f"/watchlist/?msg=Setup+{quote(saved_title)}+updated", status_code=303)
 
 
 @router.post("/{idea_id}/status")
