@@ -158,7 +158,7 @@
             <div class="wl-tf-builder-header">
                 <div>
                     <h4 class="form-section-title" style="margin-bottom: 0.2rem;">Multi-Timeframe Analysis Breakdown</h4>
-                    <p class="text-muted" style="font-size: 0.8rem; margin: 0;">Add your top-down analysis layers (e.g. Weekly, Daily, 4H, 15M, 1M). Paste screenshots with <strong>Ctrl + V</strong> or insert TradingView links.</p>
+                    <p class="text-muted" style="font-size: 0.8rem; margin: 0;">Add your top-down analysis layers. Paste TradingView links or image screenshots (<strong>Ctrl + V</strong>) to see real-time chart previews.</p>
                 </div>
                 <button type="button" class="btn-secondary" onclick="addTimeframeLayerRow()" style="padding: 0.45rem 0.95rem; font-size: 0.82rem; font-weight: 700;">
                     + Add Timeframe Layer
@@ -167,7 +167,7 @@
 
             <!-- Timeframe Layers Container -->
             <div id="tfLayersContainer" class="wl-tf-layers-list">
-                <!-- Javascript will dynamically populate or render layers here -->
+                <!-- Dynamic layers will be rendered here -->
             </div>
         </div>
 
@@ -216,21 +216,33 @@ const INITIAL_LAYERS = {% if idea and idea.layers_list %}{{ idea.layers_list | t
 
 <script>
 // ============================================================================
-// 1. Multi-Timeframe Layers Dynamic Builder
+// 1. TradingView Snapshot URL Resolver
+// ============================================================================
+function resolveImageUrlFromTradingViewOrUrl(url) {
+    if (!url) return '';
+    url = url.trim();
+    
+    // TradingView share link: https://www.tradingview.com/x/5KchEKTT/
+    const m = url.match(/tradingview\.com\/x\/([a-zA-Z0-9]+)/i);
+    if (m && m[1]) {
+        const tvId = m[1];
+        const firstLetter = tvId[0].toLowerCase();
+        return `https://s3.tradingview.com/snapshots/${firstLetter}/${tvId}.png`;
+    }
+    
+    // Direct image link
+    if (url.match(/\.(jpeg|jpg|gif|png|webp)($|\?)/i) || url.includes('s3.tradingview.com/snapshots/')) {
+        return url;
+    }
+    
+    return '';
+}
+
+// ============================================================================
+// 2. Multi-Timeframe Layers Dynamic Builder
 // ============================================================================
 let layerCounter = 0;
 let activePasteLayerId = null;
-
-const SUGGESTED_TIMEFRAMES = [
-    "Weekly Timeframe (1W)",
-    "Daily Timeframe (1D)",
-    "4-Hour Timeframe (4H)",
-    "1-Hour Timeframe (1H)",
-    "15-Minute POI (15M)",
-    "5-Minute Structure (5M)",
-    "1-Minute Entry Trigger (1M)",
-    "Custom Timeframe"
-];
 
 document.addEventListener('DOMContentLoaded', () => {
     const container = document.getElementById('tfLayersContainer');
@@ -261,8 +273,14 @@ function renderLayerRow(data) {
     card.id = layerId;
 
     const currentTitle = data.title || '';
-    const currentImg = data.image_url || '';
     const currentTv = data.tv_url || '';
+    let currentImg = data.image_url || '';
+
+    // Auto resolve image preview from TradingView URL if image_url wasn't set yet
+    if (!currentImg && currentTv) {
+        currentImg = resolveImageUrlFromTradingViewOrUrl(currentTv);
+    }
+
     const currentNote = data.note || '';
 
     card.innerHTML = `
@@ -283,24 +301,31 @@ function renderLayerRow(data) {
 
                     <div class="wl-dz-preview" id="previewWrap_${layerId}" style="${currentImg ? 'display:block;' : 'display:none;'}">
                         <img id="previewImg_${layerId}" src="${currentImg}" alt="Chart Preview">
-                        <button type="button" class="wl-dz-clear-btn" onclick="clearLayerDropzone(event, '${layerId}')">✕ Remove Image</button>
+                        <button type="button" class="wl-dz-clear-btn" onclick="clearLayerDropzone(event, '${layerId}')">✕ Clear Chart Preview</button>
                     </div>
 
                     <div class="wl-dz-placeholder" id="placeholder_${layerId}" style="${currentImg ? 'display:none;' : 'display:flex;'}">
                         <span class="font-bold" style="font-size: 0.85rem; color: #0284c7;">Click &amp; Paste Screenshot (Ctrl+V)</span>
-                        <small style="color: #64748b;">or click to browse file</small>
+                        <small style="color: #64748b;">or paste TradingView link below</small>
                     </div>
                 </div>
 
-                <div style="margin-top: 0.5rem;">
-                    <input type="url" class="form-input tf-layer-tv-url" value="${escapeHtml(currentTv)}" placeholder="TradingView link (https://www.tradingview.com/x/...)" style="font-size: 0.78rem; padding: 0.35rem 0.6rem;">
+                <div style="margin-top: 0.55rem;">
+                    <input type="url" 
+                           class="form-input tf-layer-tv-url" 
+                           id="tvUrl_${layerId}" 
+                           value="${escapeHtml(currentTv)}" 
+                           placeholder="Paste TradingView link (https://www.tradingview.com/x/...)" 
+                           style="font-size: 0.82rem; padding: 0.45rem 0.65rem;"
+                           oninput="handleTvUrlInput(this, '${layerId}')"
+                           onchange="handleTvUrlInput(this, '${layerId}')">
                 </div>
             </div>
 
             <!-- Right: Timeframe Note & Analysis -->
             <div class="wl-tf-note-col">
                 <label style="font-size: 0.75rem; font-weight: 700; color: #64748b; text-transform: uppercase;">Timeframe Analysis &amp; Bias Note</label>
-                <textarea class="form-input tf-layer-note" rows="4" placeholder="e.g. I think the overall is bearish, rejected from supply zone, looking for short after sweep...">${escapeHtml(currentNote)}</textarea>
+                <textarea class="form-input tf-layer-note" rows="5" placeholder="e.g. I think the overall is bearish, rejected from supply zone, looking for short after sweep...">${escapeHtml(currentNote)}</textarea>
             </div>
         </div>
     `;
@@ -308,11 +333,24 @@ function renderLayerRow(data) {
     container.appendChild(card);
 }
 
+function handleTvUrlInput(input, layerId) {
+    const url = input.value.trim();
+    const resolvedImg = resolveImageUrlFromTradingViewOrUrl(url);
+    if (resolvedImg) {
+        document.getElementById(`imgUrl_${layerId}`).value = resolvedImg;
+        showLayerPreview(layerId, resolvedImg);
+    } else if (!url) {
+        const hiddenImgInput = document.getElementById(`imgUrl_${layerId}`);
+        if (hiddenImgInput && hiddenImgInput.value.includes('tradingview.com/snapshots')) {
+            clearLayerDropzone(null, layerId);
+        }
+    }
+}
+
 function removeLayerRow(layerId) {
     const card = document.getElementById(layerId);
     if (card) {
         card.remove();
-        // Re-number badges
         document.querySelectorAll('.wl-tf-layer-card').forEach((el, index) => {
             const numEl = el.querySelector('.wl-tf-num');
             if (numEl) numEl.textContent = `#${index + 1}`;
@@ -326,12 +364,25 @@ function setActivePasteLayer(layerId) {
 
 window.addEventListener('paste', function(e) {
     if (!activePasteLayerId) {
-        // Default to first layer if none focused
         const firstCard = document.querySelector('.wl-tf-layer-card');
         if (firstCard) activePasteLayerId = firstCard.id;
     }
     if (!activePasteLayerId) return;
 
+    // Check if pasted content is text (e.g. TradingView URL)
+    const textData = (e.clipboardData || window.clipboardData).getData('text');
+    if (textData && textData.trim().startsWith('http')) {
+        const resolved = resolveImageUrlFromTradingViewOrUrl(textData.trim());
+        if (resolved) {
+            const tvInput = document.getElementById(`tvUrl_${activePasteLayerId}`);
+            if (tvInput) tvInput.value = textData.trim();
+            document.getElementById(`imgUrl_${activePasteLayerId}`).value = resolved;
+            showLayerPreview(activePasteLayerId, resolved);
+            return;
+        }
+    }
+
+    // Check if pasted content is image file
     const items = (e.clipboardData || e.originalEvent.clipboardData).items;
     for (let i = 0; i < items.length; i++) {
         if (items[i].type.indexOf('image') !== -1) {
@@ -392,8 +443,10 @@ function showLayerPreview(layerId, url) {
 }
 
 function clearLayerDropzone(e, layerId) {
-    e.stopPropagation();
+    if (e) e.stopPropagation();
     document.getElementById(`imgUrl_${layerId}`).value = '';
+    const tvInput = document.getElementById(`tvUrl_${layerId}`);
+    if (tvInput) tvInput.value = '';
     document.getElementById(`previewWrap_${layerId}`).style.display = 'none';
     document.getElementById(`placeholder_${layerId}`).style.display = 'flex';
 }
@@ -406,10 +459,15 @@ function prepareTimeframeLayersBeforeSubmit() {
         const tvUrl = card.querySelector('.tf-layer-tv-url')?.value || '';
         const note = card.querySelector('.tf-layer-note')?.value || '';
 
-        if (title.trim() || imgUrl.trim() || tvUrl.trim() || note.trim()) {
+        let finalImg = imgUrl.trim();
+        if (!finalImg && tvUrl.trim()) {
+            finalImg = resolveImageUrlFromTradingViewOrUrl(tvUrl.trim());
+        }
+
+        if (title.trim() || finalImg || tvUrl.trim() || note.trim()) {
             layers.push({
                 title: title.trim(),
-                image_url: imgUrl.trim(),
+                image_url: finalImg,
                 tv_url: tvUrl.trim(),
                 note: note.trim()
             });
