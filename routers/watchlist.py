@@ -65,6 +65,7 @@ def save_base64_or_upload(image_data_str: str, file_upload: UploadFile = None, p
 def watchlist_index(
     request: Request,
     status_filter: str = "ALL",
+    scope_filter: str = "ALL",  # "ACTIVE", "ALL", "ARCHIVED"
     instrument_id: str = "",
     session_id: str = "",
     strategy_id: str = "",
@@ -108,47 +109,80 @@ def watchlist_index(
         total_waiting = db.query(WatchlistIdea).filter(WatchlistIdea.status == "WAITING").count()
         total_monitoring = db.query(WatchlistIdea).filter(WatchlistIdea.status == "MONITORING").count()
         total_executed = db.query(WatchlistIdea).filter(WatchlistIdea.status == "EXECUTED").count()
-        total_invalidated = db.query(WatchlistIdea).filter(WatchlistIdea.status == "INVALIDATED").count()
+        total_invalidated = db.query(WatchlistIdea).filter(WatchlistIdea.status.in_(["INVALIDATED", "RESOLVED"])).count()
         total_missed = db.query(WatchlistIdea).filter(WatchlistIdea.status == "MISSED").count()
         total_active = total_waiting + total_monitoring
 
+        # Filter ideas based on scope_filter
+        if scope_filter == "ACTIVE":
+            display_ideas = [i for i in all_ideas if i.status not in {"INVALIDATED", "RESOLVED"}]
+        elif scope_filter == "ARCHIVED":
+            display_ideas = [i for i in all_ideas if i.status in {"INVALIDATED", "RESOLVED"} or (i.status == "EXECUTED" and i.promoted_trade_id is not None)]
+        else:
+            display_ideas = all_ideas
+
         # Kanban columns
         kanban = {
-            "WAITING": [i for i in all_ideas if i.status == "WAITING"],
-            "MONITORING": [i for i in all_ideas if i.status == "MONITORING"],
-            "EXECUTED": [i for i in all_ideas if i.status == "EXECUTED"],
-            "RESOLVED": [i for i in all_ideas if i.status in {"INVALIDATED", "MISSED"}],
+            "WAITING": [i for i in display_ideas if i.status == "WAITING"],
+            "MONITORING": [i for i in display_ideas if i.status == "MONITORING"],
+            "EXECUTED": [i for i in display_ideas if i.status == "EXECUTED"],
+            "RESOLVED": [i for i in display_ideas if i.status in {"INVALIDATED", "MISSED", "RESOLVED"}],
         }
 
-        msg = request.query_params.get("msg")
-        error = request.query_params.get("error")
+        # Query param messages
+        msg = request.query_params.get("msg", "")
+        error = request.query_params.get("error", "")
 
-        return templates.TemplateResponse(
-            request,
-            "watchlist/index.html",
-            {
-                "ideas": all_ideas,
-                "kanban": kanban,
-                "instruments": instruments,
-                "sessions": sessions,
-                "strategies": strategies,
-                "probabilities": probabilities,
-                "phases": phases,
-                "status_filter": status_filter,
-                "instrument_id": instrument_id,
-                "session_id": session_id,
-                "strategy_id": strategy_id,
-                "view_mode": view_mode,
-                "total_waiting": total_waiting,
-                "total_monitoring": total_monitoring,
-                "total_executed": total_executed,
-                "total_invalidated": total_invalidated,
-                "total_missed": total_missed,
-                "total_active": total_active,
-                "msg": msg,
-                "error": error,
-            },
-        )
+    return templates.TemplateResponse(
+        request,
+        "watchlist/index.html",
+        {
+            "ideas": display_ideas,
+            "kanban": kanban,
+            "instruments": instruments,
+            "sessions": sessions,
+            "strategies": strategies,
+            "probabilities": probabilities,
+            "phases": phases,
+            "total_active": total_active,
+            "total_waiting": total_waiting,
+            "total_monitoring": total_monitoring,
+            "total_executed": total_executed,
+            "total_invalidated": total_invalidated,
+            "total_missed": total_missed,
+            "status_filter": status_filter,
+            "scope_filter": scope_filter,
+            "instrument_id": instrument_id,
+            "session_id": session_id,
+            "strategy_id": strategy_id,
+            "view_mode": view_mode,
+            "msg": msg,
+            "error": error,
+        },
+    )
+
+
+@router.post("/{idea_id}/archive")
+def archive_watchlist_idea(idea_id: int):
+    with SessionLocal() as db:
+        idea = db.query(WatchlistIdea).get(idea_id)
+        if not idea:
+            raise HTTPException(status_code=404, detail="Watchlist Idea not found")
+        idea.status = "RESOLVED"
+        idea.resolved_at = datetime.now()
+        db.commit()
+    return RedirectResponse(url="/watchlist/?msg=Idea+archived+successfully", status_code=303)
+
+
+@router.post("/{idea_id}/restore")
+def restore_watchlist_idea(idea_id: int):
+    with SessionLocal() as db:
+        idea = db.query(WatchlistIdea).get(idea_id)
+        if not idea:
+            raise HTTPException(status_code=404, detail="Watchlist Idea not found")
+        idea.status = "EXECUTED" if idea.promoted_trade_id else "WAITING"
+        db.commit()
+    return RedirectResponse(url="/watchlist/?msg=Idea+restored+to+active+board", status_code=303)
 
 
 @router.get("/new")

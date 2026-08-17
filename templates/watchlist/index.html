@@ -52,6 +52,15 @@
             <input type="hidden" name="view_mode" id="viewModeInput" value="{{ view_mode }}">
             
             <div class="wl-filter-group">
+                <label>Scope:</label>
+                <select name="scope_filter" onchange="this.form.submit()" class="wl-select font-bold" style="background:#f0f9ff; color:#0369a1; border-color:#bae6fd;">
+                    <option value="ACTIVE" {% if scope_filter == 'ACTIVE' %}selected{% endif %}>⚡ Active Pipeline</option>
+                    <option value="ALL" {% if scope_filter == 'ALL' %}selected{% endif %}>🌐 All Ideas</option>
+                    <option value="ARCHIVED" {% if scope_filter == 'ARCHIVED' %}selected{% endif %}>📦 Archived / History</option>
+                </select>
+            </div>
+
+            <div class="wl-filter-group">
                 <label>Status:</label>
                 <select name="status_filter" onchange="this.form.submit()" class="wl-select">
                     <option value="ALL" {% if status_filter == 'ALL' %}selected{% endif %}>All Statuses</option>
@@ -60,6 +69,7 @@
                     <option value="EXECUTED" {% if status_filter == 'EXECUTED' %}selected{% endif %}>Live / Executed</option>
                     <option value="INVALIDATED" {% if status_filter == 'INVALIDATED' %}selected{% endif %}>Invalidated</option>
                     <option value="MISSED" {% if status_filter == 'MISSED' %}selected{% endif %}>Missed Entry</option>
+                    <option value="RESOLVED" {% if status_filter == 'RESOLVED' %}selected{% endif %}>Archived</option>
                 </select>
             </div>
 

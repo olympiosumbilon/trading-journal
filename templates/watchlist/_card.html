@@ -151,8 +151,17 @@
         </a>
         {% else %}
             {% if idea.promoted_trade_id %}
-            <a href="/trades/{{ idea.promoted_trade_id }}" class="wl-btn-promoted-view">
-                View in Trades #{{ idea.promoted_trade_id }} &rarr;
+            <a href="/trades/{{ idea.promoted_trade_id }}" class="wl-btn-promoted-view" style="display:flex; justify-content:space-between; align-items:center;">
+                <span>View in Trades #{{ idea.promoted_trade_id }} &rarr;</span>
+                {% if idea.promoted_trade_obj %}
+                    {% if idea.promoted_trade_obj.is_win %}
+                    <span style="background:#16a34a; color:#fff; padding:0.15rem 0.4rem; border-radius:4px; font-size:0.75rem; font-weight:800;">+{{ "%.2f"|format(idea.promoted_trade_obj.fixed_r_target or 0) }}R WIN</span>
+                    {% elif idea.promoted_trade_obj.is_loss %}
+                    <span style="background:#dc2626; color:#fff; padding:0.15rem 0.4rem; border-radius:4px; font-size:0.75rem; font-weight:800;">{{ "%.2f"|format(idea.promoted_trade_obj.fixed_r_target or 0) }}R LOSS</span>
+                    {% else %}
+                    <span style="background:#64748b; color:#fff; padding:0.15rem 0.4rem; border-radius:4px; font-size:0.75rem; font-weight:800;">0.00R BE</span>
+                    {% endif %}
+                {% endif %}
             </a>
             {% else %}
             <a href="/watchlist/{{ idea.id }}/promote" class="wl-btn-promote" style="background:#10b981; border-color:#059669;" title="Log Execution in Official Trades Table">
@@ -170,10 +179,20 @@
                     <option value="EXECUTED" {% if idea.status == 'EXECUTED' %}selected{% endif %}>Live</option>
                     <option value="INVALIDATED" {% if idea.status == 'INVALIDATED' %}selected{% endif %}>Invalidated</option>
                     <option value="MISSED" {% if idea.status == 'MISSED' %}selected{% endif %}>Missed</option>
+                    <option value="RESOLVED" {% if idea.status == 'RESOLVED' %}selected{% endif %}>Archived</option>
                 </select>
             </form>
 
             <div class="wl-btn-group-right">
+                {% if idea.status not in ['RESOLVED', 'INVALIDATED'] %}
+                <form method="POST" action="/watchlist/{{ idea.id }}/archive" style="display:inline;">
+                    <button type="submit" class="wl-btn-tool" style="background:#f1f5f9; color:#475569; border-color:#cbd5e1;" title="Archive Setup (Move to Resolved)">📦 Archive</button>
+                </form>
+                {% else %}
+                <form method="POST" action="/watchlist/{{ idea.id }}/restore" style="display:inline;">
+                    <button type="submit" class="wl-btn-tool" style="background:#f0fdf4; color:#16a34a; border-color:#bbf7d0;" title="Restore to Active Board">♻️ Restore</button>
+                </form>
+                {% endif %}
                 <a href="/watchlist/{{ idea.id }}/edit" class="wl-btn-tool" title="Edit Setup">Edit</a>
                 <form method="POST" action="/watchlist/{{ idea.id }}/delete" onsubmit="return confirm('Delete this trade idea?');" style="display:inline;">
                     <button type="submit" class="wl-btn-tool wl-btn-del" title="Delete Setup">Delete</button>
