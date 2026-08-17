@@ -3171,14 +3171,68 @@ a {
     gap: 0.6rem;
 }
 
+.shot-input-card,
 .shot-input-row {
+    display: flex;
+    flex-direction: column;
+    gap: 0.4rem;
+    background: #f8fafc;
+    padding: 0.55rem 0.75rem;
+    border-radius: 8px;
+    border: 1px solid #e2e8f0;
+}
+
+.shot-input-header {
     display: flex;
     align-items: center;
     gap: 0.6rem;
-    background: #f8fafc;
-    padding: 0.4rem 0.6rem;
+}
+
+.shot-preview-container {
+    width: 100%;
+}
+
+.shot-preview-box {
+    position: relative;
+    background: #0f172a;
     border-radius: 6px;
-    border: 1px solid #e2e8f0;
+    overflow: hidden;
+    border: 1px solid #334155;
+    text-align: center;
+    cursor: pointer;
+}
+
+.shot-preview-box img {
+    width: 100%;
+    max-height: 320px;
+    object-fit: contain;
+    display: block;
+}
+
+.shot-preview-actions {
+    position: absolute;
+    top: 6px;
+    right: 6px;
+    display: flex;
+    gap: 0.35rem;
+}
+
+.shot-zoom-btn {
+    background: rgba(15, 23, 42, 0.85);
+    color: #ffffff;
+    border: 1px solid #475569;
+    padding: 0.25rem 0.6rem;
+    font-size: 0.75rem;
+    border-radius: 4px;
+    font-weight: 700;
+    cursor: pointer;
+    backdrop-filter: blur(4px);
+    transition: all 0.15s ease;
+}
+
+.shot-zoom-btn:hover {
+    background: #0284c7;
+    border-color: #0284c7;
 }
 
 .shot-row-num {

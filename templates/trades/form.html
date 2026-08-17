@@ -431,57 +431,137 @@
             <div id="screenshotsContainer" class="shots-rows-container">
                 {% if existing_screenshots %}
                     {% for shot_url in existing_screenshots %}
-                    <div class="shot-input-row">
-                        <span class="shot-row-num">#{{ loop.index }}</span>
-                        <input type="text" name="screenshots" value="{{ shot_url }}" placeholder="https://www.tradingview.com/x/..." class="shot-url-input">
-                        <button type="button" class="btn-del-shot-row" onclick="removeScreenshotRow(this)" title="Remove Screenshot">✕</button>
+                    <div class="shot-input-card">
+                        <div class="shot-input-header">
+                            <span class="shot-row-num">#{{ loop.index }}</span>
+                            <input type="text" name="screenshots" value="{{ shot_url }}" placeholder="https://www.tradingview.com/x/..." class="shot-url-input" oninput="updateShotPreview(this)" onchange="updateShotPreview(this)">
+                            <button type="button" class="btn-del-shot-row" onclick="removeScreenshotRow(this)" title="Remove Screenshot">✕</button>
+                        </div>
+                        <div class="shot-preview-container" style="display:none; margin-top:0.45rem;">
+                            <div class="shot-preview-box">
+                                <img src="" alt="Chart Preview" class="shot-preview-img" onclick="openTradeFullscreenFromImg(this)" title="Click for Full Screen">
+                                <div class="shot-preview-actions">
+                                    <button type="button" class="shot-zoom-btn" onclick="openTradeFullscreenFromImg(this.closest('.shot-preview-box').querySelector('img'))" title="Full Screen View">🔍 Full Screen</button>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                     {% endfor %}
                 {% elif prefill_screenshots %}
                     {% for shot_url in prefill_screenshots %}
-                    <div class="shot-input-row">
-                        <span class="shot-row-num">#{{ loop.index }}</span>
-                        <input type="text" name="screenshots" value="{{ shot_url }}" placeholder="https://www.tradingview.com/x/..." class="shot-url-input">
-                        <button type="button" class="btn-del-shot-row" onclick="removeScreenshotRow(this)" title="Remove Screenshot">✕</button>
+                    <div class="shot-input-card">
+                        <div class="shot-input-header">
+                            <span class="shot-row-num">#{{ loop.index }}</span>
+                            <input type="text" name="screenshots" value="{{ shot_url }}" placeholder="https://www.tradingview.com/x/..." class="shot-url-input" oninput="updateShotPreview(this)" onchange="updateShotPreview(this)">
+                            <button type="button" class="btn-del-shot-row" onclick="removeScreenshotRow(this)" title="Remove Screenshot">✕</button>
+                        </div>
+                        <div class="shot-preview-container" style="display:none; margin-top:0.45rem;">
+                            <div class="shot-preview-box">
+                                <img src="" alt="Chart Preview" class="shot-preview-img" onclick="openTradeFullscreenFromImg(this)" title="Click for Full Screen">
+                                <div class="shot-preview-actions">
+                                    <button type="button" class="shot-zoom-btn" onclick="openTradeFullscreenFromImg(this.closest('.shot-preview-box').querySelector('img'))" title="Full Screen View">🔍 Full Screen</button>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                     {% endfor %}
                 {% elif trade and (trade.screenshot_1 or trade.screenshot_2 or trade.screenshot_3) %}
                     {% if trade.screenshot_1 %}
-                    <div class="shot-input-row">
-                        <span class="shot-row-num">#1</span>
-                        <input type="text" name="screenshots" value="{{ trade.screenshot_1 }}" placeholder="https://www.tradingview.com/x/..." class="shot-url-input">
-                        <button type="button" class="btn-del-shot-row" onclick="removeScreenshotRow(this)">✕</button>
+                    <div class="shot-input-card">
+                        <div class="shot-input-header">
+                            <span class="shot-row-num">#1</span>
+                            <input type="text" name="screenshots" value="{{ trade.screenshot_1 }}" placeholder="https://www.tradingview.com/x/..." class="shot-url-input" oninput="updateShotPreview(this)" onchange="updateShotPreview(this)">
+                            <button type="button" class="btn-del-shot-row" onclick="removeScreenshotRow(this)">✕</button>
+                        </div>
+                        <div class="shot-preview-container" style="display:none; margin-top:0.45rem;">
+                            <div class="shot-preview-box">
+                                <img src="" alt="Chart Preview" class="shot-preview-img" onclick="openTradeFullscreenFromImg(this)">
+                                <div class="shot-preview-actions">
+                                    <button type="button" class="shot-zoom-btn" onclick="openTradeFullscreenFromImg(this.closest('.shot-preview-box').querySelector('img'))">🔍 Full Screen</button>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                     {% endif %}
                     {% if trade.screenshot_2 %}
-                    <div class="shot-input-row">
-                        <span class="shot-row-num">#2</span>
-                        <input type="text" name="screenshots" value="{{ trade.screenshot_2 }}" placeholder="https://www.tradingview.com/x/..." class="shot-url-input">
-                        <button type="button" class="btn-del-shot-row" onclick="removeScreenshotRow(this)">✕</button>
+                    <div class="shot-input-card">
+                        <div class="shot-input-header">
+                            <span class="shot-row-num">#2</span>
+                            <input type="text" name="screenshots" value="{{ trade.screenshot_2 }}" placeholder="https://www.tradingview.com/x/..." class="shot-url-input" oninput="updateShotPreview(this)" onchange="updateShotPreview(this)">
+                            <button type="button" class="btn-del-shot-row" onclick="removeScreenshotRow(this)">✕</button>
+                        </div>
+                        <div class="shot-preview-container" style="display:none; margin-top:0.45rem;">
+                            <div class="shot-preview-box">
+                                <img src="" alt="Chart Preview" class="shot-preview-img" onclick="openTradeFullscreenFromImg(this)">
+                                <div class="shot-preview-actions">
+                                    <button type="button" class="shot-zoom-btn" onclick="openTradeFullscreenFromImg(this.closest('.shot-preview-box').querySelector('img'))">🔍 Full Screen</button>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                     {% endif %}
                     {% if trade.screenshot_3 %}
-                    <div class="shot-input-row">
-                        <span class="shot-row-num">#3</span>
-                        <input type="text" name="screenshots" value="{{ trade.screenshot_3 }}" placeholder="https://www.tradingview.com/x/..." class="shot-url-input">
-                        <button type="button" class="btn-del-shot-row" onclick="removeScreenshotRow(this)">✕</button>
+                    <div class="shot-input-card">
+                        <div class="shot-input-header">
+                            <span class="shot-row-num">#3</span>
+                            <input type="text" name="screenshots" value="{{ trade.screenshot_3 }}" placeholder="https://www.tradingview.com/x/..." class="shot-url-input" oninput="updateShotPreview(this)" onchange="updateShotPreview(this)">
+                            <button type="button" class="btn-del-shot-row" onclick="removeScreenshotRow(this)">✕</button>
+                        </div>
+                        <div class="shot-preview-container" style="display:none; margin-top:0.45rem;">
+                            <div class="shot-preview-box">
+                                <img src="" alt="Chart Preview" class="shot-preview-img" onclick="openTradeFullscreenFromImg(this)">
+                                <div class="shot-preview-actions">
+                                    <button type="button" class="shot-zoom-btn" onclick="openTradeFullscreenFromImg(this.closest('.shot-preview-box').querySelector('img'))">🔍 Full Screen</button>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                     {% endif %}
                 {% else %}
-                    <div class="shot-input-row">
-                        <span class="shot-row-num">#1</span>
-                        <input type="text" name="screenshots" value="{{ prefill.screenshot_1 if prefill and prefill.screenshot_1 else '' }}" placeholder="https://www.tradingview.com/x/... (HTF Context)" class="shot-url-input">
-                        <button type="button" class="btn-del-shot-row" onclick="removeScreenshotRow(this)">✕</button>
+                    <div class="shot-input-card">
+                        <div class="shot-input-header">
+                            <span class="shot-row-num">#1</span>
+                            <input type="text" name="screenshots" value="{{ prefill.screenshot_1 if prefill and prefill.screenshot_1 else '' }}" placeholder="https://www.tradingview.com/x/... (HTF Context)" class="shot-url-input" oninput="updateShotPreview(this)" onchange="updateShotPreview(this)">
+                            <button type="button" class="btn-del-shot-row" onclick="removeScreenshotRow(this)">✕</button>
+                        </div>
+                        <div class="shot-preview-container" style="display:none; margin-top:0.45rem;">
+                            <div class="shot-preview-box">
+                                <img src="" alt="Chart Preview" class="shot-preview-img" onclick="openTradeFullscreenFromImg(this)">
+                                <div class="shot-preview-actions">
+                                    <button type="button" class="shot-zoom-btn" onclick="openTradeFullscreenFromImg(this.closest('.shot-preview-box').querySelector('img'))">🔍 Full Screen</button>
+                                </div>
+                            </div>
+                        </div>
                     </div>
-                    <div class="shot-input-row">
-                        <span class="shot-row-num">#2</span>
-                        <input type="text" name="screenshots" value="{{ prefill.screenshot_2 if prefill and prefill.screenshot_2 else '' }}" placeholder="https://www.tradingview.com/x/... (LTF Execution)" class="shot-url-input">
-                        <button type="button" class="btn-del-shot-row" onclick="removeScreenshotRow(this)">✕</button>
+                    <div class="shot-input-card">
+                        <div class="shot-input-header">
+                            <span class="shot-row-num">#2</span>
+                            <input type="text" name="screenshots" value="{{ prefill.screenshot_2 if prefill and prefill.screenshot_2 else '' }}" placeholder="https://www.tradingview.com/x/... (LTF Execution)" class="shot-url-input" oninput="updateShotPreview(this)" onchange="updateShotPreview(this)">
+                            <button type="button" class="btn-del-shot-row" onclick="removeScreenshotRow(this)">✕</button>
+                        </div>
+                        <div class="shot-preview-container" style="display:none; margin-top:0.45rem;">
+                            <div class="shot-preview-box">
+                                <img src="" alt="Chart Preview" class="shot-preview-img" onclick="openTradeFullscreenFromImg(this)">
+                                <div class="shot-preview-actions">
+                                    <button type="button" class="shot-zoom-btn" onclick="openTradeFullscreenFromImg(this.closest('.shot-preview-box').querySelector('img'))">🔍 Full Screen</button>
+                                </div>
+                            </div>
+                        </div>
                     </div>
-                    <div class="shot-input-row">
-                        <span class="shot-row-num">#3</span>
-                        <input type="text" name="screenshots" value="{{ prefill.screenshot_3 if prefill and prefill.screenshot_3 else '' }}" placeholder="https://www.tradingview.com/x/... (Outcome / Management)" class="shot-url-input">
-                        <button type="button" class="btn-del-shot-row" onclick="removeScreenshotRow(this)">✕</button>
+                    <div class="shot-input-card">
+                        <div class="shot-input-header">
+                            <span class="shot-row-num">#3</span>
+                            <input type="text" name="screenshots" value="{{ prefill.screenshot_3 if prefill and prefill.screenshot_3 else '' }}" placeholder="https://www.tradingview.com/x/... (Outcome / Management)" class="shot-url-input" oninput="updateShotPreview(this)" onchange="updateShotPreview(this)">
+                            <button type="button" class="btn-del-shot-row" onclick="removeScreenshotRow(this)">✕</button>
+                        </div>
+                        <div class="shot-preview-container" style="display:none; margin-top:0.45rem;">
+                            <div class="shot-preview-box">
+                                <img src="" alt="Chart Preview" class="shot-preview-img" onclick="openTradeFullscreenFromImg(this)">
+                                <div class="shot-preview-actions">
+                                    <button type="button" class="shot-zoom-btn" onclick="openTradeFullscreenFromImg(this.closest('.shot-preview-box').querySelector('img'))">🔍 Full Screen</button>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 {% endif %}
             </div>
@@ -1052,10 +1132,79 @@ function onOutcomeSelectChange(val) {
 }
 
 // ============================================================================
-// 3. Dynamic Multi-Screenshot Manager Engine
+<!-- Chart Preview Lightbox Modal -->
+<div class="wl-chart-lightbox" id="tradeChartLightbox" onclick="if(event.target === this) closeTradeLightbox()">
+    <div class="wl-lightbox-box">
+        <div class="wl-lightbox-header">
+            <span id="tradeLightboxTitle" class="font-bold">Trade Chart Preview</span>
+            <button type="button" class="wl-lightbox-close" onclick="closeTradeLightbox()">&times;</button>
+        </div>
+        <div class="wl-lightbox-img-wrap" onclick="closeTradeLightbox()">
+            <img id="tradeLightboxImg" src="" alt="Full Resolution Chart">
+        </div>
+    </div>
+</div>
+
+<script>
 // ============================================================================
+// 3. Dynamic Multi-Screenshot Manager & Live Image Preview Engine
+// ============================================================================
+function resolveImageUrlFromTradingViewOrUrl(url) {
+    if (!url) return '';
+    url = url.trim();
+    const m = url.match(/tradingview\.com\/x\/([a-zA-Z0-9]+)/i);
+    if (m && m[1]) {
+        const tvId = m[1];
+        const firstLetter = tvId[0].toLowerCase();
+        return `https://s3.tradingview.com/snapshots/${firstLetter}/${tvId}.png`;
+    }
+    if (url.match(/\.(jpeg|jpg|gif|png|webp)($|\?)/i) || url.includes('s3.tradingview.com/snapshots/')) {
+        return url;
+    }
+    return '';
+}
+
+function updateShotPreview(input) {
+    const card = input.closest('.shot-input-card') || input.closest('.shot-input-row');
+    if (!card) return;
+    const previewWrap = card.querySelector('.shot-preview-container');
+    const previewImg = card.querySelector('.shot-preview-img');
+    if (!previewWrap || !previewImg) return;
+
+    const url = input.value.trim();
+    const resolved = resolveImageUrlFromTradingViewOrUrl(url);
+
+    if (resolved) {
+        previewImg.src = resolved;
+        previewWrap.style.display = 'block';
+    } else {
+        previewWrap.style.display = 'none';
+        previewImg.src = '';
+    }
+}
+
+function openTradeFullscreenFromImg(img) {
+    if (!img || !img.src) return;
+    const modal = document.getElementById('tradeChartLightbox');
+    const modalImg = document.getElementById('tradeLightboxImg');
+    const title = document.getElementById('tradeLightboxTitle');
+    const card = img.closest('.shot-input-card') || img.closest('.shot-input-row');
+    const num = card ? card.querySelector('.shot-row-num')?.textContent : '';
+
+    if (modal && modalImg) {
+        modalImg.src = img.src;
+        if (title) title.textContent = `Screenshot ${num || ''} Preview`;
+        modal.style.display = 'flex';
+    }
+}
+
+function closeTradeLightbox() {
+    const modal = document.getElementById('tradeChartLightbox');
+    if (modal) modal.style.display = 'none';
+}
+
 function renumberScreenshots() {
-    const rows = document.querySelectorAll('#screenshotsContainer .shot-input-row');
+    const rows = document.querySelectorAll('#screenshotsContainer .shot-input-card, #screenshotsContainer .shot-input-row');
     rows.forEach((row, idx) => {
         const numSpan = row.querySelector('.shot-row-num');
         if (numSpan) numSpan.textContent = '#' + (idx + 1);
@@ -1064,25 +1213,43 @@ function renumberScreenshots() {
 
 function addScreenshotRow(initialVal = '') {
     const container = document.getElementById('screenshotsContainer');
-    const rowCount = container.querySelectorAll('.shot-input-row').length + 1;
-    const row = document.createElement('div');
-    row.className = 'shot-input-row';
-    row.innerHTML = `
-        <span class="shot-row-num">#${rowCount}</span>
-        <input type="text" name="screenshots" value="${initialVal}" placeholder="https://www.tradingview.com/x/..." class="shot-url-input">
-        <button type="button" class="btn-del-shot-row" onclick="removeScreenshotRow(this)" title="Remove Screenshot">✕</button>
+    const rowCount = container.querySelectorAll('.shot-input-card, .shot-input-row').length + 1;
+    const card = document.createElement('div');
+    card.className = 'shot-input-card';
+    card.innerHTML = `
+        <div class="shot-input-header">
+            <span class="shot-row-num">#${rowCount}</span>
+            <input type="text" name="screenshots" value="${initialVal}" placeholder="https://www.tradingview.com/x/..." class="shot-url-input" oninput="updateShotPreview(this)" onchange="updateShotPreview(this)">
+            <button type="button" class="btn-del-shot-row" onclick="removeScreenshotRow(this)" title="Remove Screenshot">✕</button>
+        </div>
+        <div class="shot-preview-container" style="display:none; margin-top:0.45rem;">
+            <div class="shot-preview-box">
+                <img src="" alt="Chart Preview" class="shot-preview-img" onclick="openTradeFullscreenFromImg(this)" title="Click for Full Screen">
+                <div class="shot-preview-actions">
+                    <button type="button" class="shot-zoom-btn" onclick="openTradeFullscreenFromImg(this.closest('.shot-preview-box').querySelector('img'))" title="Full Screen View">🔍 Full Screen</button>
+                </div>
+            </div>
+        </div>
     `;
-    container.appendChild(row);
+    container.appendChild(card);
     renumberScreenshots();
+    if (initialVal) {
+        const inp = card.querySelector('.shot-url-input');
+        if (inp) updateShotPreview(inp);
+    }
 }
 
 function removeScreenshotRow(btn) {
-    const row = btn.closest('.shot-input-row');
+    const card = btn.closest('.shot-input-card') || btn.closest('.shot-input-row');
     const container = document.getElementById('screenshotsContainer');
-    if (container.querySelectorAll('.shot-input-row').length <= 1) {
-        row.querySelector('.shot-url-input').value = '';
+    if (container.querySelectorAll('.shot-input-card, .shot-input-row').length <= 1) {
+        const inp = card.querySelector('.shot-url-input');
+        if (inp) {
+            inp.value = '';
+            updateShotPreview(inp);
+        }
     } else {
-        row.remove();
+        card.remove();
         renumberScreenshots();
     }
 }
@@ -1101,7 +1268,10 @@ function importBulkScreenshots() {
     // Clear empty rows first
     const existingInputs = container.querySelectorAll('.shot-url-input');
     existingInputs.forEach(inp => {
-        if (!inp.value.trim()) inp.closest('.shot-input-row').remove();
+        if (!inp.value.trim()) {
+            const card = inp.closest('.shot-input-card') || inp.closest('.shot-input-row');
+            if (card) card.remove();
+        }
     });
 
     lines.forEach(l => {
@@ -1115,7 +1285,7 @@ function importBulkScreenshots() {
     document.getElementById('bulkShotsBox').style.display = 'none';
 }
 
-// Auto-run geometry and position calculations on page load
+// Auto-run geometry, position calculations, and live screenshot previews on page load
 window.addEventListener('DOMContentLoaded', () => {
     const entryDate = document.getElementById('entryDateInput');
     if (entryDate && !entryDate.value) {
@@ -1132,6 +1302,12 @@ window.addEventListener('DOMContentLoaded', () => {
     if (typeof autoCalcGeometryFromPrices === 'function') {
         autoCalcGeometryFromPrices();
     }
+    // Initialize screenshot previews
+    document.querySelectorAll('.shot-url-input').forEach(inp => {
+        if (inp.value && inp.value.trim()) {
+            updateShotPreview(inp);
+        }
+    });
 });
 </script>
 {% endblock %}
