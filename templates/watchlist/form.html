@@ -333,6 +333,8 @@ function renderLayerRow(data) {
         </div>
     `;
 
+    card.setAttribute('onfocusin', `setActivePasteLayer('${layerId}')`);
+    card.setAttribute('onclick', `setActivePasteLayer('${layerId}')`);
     container.appendChild(card);
 }
 
@@ -366,32 +368,56 @@ function setActivePasteLayer(layerId) {
 }
 
 window.addEventListener('paste', function(e) {
+    const targetTag = (e.target || document.activeElement)?.tagName;
+    const isInputFocused = targetTag === 'INPUT' || targetTag === 'TEXTAREA';
+
+    // Check if pasted content contains an image file
+    const items = (e.clipboardData || e.originalEvent?.clipboardData)?.items;
+    let imageItem = null;
+    if (items) {
+        for (let i = 0; i < items.length; i++) {
+            if (items[i].type.indexOf('image') !== -1) {
+                imageItem = items[i];
+                break;
+            }
+        }
+    }
+
+    // If pasting an image screenshot
+    if (imageItem) {
+        if (!activePasteLayerId) {
+            const firstCard = document.querySelector('.wl-tf-layer-card');
+            if (firstCard) activePasteLayerId = firstCard.id;
+        }
+        if (activePasteLayerId) {
+            e.preventDefault();
+            const blob = imageItem.getAsFile();
+            uploadLayerImageBlob(blob, activePasteLayerId);
+        }
+        return;
+    }
+
+    // If currently typing/pasting text into an input or textarea, let the input handle it naturally!
+    if (isInputFocused) {
+        return;
+    }
+
+    // Otherwise, if pasting a URL onto an active dropzone box
     if (!activePasteLayerId) {
         const firstCard = document.querySelector('.wl-tf-layer-card');
         if (firstCard) activePasteLayerId = firstCard.id;
     }
     if (!activePasteLayerId) return;
 
-    // Check if pasted content is text (e.g. TradingView URL)
-    const textData = (e.clipboardData || window.clipboardData).getData('text');
+    const textData = (e.clipboardData || window.clipboardData)?.getData('text');
     if (textData && textData.trim().startsWith('http')) {
         const resolved = resolveImageUrlFromTradingViewOrUrl(textData.trim());
         if (resolved) {
+            e.preventDefault();
             const tvInput = document.getElementById(`tvUrl_${activePasteLayerId}`);
             if (tvInput) tvInput.value = textData.trim();
             document.getElementById(`imgUrl_${activePasteLayerId}`).value = resolved;
             showLayerPreview(activePasteLayerId, resolved);
-            return;
-        }
-    }
-
-    // Check if pasted content is image file
-    const items = (e.clipboardData || e.originalEvent.clipboardData).items;
-    for (let i = 0; i < items.length; i++) {
-        if (items[i].type.indexOf('image') !== -1) {
-            const blob = items[i].getAsFile();
-            uploadLayerImageBlob(blob, activePasteLayerId);
-            break;
         }
     }
 });
