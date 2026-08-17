@@ -245,13 +245,18 @@ def stream_video(request: Request, path: str):
         mime_type = "video/x-matroska"
 
     headers = {
-        "Content-Range": f"bytes {start}-{end}/{file_size}",
         "Accept-Ranges": "bytes",
         "Content-Length": str(length),
         "Content-Type": mime_type,
     }
 
-    return StreamingResponse(iter_chunks(), status_code=206, headers=headers)
+    if range_header:
+        headers["Content-Range"] = f"bytes {start}-{end}/{file_size}"
+        status_code = 206
+    else:
+        status_code = 200
+
+    return StreamingResponse(iter_chunks(), status_code=status_code, headers=headers)
 
 
 @router.get("/file")

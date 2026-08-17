@@ -413,11 +413,32 @@ function setupTransmuxer(videoEl, url) {
         const transmuxer = new muxjs.mp4.Transmuxer();
         let sourceBuffer = null;
         const queue = [];
+        let isFetchDone = false;
+
+        function checkEndOfStream() {
+            if (isFetchDone && queue.length === 0 && sourceBuffer && !sourceBuffer.updating) {
+                if (mediaSource.readyState === 'open') {
+                    try {
+                        mediaSource.endOfStream();
+                    } catch (e) {}
+                }
+            }
+        }
 
         transmuxer.on('data', function (segment) {
             const data = new Uint8Array(segment.initSegment.byteLength + segment.data.byteLength);
             data.set(segment.initSegment, 0);
             data.set(segment.data, segment.initSegment.byteLength);
+
+            // Register total duration dynamically from PTS/DTS timestamps (90kHz timescale)
+            const maxPtsSeconds = (segment.endPts || segment.endDts || 0) / 90000;
+            if (maxPtsSeconds > 0 && mediaSource.readyState === 'open') {
+                if (isNaN(mediaSource.duration) || mediaSource.duration < maxPtsSeconds) {
+                    try {
+                        mediaSource.duration = maxPtsSeconds;
+                    } catch (err) {}
+                }
+            }
 
             if (!sourceBuffer) {
                 const mime = 'video/mp4; codecs="' + (segment.videoCodec || 'avc1.42E01E') + ', ' + (segment.audioCodec || 'mp4a.40.2') + '"';
@@ -434,6 +455,8 @@ function setupTransmuxer(videoEl, url) {
                 sourceBuffer.addEventListener('updateend', function () {
                     if (queue.length > 0 && !sourceBuffer.updating) {
                         sourceBuffer.appendBuffer(queue.shift());
+                    } else {
+                        checkEndOfStream();
                     }
                 });
             }
@@ -445,6 +468,11 @@ function setupTransmuxer(videoEl, url) {
             }
         });
 
+        transmuxer.on('done', function () {
+            isFetchDone = true;
+            checkEndOfStream();
+        });
+
         fetch(url)
             .then(res => {
                 if (!res.ok) throw new Error('Stream request failed: ' + res.status);
@@ -453,6 +481,8 @@ function setupTransmuxer(videoEl, url) {
                     reader.read().then(({ done, value }) => {
                         if (done) {
                             transmuxer.flush();
+                            isFetchDone = true;
+                            checkEndOfStream();
                             return;
                         }
                         transmuxer.push(value);
