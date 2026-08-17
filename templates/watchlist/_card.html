@@ -161,9 +161,9 @@
             {% endif %}
         {% endif %}
 
-        <!-- Status & Tools Dropdown -->
-        <div class="wl-card-tools">
-            <form method="POST" action="/watchlist/{{ idea.id }}/status" style="display:inline;">
+        <!-- Bottom Action Toolbar -->
+        <div class="wl-card-tools-bar">
+            <form method="POST" action="/watchlist/{{ idea.id }}/status" class="wl-status-form">
                 <select name="status" onchange="this.form.submit()" class="wl-status-select" title="Change Stage">
                     <option value="WAITING" {% if idea.status == 'WAITING' %}selected{% endif %}>Waiting</option>
                     <option value="MONITORING" {% if idea.status == 'MONITORING' %}selected{% endif %}>Monitoring</option>
@@ -173,11 +173,12 @@
                 </select>
             </form>
 
-            <a href="/watchlist/{{ idea.id }}/edit" class="wl-tool-btn" title="Edit Setup">Edit</a>
-            
-            <form method="POST" action="/watchlist/{{ idea.id }}/delete" onsubmit="return confirm('Delete this trade idea?');" style="display:inline;">
-                <button type="submit" class="wl-tool-btn btn-tool-del" title="Delete Setup">Delete</button>
-            </form>
+            <div class="wl-btn-group-right">
+                <a href="/watchlist/{{ idea.id }}/edit" class="wl-btn-tool" title="Edit Setup">Edit</a>
+                <form method="POST" action="/watchlist/{{ idea.id }}/delete" onsubmit="return confirm('Delete this trade idea?');" style="display:inline;">
+                    <button type="submit" class="wl-btn-tool wl-btn-del" title="Delete Setup">Delete</button>
+                </form>
+            </div>
         </div>
     </div>
 
