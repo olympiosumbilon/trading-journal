@@ -190,7 +190,7 @@
             {% for s in all_screenshots %}
             <div class="screenshot-card">
                 <div class="card-top-bar">
-                    <span class="slot-badge">SCREENSHOT #{{ loop.index }}{% if s.caption %} &mdash; {{ s.caption }}{% endif %}</span>
+                    <span class="slot-badge">#{{ loop.index }}{% if s.caption %}: {{ s.caption }}{% else %} Screenshot{% endif %}</span>
                     {% if s.is_tv %}
                     <a href="{{ s.link_url }}" target="_blank" class="tv-source-btn" title="Open on TradingView">
                         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
@@ -200,8 +200,8 @@
                 </div>
 
                 <div class="screenshot-img-wrapper">
-                    <img src="{{ s.img_src }}" alt="Screenshot #{{ loop.index }}" onclick="openLightbox('{{ s.img_src }}', 'Screenshot #{{ loop.index }}')" class="clickable-chart">
-                    <div class="img-hover-overlay" onclick="openLightbox('{{ s.img_src }}', 'Screenshot #{{ loop.index }}')">
+                    <img src="{{ s.img_src }}" alt="{{ s.caption or ('Screenshot #' ~ loop.index) }}" onclick="openLightbox('{{ s.img_src }}', '{{ s.caption or ('Screenshot #' ~ loop.index) }}')" class="clickable-chart">
+                    <div class="img-hover-overlay" onclick="openLightbox('{{ s.img_src }}', '{{ s.caption or ('Screenshot #' ~ loop.index) }}')">
                         <span>🔍 Click to Enlarge</span>
                     </div>
                 </div>

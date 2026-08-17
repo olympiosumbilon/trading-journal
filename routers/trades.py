@@ -27,24 +27,24 @@ MEDIA_DIR = Path("media/screenshots")
 MEDIA_DIR.mkdir(parents=True, exist_ok=True)
 
 
-def sync_trade_screenshots(db, trade: Trade, raw_urls: list[str]):
-    clean_urls = []
-    for u in raw_urls:
+def sync_trade_screenshots(db, trade: Trade, raw_urls: list[str], raw_captions: list[str] = None):
+    clean_items = []
+    raw_captions = raw_captions or []
+    for idx, u in enumerate(raw_urls):
         if not u:
             continue
-        parts = re.split(r'[\r\n,]+', str(u).strip())
-        for p in parts:
-            p_clean = p.strip()
-            if p_clean and p_clean not in clean_urls:
-                clean_urls.append(p_clean)
+        p_clean = str(u).strip()
+        c_clean = str(raw_captions[idx]).strip() if idx < len(raw_captions) and raw_captions[idx] else None
+        if p_clean:
+            clean_items.append((p_clean, c_clean))
 
     db.query(TradeScreenshot).filter(TradeScreenshot.trade_id == trade.id).delete()
-    for idx, u in enumerate(clean_urls):
-        db.add(TradeScreenshot(trade_id=trade.id, url=u, order_index=idx))
+    for idx, (u, cap) in enumerate(clean_items):
+        db.add(TradeScreenshot(trade_id=trade.id, url=u, caption=cap, order_index=idx))
 
-    trade.screenshot_1 = clean_urls[0] if len(clean_urls) > 0 else None
-    trade.screenshot_2 = clean_urls[1] if len(clean_urls) > 1 else None
-    trade.screenshot_3 = clean_urls[2] if len(clean_urls) > 2 else None
+    trade.screenshot_1 = clean_items[0][0] if len(clean_items) > 0 else None
+    trade.screenshot_2 = clean_items[1][0] if len(clean_items) > 1 else None
+    trade.screenshot_3 = clean_items[2][0] if len(clean_items) > 2 else None
 
 
 
@@ -373,8 +373,13 @@ def new_trade(request: Request):
     # Collect screenshot_1, screenshot_2, screenshot_3, ... from prefill in natural order
     shot_keys = sorted([k for k in prefill.keys() if k.startswith("screenshot_")], key=lambda x: int(x.split("_")[1]) if x.split("_")[1].isdigit() else 99)
     for k in shot_keys:
+        num = k.split("_")[1]
+        cap = prefill.get(f"caption_{num}", "").strip()
         if prefill[k] and prefill[k].strip():
-            prefill_screenshots.append(prefill[k].strip())
+            prefill_screenshots.append({
+                "url": prefill[k].strip(),
+                "caption": cap
+            })
 
     today_str = date.today().strftime("%Y-%m-%d")
     now_str = datetime.now().strftime("%H:%M")
@@ -421,6 +426,7 @@ def create_trade(
     screenshot_3: str = Form(""),
     screenshot_bulk: str = Form(""),
     screenshots: list[str] = Form([]),
+    captions: list[str] = Form([]),
     from_watchlist_id: str = Form(""),
 ):
     with SessionLocal() as db:
@@ -556,7 +562,7 @@ def create_trade(
         for s_ind in [screenshot_1, screenshot_2, screenshot_3]:
             if s_ind and s_ind.strip():
                 raw_urls.append(s_ind.strip())
-        sync_trade_screenshots(db, trade, raw_urls)
+        sync_trade_screenshots(db, trade, raw_urls, captions)
 
         # Link WatchlistIdea if promoted from watchlist
         if from_watchlist_id and str(from_watchlist_id).isdigit():
@@ -619,14 +625,14 @@ def trade_detail(request: Request, trade_id: int):
                         res["caption"] = s_row.caption
                         all_screenshots.append(res)
 
-        for legacy in [trade.screenshot_1, trade.screenshot_2, trade.screenshot_3]:
+        for idx, legacy in enumerate([trade.screenshot_1, trade.screenshot_2, trade.screenshot_3], 1):
             u_str = legacy.strip() if legacy else ""
             if u_str and u_str not in seen_urls:
                 seen_urls.add(u_str)
                 res = resolve_screenshot(u_str)
                 if res:
                     res["id"] = None
-                    res["caption"] = None
+                    res["caption"] = f"Screenshot #{idx}"
                     all_screenshots.append(res)
 
     return templates.TemplateResponse(
@@ -658,18 +664,22 @@ def edit_trade(request: Request, trade_id: int):
             raise HTTPException(status_code=404, detail="Trade not found")
 
         existing_screenshots = []
-        seen_urls = set()
         if trade.screenshots_list:
             for s_row in trade.screenshots_list:
                 u_str = s_row.url.strip() if s_row.url else ""
-                if u_str and u_str not in seen_urls:
-                    seen_urls.add(u_str)
-                    existing_screenshots.append(u_str)
-        for legacy in [trade.screenshot_1, trade.screenshot_2, trade.screenshot_3]:
-            u_str = legacy.strip() if legacy else ""
-            if u_str and u_str not in seen_urls:
-                seen_urls.add(u_str)
-                existing_screenshots.append(u_str)
+                if u_str:
+                    existing_screenshots.append({
+                        "url": u_str,
+                        "caption": s_row.caption or ""
+                    })
+        if not existing_screenshots:
+            for idx, legacy in enumerate([trade.screenshot_1, trade.screenshot_2, trade.screenshot_3], 1):
+                u_str = legacy.strip() if legacy else ""
+                if u_str:
+                    existing_screenshots.append({
+                        "url": u_str,
+                        "caption": f"Screenshot #{idx}"
+                    })
 
         lookups = get_lookup_data(db)
 
@@ -713,6 +723,7 @@ def update_trade(
     screenshot_3: str = Form(""),
     screenshot_bulk: str = Form(""),
     screenshots: list[str] = Form([]),
+    captions: list[str] = Form([]),
 ):
     with SessionLocal() as db:
         trade = db.query(Trade).get(trade_id)
@@ -826,7 +837,7 @@ def update_trade(
         for s_ind in [screenshot_1, screenshot_2, screenshot_3]:
             if s_ind and s_ind.strip():
                 raw_urls.append(s_ind.strip())
-        sync_trade_screenshots(db, trade, raw_urls)
+        sync_trade_screenshots(db, trade, raw_urls, captions)
         if screenshot_1:
             trade.screenshot_1 = screenshot_1.strip()
         if screenshot_2:

@@ -430,11 +430,12 @@
             <!-- Dynamic Screenshot Rows Container -->
             <div id="screenshotsContainer" class="shots-rows-container">
                 {% if existing_screenshots %}
-                    {% for shot_url in existing_screenshots %}
+                    {% for shot in existing_screenshots %}
                     <div class="shot-input-card">
                         <div class="shot-input-header">
                             <span class="shot-row-num">#{{ loop.index }}</span>
-                            <input type="text" name="screenshots" value="{{ shot_url }}" placeholder="https://www.tradingview.com/x/..." class="shot-url-input" oninput="updateShotPreview(this)" onchange="updateShotPreview(this)">
+                            <input type="text" name="captions" value="{{ shot.caption if shot is mapping else '' }}" placeholder="Timeframe Title (e.g. Weekly, 4H, 15M POI, 1M Entry)" class="shot-caption-input font-bold" style="flex: 0.85; min-width: 140px;">
+                            <input type="text" name="screenshots" value="{{ shot.url if shot is mapping else shot }}" placeholder="https://www.tradingview.com/x/..." class="shot-url-input" oninput="updateShotPreview(this)" onchange="updateShotPreview(this)">
                             <button type="button" class="btn-del-shot-row" onclick="removeScreenshotRow(this)" title="Remove Screenshot">✕</button>
                         </div>
                         <div class="shot-preview-container" style="display:none; margin-top:0.45rem;">
@@ -448,11 +449,12 @@
                     </div>
                     {% endfor %}
                 {% elif prefill_screenshots %}
-                    {% for shot_url in prefill_screenshots %}
+                    {% for shot in prefill_screenshots %}
                     <div class="shot-input-card">
                         <div class="shot-input-header">
                             <span class="shot-row-num">#{{ loop.index }}</span>
-                            <input type="text" name="screenshots" value="{{ shot_url }}" placeholder="https://www.tradingview.com/x/..." class="shot-url-input" oninput="updateShotPreview(this)" onchange="updateShotPreview(this)">
+                            <input type="text" name="captions" value="{{ shot.caption if shot is mapping else '' }}" placeholder="Timeframe Title (e.g. Weekly, 4H, 15M POI, 1M Entry)" class="shot-caption-input font-bold" style="flex: 0.85; min-width: 140px;">
+                            <input type="text" name="screenshots" value="{{ shot.url if shot is mapping else shot }}" placeholder="https://www.tradingview.com/x/..." class="shot-url-input" oninput="updateShotPreview(this)" onchange="updateShotPreview(this)">
                             <button type="button" class="btn-del-shot-row" onclick="removeScreenshotRow(this)" title="Remove Screenshot">✕</button>
                         </div>
                         <div class="shot-preview-container" style="display:none; margin-top:0.45rem;">
@@ -470,6 +472,7 @@
                     <div class="shot-input-card">
                         <div class="shot-input-header">
                             <span class="shot-row-num">#1</span>
+                            <input type="text" name="captions" value="Timeframe #1" placeholder="Timeframe Title" class="shot-caption-input font-bold" style="flex: 0.85; min-width: 140px;">
                             <input type="text" name="screenshots" value="{{ trade.screenshot_1 }}" placeholder="https://www.tradingview.com/x/..." class="shot-url-input" oninput="updateShotPreview(this)" onchange="updateShotPreview(this)">
                             <button type="button" class="btn-del-shot-row" onclick="removeScreenshotRow(this)">✕</button>
                         </div>
@@ -487,6 +490,7 @@
                     <div class="shot-input-card">
                         <div class="shot-input-header">
                             <span class="shot-row-num">#2</span>
+                            <input type="text" name="captions" value="Timeframe #2" placeholder="Timeframe Title" class="shot-caption-input font-bold" style="flex: 0.85; min-width: 140px;">
                             <input type="text" name="screenshots" value="{{ trade.screenshot_2 }}" placeholder="https://www.tradingview.com/x/..." class="shot-url-input" oninput="updateShotPreview(this)" onchange="updateShotPreview(this)">
                             <button type="button" class="btn-del-shot-row" onclick="removeScreenshotRow(this)">✕</button>
                         </div>
@@ -504,6 +508,7 @@
                     <div class="shot-input-card">
                         <div class="shot-input-header">
                             <span class="shot-row-num">#3</span>
+                            <input type="text" name="captions" value="Timeframe #3" placeholder="Timeframe Title" class="shot-caption-input font-bold" style="flex: 0.85; min-width: 140px;">
                             <input type="text" name="screenshots" value="{{ trade.screenshot_3 }}" placeholder="https://www.tradingview.com/x/..." class="shot-url-input" oninput="updateShotPreview(this)" onchange="updateShotPreview(this)">
                             <button type="button" class="btn-del-shot-row" onclick="removeScreenshotRow(this)">✕</button>
                         </div>
@@ -521,6 +526,7 @@
                     <div class="shot-input-card">
                         <div class="shot-input-header">
                             <span class="shot-row-num">#1</span>
+                            <input type="text" name="captions" value="Weekly Timeframe (1W)" placeholder="Timeframe Title" class="shot-caption-input font-bold" style="flex: 0.85; min-width: 140px;">
                             <input type="text" name="screenshots" value="{{ prefill.screenshot_1 if prefill and prefill.screenshot_1 else '' }}" placeholder="https://www.tradingview.com/x/... (HTF Context)" class="shot-url-input" oninput="updateShotPreview(this)" onchange="updateShotPreview(this)">
                             <button type="button" class="btn-del-shot-row" onclick="removeScreenshotRow(this)">✕</button>
                         </div>
@@ -536,6 +542,7 @@
                     <div class="shot-input-card">
                         <div class="shot-input-header">
                             <span class="shot-row-num">#2</span>
+                            <input type="text" name="captions" value="4-Hour / 15-Minute POI (HTF/MTF)" placeholder="Timeframe Title" class="shot-caption-input font-bold" style="flex: 0.85; min-width: 140px;">
                             <input type="text" name="screenshots" value="{{ prefill.screenshot_2 if prefill and prefill.screenshot_2 else '' }}" placeholder="https://www.tradingview.com/x/... (LTF Execution)" class="shot-url-input" oninput="updateShotPreview(this)" onchange="updateShotPreview(this)">
                             <button type="button" class="btn-del-shot-row" onclick="removeScreenshotRow(this)">✕</button>
                         </div>
@@ -551,6 +558,7 @@
                     <div class="shot-input-card">
                         <div class="shot-input-header">
                             <span class="shot-row-num">#3</span>
+                            <input type="text" name="captions" value="1-Hour POI + CRT" placeholder="Timeframe Title" class="shot-caption-input font-bold" style="flex: 0.85; min-width: 140px;">
                             <input type="text" name="screenshots" value="{{ prefill.screenshot_3 if prefill and prefill.screenshot_3 else '' }}" placeholder="https://www.tradingview.com/x/... (Outcome / Management)" class="shot-url-input" oninput="updateShotPreview(this)" onchange="updateShotPreview(this)">
                             <button type="button" class="btn-del-shot-row" onclick="removeScreenshotRow(this)">✕</button>
                         </div>
@@ -1190,10 +1198,11 @@ function openTradeFullscreenFromImg(img) {
     const title = document.getElementById('tradeLightboxTitle');
     const card = img.closest('.shot-input-card') || img.closest('.shot-input-row');
     const num = card ? card.querySelector('.shot-row-num')?.textContent : '';
+    const cap = card ? card.querySelector('.shot-caption-input')?.value?.trim() : '';
 
     if (modal && modalImg) {
         modalImg.src = img.src;
-        if (title) title.textContent = `Screenshot ${num || ''} Preview`;
+        if (title) title.textContent = cap ? `${num} ${cap}` : `Screenshot ${num || ''} Preview`;
         modal.style.display = 'flex';
     }
 }
@@ -1211,7 +1220,7 @@ function renumberScreenshots() {
     });
 }
 
-function addScreenshotRow(initialVal = '') {
+function addScreenshotRow(initialVal = '', initialCaption = '') {
     const container = document.getElementById('screenshotsContainer');
     const rowCount = container.querySelectorAll('.shot-input-card, .shot-input-row').length + 1;
     const card = document.createElement('div');
@@ -1219,6 +1228,7 @@ function addScreenshotRow(initialVal = '') {
     card.innerHTML = `
         <div class="shot-input-header">
             <span class="shot-row-num">#${rowCount}</span>
+            <input type="text" name="captions" value="${initialCaption}" placeholder="Timeframe Title (e.g. Weekly, 4H, 15M POI, 1M Entry)" class="shot-caption-input font-bold" style="flex: 0.85; min-width: 140px;">
             <input type="text" name="screenshots" value="${initialVal}" placeholder="https://www.tradingview.com/x/..." class="shot-url-input" oninput="updateShotPreview(this)" onchange="updateShotPreview(this)">
             <button type="button" class="btn-del-shot-row" onclick="removeScreenshotRow(this)" title="Remove Screenshot">✕</button>
         </div>
