@@ -8993,12 +8993,42 @@ main.main-full-bleed {
     max-height: 240px;
     object-fit: contain;
     display: block;
+    cursor: zoom-in;
+    transition: transform 0.15s ease;
 }
 
-.wl-dz-clear-btn {
+.wl-dz-preview img:hover {
+    opacity: 0.95;
+}
+
+.wl-dz-preview-actions {
     position: absolute;
     top: 6px;
     right: 6px;
+    display: flex;
+    gap: 0.35rem;
+    z-index: 10;
+}
+
+.wl-dz-zoom-btn {
+    background: rgba(15, 23, 42, 0.88);
+    color: #38bdf8;
+    border: 1px solid rgba(56, 189, 248, 0.4);
+    font-size: 0.72rem;
+    font-weight: 700;
+    padding: 0.2rem 0.55rem;
+    border-radius: 4px;
+    cursor: pointer;
+    backdrop-filter: blur(4px);
+    transition: all 0.15s ease;
+}
+
+.wl-dz-zoom-btn:hover {
+    background: #0284c7;
+    color: #ffffff;
+}
+
+.wl-dz-clear-btn {
     background: rgba(225, 29, 72, 0.9);
     color: #fff;
     border: none;
@@ -9007,6 +9037,12 @@ main.main-full-bleed {
     padding: 0.2rem 0.5rem;
     border-radius: 4px;
     cursor: pointer;
+    backdrop-filter: blur(4px);
+    transition: all 0.15s ease;
+}
+
+.wl-dz-clear-btn:hover {
+    background: #e11d48;
 }
 
 .wl-rr-calc-badge {

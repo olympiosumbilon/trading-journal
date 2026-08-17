@@ -300,8 +300,11 @@ function renderLayerRow(data) {
                     <input type="hidden" class="tf-layer-img-url" id="imgUrl_${layerId}" value="${escapeHtml(currentImg)}">
 
                     <div class="wl-dz-preview" id="previewWrap_${layerId}" style="${currentImg ? 'display:block;' : 'display:none;'}">
-                        <img id="previewImg_${layerId}" src="${currentImg}" alt="Chart Preview">
-                        <button type="button" class="wl-dz-clear-btn" onclick="clearLayerDropzone(event, '${layerId}')">✕ Clear Chart Preview</button>
+                        <img id="previewImg_${layerId}" src="${currentImg}" alt="Chart Preview" onclick="openLayerFullscreen(event, '${layerId}')" title="Click for Full Screen">
+                        <div class="wl-dz-preview-actions">
+                            <button type="button" class="wl-dz-zoom-btn" onclick="openLayerFullscreen(event, '${layerId}')" title="View Full Screen">Full Screen</button>
+                            <button type="button" class="wl-dz-clear-btn" onclick="clearLayerDropzone(event, '${layerId}')" title="Clear Image">✕ Clear</button>
+                        </div>
                     </div>
 
                     <div class="wl-dz-placeholder" id="placeholder_${layerId}" style="${currentImg ? 'display:none;' : 'display:flex;'}">
@@ -509,7 +512,48 @@ function calcPlannedRR() {
     }
     if (badge) badge.textContent = 'Auto';
 }
+
+function openLayerFullscreen(e, layerId) {
+    if (e) e.stopPropagation();
+    const img = document.getElementById(`previewImg_${layerId}`);
+    const titleInput = document.querySelector(`#${layerId} .tf-layer-title`);
+    const title = titleInput ? titleInput.value : 'Timeframe Chart Preview';
+    if (img && img.src) {
+        openChartModal(img.src, title);
+    }
+}
+
+function openChartModal(src, title) {
+    const modal = document.getElementById('wlChartModal');
+    const img = document.getElementById('wlLightboxImg');
+    const titleEl = document.getElementById('wlLightboxTitle');
+    if (modal && img) {
+        img.src = src;
+        if (titleEl) titleEl.textContent = title || 'Chart Preview';
+        modal.style.display = 'flex';
+    }
+}
+
+function closeChartModal(e) {
+    if (e.target.id === 'wlChartModal' || e.target.classList.contains('wl-lightbox-close')) {
+        const modal = document.getElementById('wlChartModal');
+        if (modal) modal.style.display = 'none';
+    }
+}
 </script>
+
+<!-- Interactive Chart Modal / Lightbox for Fullscreen Viewing -->
+<div id="wlChartModal" class="wl-chart-lightbox" style="display: none;" onclick="closeChartModal(event)">
+    <div class="wl-lightbox-box">
+        <div class="wl-lightbox-header">
+            <span id="wlLightboxTitle" class="font-bold">Chart Preview</span>
+            <button type="button" class="wl-lightbox-close" onclick="closeChartModal(event)">&times;</button>
+        </div>
+        <div class="wl-lightbox-img-wrap">
+            <img id="wlLightboxImg" src="" alt="Chart Preview">
+        </div>
+    </div>
+</div>
 
 {% include "watchlist/_roadmap_modal.html" %}
 {% endblock %}
