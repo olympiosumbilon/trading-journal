@@ -498,6 +498,27 @@ def promote_idea_to_trade(idea_id: int):
                 if shot and shot.strip() and shot.strip() not in layer_shots:
                     layer_shots.append(shot.strip())
 
+        # Build comprehensive execution notes from general notes + all timeframe layer notes
+        notes_sections = []
+        if idea.notes and idea.notes.strip():
+            notes_sections.append(f"📌 General Trade Plan:\n{idea.notes.strip()}")
+
+        layer_notes = []
+        if idea.layers_list:
+            for idx, lyr in enumerate(idea.layers_list, 1):
+                lyr_title = lyr.get("title") or f"Layer #{idx}"
+                lyr_note = lyr.get("note") or ""
+                if lyr_note and lyr_note.strip():
+                    layer_notes.append(f"• [{lyr_title}]: {lyr_note.strip()}")
+
+        if layer_notes:
+            notes_sections.append("🎯 Timeframe Analysis & Bias:\n" + "\n".join(layer_notes))
+
+        if not notes_sections:
+            combined_notes = f"Promoted from Watchlist: {idea.title}"
+        else:
+            combined_notes = "\n\n".join(notes_sections)
+
         # Build pre-fill URL parameters
         params = {
             "from_watchlist_id": idea.id,
@@ -511,7 +532,7 @@ def promote_idea_to_trade(idea_id: int):
             "stop_loss": idea.planned_sl or "",
             "tp_target": idea.planned_tp or "",
             "fixed_r_target": idea.planned_rr or "",
-            "notes": idea.notes or f"Promoted from Watchlist: {idea.title}",
+            "notes": combined_notes,
         }
 
         for i, s_url in enumerate(layer_shots, 1):
