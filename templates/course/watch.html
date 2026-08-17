@@ -381,10 +381,18 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
-    // Auto-expand active module accordion
+    // Position active lesson in sidebar instantly without animated scrolling
     const activeItem = document.querySelector('.sm-lesson-item.active-lesson');
     if (activeItem) {
-        activeItem.scrollIntoView({ block: 'center', behavior: 'smooth' });
+        const sidebarTree = document.getElementById('sidebarModulesTree');
+        const sidebar = document.querySelector('.course-sidebar');
+        const container = sidebarTree || sidebar;
+        if (container) {
+            const itemTop = activeItem.getBoundingClientRect().top;
+            const containerTop = container.getBoundingClientRect().top;
+            const offset = itemTop - containerTop + container.scrollTop;
+            container.scrollTop = Math.max(0, offset - (container.clientHeight / 2) + 20);
+        }
     }
 });
 
