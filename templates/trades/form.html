@@ -306,19 +306,24 @@
 
     <!-- 3. Candle & Risk Geometry -->
     <div class="form-section-block">
-        <h4 class="form-section-title">📐 Candle Size & R-Target Geometry</h4>
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.5rem; flex-wrap:wrap; gap:0.5rem;">
+            <h4 class="form-section-title" style="margin-bottom:0;">📐 Candle Size &amp; R-Target Geometry</h4>
+            <span id="autoCalcGeometryHint" style="font-size:0.75rem; font-weight:700; color:#10b981; background:#ecfdf5; border:1px solid #a7f3d0; padding:0.2rem 0.55rem; border-radius:4px; display:none;">
+                ⚡ Auto-Calculated from Prices
+            </span>
+        </div>
         <div class="form-section-grid grid-geometry">
             <div class="form-group">
                 <label>Entry Candle Size (pips / $)</label>
-                <input type="number" step="0.0001" name="entry_candle_size" id="formCandleSize" value="{{ trade.entry_candle_size if trade else '' }}">
+                <input type="number" step="0.0001" name="entry_candle_size" id="formCandleSize" value="{{ trade.entry_candle_size if trade else '' }}" placeholder="Auto from |Entry - SL|">
             </div>
             <div class="form-group">
                 <label>MAE SL Buffer (Stop Loss distance % / pips)</label>
-                <input type="number" step="0.0001" name="mae_sl_buffer" id="formSLBuffer" value="{{ trade.mae_sl_buffer if trade else '' }}">
+                <input type="number" step="0.0001" name="mae_sl_buffer" id="formSLBuffer" value="{{ trade.mae_sl_buffer if trade else '' }}" placeholder="Default 0.0 or from Settings">
             </div>
             <div class="form-group">
                 <label>MFE (Take Profit distance % / pips)</label>
-                <input type="number" step="0.0001" name="mfe" id="formMFE" value="{{ trade.mfe if trade else '' }}">
+                <input type="number" step="0.0001" name="mfe" id="formMFE" value="{{ trade.mfe if trade else '' }}" placeholder="Auto from |TP - Entry|">
             </div>
         </div>
     </div>
@@ -666,6 +671,37 @@ function recalcPositionSize() {
 
     document.getElementById('resFees').textContent = '-$' + totalFees.toFixed(2);
     document.getElementById('resFeePct').textContent = ((totalFees / notionalValue) * 100).toFixed(3) + '% of Notional';
+
+    // Auto-calculate Candle Size, MAE SL Buffer, and MFE in Section 3
+    autoCalcGeometryFromPrices();
+}
+
+function autoCalcGeometryFromPrices() {
+    const entry = parseFloat(document.getElementById('calcEntry')?.value) || 0;
+    const sl = parseFloat(document.getElementById('calcSL')?.value) || 0;
+    const tp = parseFloat(document.getElementById('calcTP')?.value) || 0;
+    const candleInput = document.getElementById('formCandleSize');
+    const slBufferInput = document.getElementById('formSLBuffer');
+    const mfeInput = document.getElementById('formMFE');
+    const hint = document.getElementById('autoCalcGeometryHint');
+
+    if (entry > 0 && sl > 0) {
+        const candleDist = Math.abs(entry - sl);
+        if (candleInput && (!candleInput.value || candleInput.value === '0' || candleInput.dataset.auto === 'true')) {
+            candleInput.value = candleDist.toFixed(4);
+            candleInput.dataset.auto = 'true';
+        }
+        if (slBufferInput && (!slBufferInput.value || slBufferInput.dataset.auto === 'true')) {
+            slBufferInput.value = candleDist.toFixed(4);
+            slBufferInput.dataset.auto = 'true';
+        }
+        if (tp > 0 && mfeInput && (!mfeInput.value || mfeInput.value === '0' || mfeInput.dataset.auto === 'true')) {
+            const tpDist = Math.abs(tp - entry);
+            mfeInput.value = tpDist.toFixed(4);
+            mfeInput.dataset.auto = 'true';
+        }
+        if (hint) hint.style.display = 'inline-block';
+    }
 }
 
 function resetCalcOutputs(dollarRisk) {
@@ -1070,5 +1106,15 @@ function importBulkScreenshots() {
     document.getElementById('bulkShotsInput').value = '';
     document.getElementById('bulkShotsBox').style.display = 'none';
 }
+
+// Auto-run geometry and position calculations on page load
+window.addEventListener('DOMContentLoaded', () => {
+    if (typeof recalcPositionSize === 'function') {
+        recalcPositionSize();
+    }
+    if (typeof autoCalcGeometryFromPrices === 'function') {
+        autoCalcGeometryFromPrices();
+    }
+});
 </script>
 {% endblock %}
