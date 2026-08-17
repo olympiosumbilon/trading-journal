@@ -76,8 +76,8 @@
                 <div class="calc-field">
                     <label>Direction</label>
                     <select id="calcDirection" onchange="recalcPositionSize()">
-                        <option value="long">LONG (Buy)</option>
-                        <option value="short">SHORT (Sell)</option>
+                        <option value="long" {% if prefill and prefill.direction == 'LONG' %}selected{% endif %}>LONG (Buy)</option>
+                        <option value="short" {% if prefill and prefill.direction == 'SHORT' %}selected{% endif %}>SHORT (Sell)</option>
                     </select>
                 </div>
             </div>
@@ -85,7 +85,7 @@
             <div class="calc-field-row three-col">
                 <div class="calc-field">
                     <label>Entry Price ($)</label>
-                    <input type="number" id="calcEntry" placeholder="e.g. 150.00" step="any" oninput="recalcPositionSize()">
+                    <input type="number" id="calcEntry" placeholder="e.g. 150.00" step="any" value="{{ prefill.entry_price if prefill and prefill.entry_price else '' }}" oninput="recalcPositionSize()">
                 </div>
                 <div class="calc-field">
                     <div class="calc-label-row">
@@ -95,11 +95,11 @@
                             <option value="pct">% Distance</option>
                         </select>
                     </div>
-                    <input type="number" id="calcSL" placeholder="e.g. 147.00" step="any" oninput="recalcPositionSize()">
+                    <input type="number" id="calcSL" placeholder="e.g. 147.00" step="any" value="{{ prefill.stop_loss if prefill and prefill.stop_loss else '' }}" oninput="recalcPositionSize()">
                 </div>
                 <div class="calc-field">
                     <label>Take Profit Price ($)</label>
-                    <input type="number" id="calcTP" placeholder="e.g. 160.00" step="any" oninput="recalcPositionSize()">
+                    <input type="number" id="calcTP" placeholder="e.g. 160.00" step="any" value="{{ prefill.tp_target if prefill and prefill.tp_target else '' }}" oninput="recalcPositionSize()">
                 </div>
             </div>
 
@@ -397,7 +397,7 @@
             </div>
             <div class="form-group full-width">
                 <label>Comments / Execution Notes</label>
-                <textarea name="comments" id="formComments" rows="3" placeholder="Notes, trade thesis, calculator summary...">{{ trade.comments if trade else '' }}</textarea>
+                <textarea name="comments" id="formComments" rows="3" placeholder="Notes, trade thesis, calculator summary...">{{ trade.comments if trade else (prefill.notes if prefill and prefill.notes else '') }}</textarea>
             </div>
         </div>
     </div>
@@ -456,17 +456,17 @@
                 {% else %}
                     <div class="shot-input-row">
                         <span class="shot-row-num">#1</span>
-                        <input type="text" name="screenshots" placeholder="https://www.tradingview.com/x/... (HTF Context)" class="shot-url-input">
+                        <input type="text" name="screenshots" value="{{ prefill.screenshot_1 if prefill and prefill.screenshot_1 else '' }}" placeholder="https://www.tradingview.com/x/... (HTF Context)" class="shot-url-input">
                         <button type="button" class="btn-del-shot-row" onclick="removeScreenshotRow(this)">✕</button>
                     </div>
                     <div class="shot-input-row">
                         <span class="shot-row-num">#2</span>
-                        <input type="text" name="screenshots" placeholder="https://www.tradingview.com/x/... (LTF Execution)" class="shot-url-input">
+                        <input type="text" name="screenshots" value="{{ prefill.screenshot_2 if prefill and prefill.screenshot_2 else '' }}" placeholder="https://www.tradingview.com/x/... (LTF Execution)" class="shot-url-input">
                         <button type="button" class="btn-del-shot-row" onclick="removeScreenshotRow(this)">✕</button>
                     </div>
                     <div class="shot-input-row">
                         <span class="shot-row-num">#3</span>
-                        <input type="text" name="screenshots" placeholder="https://www.tradingview.com/x/... (Outcome / Management)" class="shot-url-input">
+                        <input type="text" name="screenshots" value="{{ prefill.screenshot_3 if prefill and prefill.screenshot_3 else '' }}" placeholder="https://www.tradingview.com/x/... (Outcome / Management)" class="shot-url-input">
                         <button type="button" class="btn-del-shot-row" onclick="removeScreenshotRow(this)">✕</button>
                     </div>
                 {% endif %}
