@@ -9463,6 +9463,10 @@ main.main-full-bleed {
     .form-section-grid {
         grid-template-columns: 1fr !important;
     }
+    .grid-geometry-mobile {
+        grid-template-columns: 1fr 1fr !important;
+        gap: 0.5rem !important;
+    }
     .wl-tf-layer-grid {
         grid-template-columns: 1fr !important;
         gap: 0.75rem;

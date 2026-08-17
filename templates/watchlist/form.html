@@ -21,49 +21,14 @@
         
         <input type="hidden" name="timeframe_layers_json" id="timeframeLayersJsonInput" value="[]">
 
-        <!-- Section 1: Setup Title & Direction -->
+        <!-- Section 1: Setup Identification & Direction -->
         <div class="form-section-block">
-            <h4 class="form-section-title">Setup Title &amp; Direction</h4>
-            <div class="form-section-grid" style="grid-template-columns: 2fr 1fr 1fr;">
+            <h4 class="form-section-title">Setup Identification &amp; Direction</h4>
+            
+            <div class="form-section-grid" style="grid-template-columns: 1.2fr 1fr 1fr; margin-bottom: 0.85rem;">
                 <div class="form-group">
-                    <label>Setup Title / Name <small class="text-muted">(e.g. SOLUSD LC-1 M15 Demand)</small></label>
-                    <input type="text" name="title" id="ideaTitle" value="{{ idea.title if idea else '' }}" placeholder="Auto-generated if left empty" class="form-input">
-                </div>
-
-                <div class="form-group">
-                    <label>Direction</label>
-                    <div class="direction-toggle-group">
-                        <label class="dir-radio-btn dir-long-label">
-                            <input type="radio" name="direction" value="LONG" {% if not idea or idea.direction == 'LONG' %}checked{% endif %}>
-                            <span>LONG</span>
-                        </label>
-                        <label class="dir-radio-btn dir-short-label">
-                            <input type="radio" name="direction" value="SHORT" {% if idea and idea.direction == 'SHORT' %}checked{% endif %}>
-                            <span>SHORT</span>
-                        </label>
-                    </div>
-                </div>
-
-                <div class="form-group">
-                    <label>Pipeline Status</label>
-                    <select name="status" class="form-input">
-                        <option value="WAITING" {% if not idea or idea.status == 'WAITING' %}selected{% endif %}>Waiting for POI</option>
-                        <option value="MONITORING" {% if idea and idea.status == 'MONITORING' %}selected{% endif %}>Monitoring Trigger</option>
-                        <option value="EXECUTED" {% if idea and idea.status == 'EXECUTED' %}selected{% endif %}>Live / Executed</option>
-                        <option value="INVALIDATED" {% if idea and idea.status == 'INVALIDATED' %}selected{% endif %}>Invalidated</option>
-                        <option value="MISSED" {% if idea and idea.status == 'MISSED' %}selected{% endif %}>Missed Entry</option>
-                    </select>
-                </div>
-            </div>
-        </div>
-
-        <!-- Section 2: Market Context & Strategy Edge -->
-        <div class="form-section-block">
-            <h4 class="form-section-title">Market Context &amp; Strategy Edge</h4>
-            <div class="form-section-grid grid-setup">
-                <div class="form-group">
-                    <label>Instrument / Coin</label>
-                    <select name="instrument_id" id="instrumentSelect" class="form-input" required>
+                    <label>Instrument / Coin <span style="color:#e11d48;">*</span></label>
+                    <select name="instrument_id" id="instrumentSelect" class="form-input font-bold" required>
                         <option value="">-- Select Instrument --</option>
                         {% for i in instruments %}
                         <option value="{{ i.id }}" {% if idea and idea.instrument_id == i.id %}selected{% endif %}>{{ i.name }}</option>
@@ -72,15 +37,41 @@
                 </div>
 
                 <div class="form-group">
-                    <label>Session</label>
-                    <select name="session_id" class="form-input">
-                        <option value="">-- Select Session --</option>
-                        {% for s in sessions %}
-                        <option value="{{ s.id }}" {% if idea and idea.session_id == s.id %}selected{% endif %}>{{ s.name }}</option>
-                        {% endfor %}
-                    </select>
+                    <label>Trade Direction</label>
+                    <div class="direction-toggle-group">
+                        <label class="dir-radio-btn dir-long-label">
+                            <input type="radio" name="direction" value="LONG" {% if not idea or idea.direction == 'LONG' %}checked{% endif %}>
+                            <span>▲ LONG</span>
+                        </label>
+                        <label class="dir-radio-btn dir-short-label">
+                            <input type="radio" name="direction" value="SHORT" {% if idea and idea.direction == 'SHORT' %}checked{% endif %}>
+                            <span>▼ SHORT</span>
+                        </label>
+                    </div>
                 </div>
 
+                <div class="form-group">
+                    <label>Pipeline Stage</label>
+                    <select name="status" class="form-input font-bold">
+                        <option value="WAITING" {% if not idea or idea.status == 'WAITING' %}selected{% endif %}>Waiting for POI</option>
+                        <option value="MONITORING" {% if idea and idea.status == 'MONITORING' %}selected{% endif %}>Monitoring Trigger</option>
+                        <option value="EXECUTED" {% if idea and idea.status == 'EXECUTED' %}selected{% endif %}>Live / Executed</option>
+                        <option value="INVALIDATED" {% if idea and idea.status == 'INVALIDATED' %}selected{% endif %}>Invalidated</option>
+                        <option value="MISSED" {% if idea and idea.status == 'MISSED' %}selected{% endif %}>Missed Entry</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label>Setup Title / Reference Name <small class="text-muted">(Optional — e.g. SOLUSD LC-1 M15 Demand Sweep)</small></label>
+                <input type="text" name="title" id="ideaTitle" value="{{ idea.title if idea else '' }}" placeholder="Auto-generated from Instrument + Strategy if left empty" class="form-input">
+            </div>
+        </div>
+
+        <!-- Section 2: Strategy Edge & Confluence -->
+        <div class="form-section-block">
+            <h4 class="form-section-title">Strategy Model &amp; Market Context</h4>
+            <div class="form-section-grid" style="grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));">
                 <div class="form-group">
                     <label>Strategy / Setup Model</label>
                     <select name="strategy_id" class="form-input">
@@ -96,6 +87,16 @@
                             {% endfor %}
                         </optgroup>
                         {% endif %}
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label>Session</label>
+                    <select name="session_id" class="form-input">
+                        <option value="">-- Select Session --</option>
+                        {% for s in sessions %}
+                        <option value="{{ s.id }}" {% if idea and idea.session_id == s.id %}selected{% endif %}>{{ s.name }}</option>
+                        {% endfor %}
                     </select>
                 </div>
 
@@ -127,7 +128,7 @@
         <!-- Section 3: Planned Levels & R:R Geometry -->
         <div class="form-section-block">
             <h4 class="form-section-title">Planned Execution Levels &amp; Target R:R</h4>
-            <div class="form-section-grid" style="grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));">
+            <div class="form-section-grid grid-geometry-mobile" style="grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));">
                 <div class="form-group">
                     <label>Planned Entry Price</label>
                     <input type="number" step="any" name="planned_entry" id="plannedEntry" value="{{ idea.planned_entry if idea and idea.planned_entry is not none else '' }}" placeholder="e.g. 142.50" class="form-input" oninput="calcPlannedRR()">
