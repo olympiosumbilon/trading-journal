@@ -484,10 +484,19 @@ def promote_idea_to_trade(idea_id: int):
         if not idea:
             raise HTTPException(status_code=404, detail="Watchlist Idea not found")
 
-        # Mark as EXECUTED
-        idea.status = "EXECUTED"
-        idea.resolved_at = datetime.now()
-        db.commit()
+        # Collect all layer images in exact order (prefer TradingView shortlink e.g. https://www.tradingview.com/x/... if present, else image_url)
+        layer_shots = []
+        if idea.layers_list:
+            for lyr in idea.layers_list:
+                img = lyr.get("tv_url") or lyr.get("image_url") or ""
+                if img and img.strip():
+                    layer_shots.append(img.strip())
+
+        # Fallback to legacy fields if no layer shots
+        if not layer_shots:
+            for shot in [idea.htf_image_url, idea.ltf_image_url, idea.tradingview_url]:
+                if shot and shot.strip() and shot.strip() not in layer_shots:
+                    layer_shots.append(shot.strip())
 
         # Build pre-fill URL parameters
         params = {
@@ -502,11 +511,11 @@ def promote_idea_to_trade(idea_id: int):
             "stop_loss": idea.planned_sl or "",
             "tp_target": idea.planned_tp or "",
             "fixed_r_target": idea.planned_rr or "",
-            "screenshot_1": idea.htf_image_url or "",
-            "screenshot_2": idea.ltf_image_url or "",
-            "screenshot_3": idea.tradingview_url or "",
             "notes": idea.notes or f"Promoted from Watchlist: {idea.title}",
         }
+
+        for i, s_url in enumerate(layer_shots, 1):
+            params[f"screenshot_{i}"] = s_url
 
         query_string = urlencode({k: v for k, v in params.items() if v is not None and v != ""})
         return RedirectResponse(url=f"/trades/new?{query_string}", status_code=303)

@@ -368,8 +368,20 @@ def new_trade(request: Request):
         lookups = get_lookup_data(db)
     
     prefill = dict(request.query_params)
+    prefill_screenshots = []
+    # Collect screenshot_1, screenshot_2, screenshot_3, ... from prefill in natural order
+    shot_keys = sorted([k for k in prefill.keys() if k.startswith("screenshot_")], key=lambda x: int(x.split("_")[1]) if x.split("_")[1].isdigit() else 99)
+    for k in shot_keys:
+        if prefill[k] and prefill[k].strip():
+            prefill_screenshots.append(prefill[k].strip())
+
     return templates.TemplateResponse(
-        request, "trades/form.html", {"trade": None, "prefill": prefill, **lookups}
+        request, "trades/form.html", {
+            "trade": None,
+            "prefill": prefill,
+            "prefill_screenshots": prefill_screenshots,
+            **lookups
+        }
     )
 
 

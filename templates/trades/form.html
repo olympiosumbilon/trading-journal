@@ -437,6 +437,14 @@
                         <button type="button" class="btn-del-shot-row" onclick="removeScreenshotRow(this)" title="Remove Screenshot">✕</button>
                     </div>
                     {% endfor %}
+                {% elif prefill_screenshots %}
+                    {% for shot_url in prefill_screenshots %}
+                    <div class="shot-input-row">
+                        <span class="shot-row-num">#{{ loop.index }}</span>
+                        <input type="text" name="screenshots" value="{{ shot_url }}" placeholder="https://www.tradingview.com/x/..." class="shot-url-input">
+                        <button type="button" class="btn-del-shot-row" onclick="removeScreenshotRow(this)" title="Remove Screenshot">✕</button>
+                    </div>
+                    {% endfor %}
                 {% elif trade and (trade.screenshot_1 or trade.screenshot_2 or trade.screenshot_3) %}
                     {% if trade.screenshot_1 %}
                     <div class="shot-input-row">
