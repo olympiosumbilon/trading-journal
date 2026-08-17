@@ -381,18 +381,24 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
-    // Position active lesson in sidebar instantly without animated scrolling
+    // Preserve exact sidebar scroll position across lesson clicks (no jumping or forced centering)
+    const sidebarTree = document.getElementById('sidebarModulesTree') || document.querySelector('.course-sidebar');
     const activeItem = document.querySelector('.sm-lesson-item.active-lesson');
-    if (activeItem) {
-        const sidebarTree = document.getElementById('sidebarModulesTree');
-        const sidebar = document.querySelector('.course-sidebar');
-        const container = sidebarTree || sidebar;
-        if (container) {
-            const itemTop = activeItem.getBoundingClientRect().top;
-            const containerTop = container.getBoundingClientRect().top;
-            const offset = itemTop - containerTop + container.scrollTop;
-            container.scrollTop = Math.max(0, offset - (container.clientHeight / 2) + 20);
+    
+    if (sidebarTree) {
+        const savedScroll = sessionStorage.getItem('photon_sidebar_scroll');
+        if (savedScroll !== null) {
+            sidebarTree.scrollTop = parseInt(savedScroll, 10);
+        } else if (activeItem) {
+            activeItem.scrollIntoView({ block: 'nearest', behavior: 'instant' });
         }
+
+        // Save scroll position whenever a lesson or link is clicked
+        document.querySelectorAll('.sm-lesson-item, .sm-group-header').forEach(el => {
+            el.addEventListener('click', () => {
+                sessionStorage.setItem('photon_sidebar_scroll', sidebarTree.scrollTop);
+            });
+        });
     }
 });
 
