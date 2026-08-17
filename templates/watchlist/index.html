@@ -8,8 +8,8 @@
     <!-- Top Header & Metrics Bar -->
     <div class="wl-header-bar">
         <div>
-            <span class="brand-sub">EXECUTION PIPELINE & STAGING</span>
-            <h1 class="wl-title">🎯 Market Watchlist & Forward Testing</h1>
+            <span class="brand-sub">PRE-MARKET STAGING & FORWARD TESTING</span>
+            <h1 class="wl-title">Market Watchlist & Forward Testing</h1>
             <p class="wl-subtitle">Track pre-market setups, monitor POI waiting games, and promote triggered setups into live trades with 1 click.</p>
         </div>
         <div class="wl-header-actions">
@@ -26,19 +26,19 @@
             <span class="wl-metric-val">{{ ideas|length }}</span>
         </a>
         <a href="/watchlist/?status_filter=WAITING" class="wl-metric-card wl-metric-waiting {% if status_filter == 'WAITING' %}active-filter{% endif %}">
-            <span class="wl-metric-label">⏳ Waiting for POI</span>
+            <span class="wl-metric-label">Waiting for POI</span>
             <span class="wl-metric-val">{{ total_waiting }}</span>
         </a>
         <a href="/watchlist/?status_filter=MONITORING" class="wl-metric-card wl-metric-monitoring {% if status_filter == 'MONITORING' %}active-filter{% endif %}">
-            <span class="wl-metric-label">👀 Monitoring Trigger</span>
+            <span class="wl-metric-label">Monitoring Trigger</span>
             <span class="wl-metric-val">{{ total_monitoring }}</span>
         </a>
         <a href="/watchlist/?status_filter=EXECUTED" class="wl-metric-card wl-metric-executed {% if status_filter == 'EXECUTED' %}active-filter{% endif %}">
-            <span class="wl-metric-label">🚀 Live / Executed</span>
+            <span class="wl-metric-label">Live / Executed</span>
             <span class="wl-metric-val">{{ total_executed }}</span>
         </a>
         <a href="/watchlist/?status_filter=INVALIDATED" class="wl-metric-card wl-metric-invalidated {% if status_filter == 'INVALIDATED' %}active-filter{% endif %}">
-            <span class="wl-metric-label">🚫 Invalidated / Missed</span>
+            <span class="wl-metric-label">Invalidated / Missed</span>
             <span class="wl-metric-val">{{ total_invalidated + total_missed }}</span>
         </a>
     </div>
@@ -52,11 +52,11 @@
                 <label>Status:</label>
                 <select name="status_filter" onchange="this.form.submit()" class="wl-select">
                     <option value="ALL" {% if status_filter == 'ALL' %}selected{% endif %}>All Statuses</option>
-                    <option value="WAITING" {% if status_filter == 'WAITING' %}selected{% endif %}>⏳ Waiting for POI</option>
-                    <option value="MONITORING" {% if status_filter == 'MONITORING' %}selected{% endif %}>👀 Monitoring Trigger</option>
-                    <option value="EXECUTED" {% if status_filter == 'EXECUTED' %}selected{% endif %}>🚀 Live / Executed</option>
-                    <option value="INVALIDATED" {% if status_filter == 'INVALIDATED' %}selected{% endif %}>🚫 Invalidated</option>
-                    <option value="MISSED" {% if status_filter == 'MISSED' %}selected{% endif %}>💨 Missed Entry</option>
+                    <option value="WAITING" {% if status_filter == 'WAITING' %}selected{% endif %}>Waiting for POI</option>
+                    <option value="MONITORING" {% if status_filter == 'MONITORING' %}selected{% endif %}>Monitoring Trigger</option>
+                    <option value="EXECUTED" {% if status_filter == 'EXECUTED' %}selected{% endif %}>Live / Executed</option>
+                    <option value="INVALIDATED" {% if status_filter == 'INVALIDATED' %}selected{% endif %}>Invalidated</option>
+                    <option value="MISSED" {% if status_filter == 'MISSED' %}selected{% endif %}>Missed Entry</option>
                 </select>
             </div>
 
@@ -97,10 +97,10 @@
 
         <div class="wl-view-switcher">
             <button type="button" class="wl-vs-btn {% if view_mode == 'kanban' %}active{% endif %}" onclick="switchViewMode('kanban')" title="Kanban Board View">
-                📋 Kanban
+                Kanban
             </button>
             <button type="button" class="wl-vs-btn {% if view_mode == 'grid' %}active{% endif %}" onclick="switchViewMode('grid')" title="Grid Cards View">
-                🔲 Grid
+                Grid
             </button>
         </div>
     </div>
@@ -140,7 +140,7 @@
             <div class="wl-col-header col-waiting">
                 <div class="col-title-wrap">
                     <span class="col-dot dot-waiting"></span>
-                    <h3>⏳ Waiting for POI</h3>
+                    <h3>Waiting for POI</h3>
                 </div>
                 <span class="col-count-badge">{{ kanban['WAITING']|length }}</span>
             </div>
@@ -158,7 +158,7 @@
             <div class="wl-col-header col-monitoring">
                 <div class="col-title-wrap">
                     <span class="col-dot dot-monitoring"></span>
-                    <h3>👀 Monitoring Trigger</h3>
+                    <h3>Monitoring Trigger</h3>
                 </div>
                 <span class="col-count-badge">{{ kanban['MONITORING']|length }}</span>
             </div>
@@ -176,7 +176,7 @@
             <div class="wl-col-header col-executed">
                 <div class="col-title-wrap">
                     <span class="col-dot dot-executed"></span>
-                    <h3>🚀 Live / Executed</h3>
+                    <h3>Live / Executed</h3>
                 </div>
                 <span class="col-count-badge">{{ kanban['EXECUTED']|length }}</span>
             </div>
@@ -194,7 +194,7 @@
             <div class="wl-col-header col-resolved">
                 <div class="col-title-wrap">
                     <span class="col-dot dot-resolved"></span>
-                    <h3>🏁 Resolved / Inactive</h3>
+                    <h3>Resolved / Inactive</h3>
                 </div>
                 <span class="col-count-badge">{{ kanban['RESOLVED']|length }}</span>
             </div>
@@ -218,10 +218,9 @@
             {% include "watchlist/_card.html" %}
         {% else %}
         <div class="wl-empty-full">
-            <span style="font-size: 2.5rem;">🎯</span>
-            <h3>No trade ideas found</h3>
-            <p>Start tracking your pre-market analysis and waiting game setups!</p>
-            <a href="/watchlist/new" class="btn-primary-add" style="margin-top: 1rem;">+ Log Trade Idea</a>
+            <h3 style="color: #64748b; margin-bottom: 0.5rem;">No trade ideas found</h3>
+            <p class="text-muted">Start tracking your pre-market analysis and waiting game setups.</p>
+            <a href="/watchlist/new" class="btn-primary-add" style="margin-top: 1rem; display: inline-block;">+ Log Trade Idea</a>
         </div>
         {% endfor %}
     </div>
@@ -229,8 +228,8 @@
 
 </div>
 
-<!-- Interactive Chart Modal / Lightbox -->
-<div id="wlChartModal" class="wl-chart-lightbox" onclick="closeChartModal(event)">
+<!-- Interactive Chart Modal / Lightbox (Hidden strictly by default) -->
+<div id="wlChartModal" class="wl-chart-lightbox" style="display: none;" onclick="closeChartModal(event)">
     <div class="wl-lightbox-box">
         <div class="wl-lightbox-header">
             <span id="wlLightboxTitle" class="font-bold">Chart Preview</span>

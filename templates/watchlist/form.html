@@ -8,7 +8,7 @@
     <!-- Top Header -->
     <div class="form-page-header">
         <div>
-            <span class="brand-sub">FORWARD TESTING & EXECUTION STAGING</span>
+            <span class="brand-sub">FORWARD TESTING &amp; EXECUTION STAGING</span>
             <h1>{% if idea %}Edit Trade Idea: {{ idea.title }}{% else %}Log Pre-Market Trade Idea{% endif %}</h1>
         </div>
         <div class="header-actions">
@@ -21,7 +21,7 @@
         
         <!-- Section 1: Setup Title & Direction -->
         <div class="form-section-block">
-            <h4 class="form-section-title">📌 Core Setup & Direction</h4>
+            <h4 class="form-section-title">Setup Title &amp; Direction</h4>
             <div class="form-section-grid" style="grid-template-columns: 2fr 1fr 1fr;">
                 <div class="form-group">
                     <label>Setup Title / Name <small class="text-muted">(e.g. SOLUSD LC-1 M15 Demand)</small></label>
@@ -33,11 +33,11 @@
                     <div class="direction-toggle-group">
                         <label class="dir-radio-btn dir-long-label">
                             <input type="radio" name="direction" value="LONG" {% if not idea or idea.direction == 'LONG' %}checked{% endif %}>
-                            <span>▲ LONG</span>
+                            <span>LONG</span>
                         </label>
                         <label class="dir-radio-btn dir-short-label">
                             <input type="radio" name="direction" value="SHORT" {% if idea and idea.direction == 'SHORT' %}checked{% endif %}>
-                            <span>▼ SHORT</span>
+                            <span>SHORT</span>
                         </label>
                     </div>
                 </div>
@@ -45,11 +45,11 @@
                 <div class="form-group">
                     <label>Pipeline Status</label>
                     <select name="status" class="form-input">
-                        <option value="WAITING" {% if not idea or idea.status == 'WAITING' %}selected{% endif %}>⏳ Waiting for POI</option>
-                        <option value="MONITORING" {% if idea and idea.status == 'MONITORING' %}selected{% endif %}>👀 Monitoring Trigger</option>
-                        <option value="EXECUTED" {% if idea and idea.status == 'EXECUTED' %}selected{% endif %}>🚀 Live / Executed</option>
-                        <option value="INVALIDATED" {% if idea and idea.status == 'INVALIDATED' %}selected{% endif %}>🚫 Invalidated</option>
-                        <option value="MISSED" {% if idea and idea.status == 'MISSED' %}selected{% endif %}>💨 Missed Entry</option>
+                        <option value="WAITING" {% if not idea or idea.status == 'WAITING' %}selected{% endif %}>Waiting for POI</option>
+                        <option value="MONITORING" {% if idea and idea.status == 'MONITORING' %}selected{% endif %}>Monitoring Trigger</option>
+                        <option value="EXECUTED" {% if idea and idea.status == 'EXECUTED' %}selected{% endif %}>Live / Executed</option>
+                        <option value="INVALIDATED" {% if idea and idea.status == 'INVALIDATED' %}selected{% endif %}>Invalidated</option>
+                        <option value="MISSED" {% if idea and idea.status == 'MISSED' %}selected{% endif %}>Missed Entry</option>
                     </select>
                 </div>
             </div>
@@ -57,7 +57,7 @@
 
         <!-- Section 2: Market Context & Strategy Edge -->
         <div class="form-section-block">
-            <h4 class="form-section-title">🎯 Market Context & Strategy Edge</h4>
+            <h4 class="form-section-title">Market Context &amp; Strategy Edge</h4>
             <div class="form-section-grid grid-setup">
                 <div class="form-group">
                     <label>Instrument / Coin</label>
@@ -88,7 +88,7 @@
                         {% endfor %}
                         {% set archived_strats = strategies | selectattr('is_active', 'equalto', False) | list %}
                         {% if archived_strats %}
-                        <optgroup label="📦 Archived / Past Setups">
+                        <optgroup label="Archived / Past Setups">
                             {% for st in archived_strats %}
                             <option value="{{ st.id }}" {% if idea and idea.strategy_id == st.id %}selected{% endif %}>{{ st.name }} (Archived)</option>
                             {% endfor %}
@@ -121,7 +121,7 @@
 
         <!-- Section 3: Planned Levels & R:R Geometry -->
         <div class="form-section-block">
-            <h4 class="form-section-title">📐 Planned Execution Levels & Target R:R</h4>
+            <h4 class="form-section-title">Planned Execution Levels &amp; Target R:R</h4>
             <div class="form-section-grid" style="grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));">
                 <div class="form-group">
                     <label>Planned Entry Price</label>
@@ -151,7 +151,7 @@
         <!-- Section 4: Chart Snapshots & Clipboard Image Dropzones -->
         <div class="form-section-block">
             <div class="label-with-hint" style="margin-bottom: 0.75rem;">
-                <h4 class="form-section-title" style="margin-bottom: 0;">📸 Multi-Timeframe Chart Screenshots (Paste Support)</h4>
+                <h4 class="form-section-title" style="margin-bottom: 0;">Multi-Timeframe Chart Screenshots (Paste Support)</h4>
                 <span class="text-muted" style="font-size: 0.78rem;">Click a box and press <strong>Ctrl + V</strong> to paste from clipboard or click to upload file.</span>
             </div>
 
@@ -173,8 +173,7 @@
                     </div>
 
                     <div class="wl-dz-placeholder" id="htfPlaceholder" style="{% if idea and idea.htf_image_url %}display:none;{% endif %}">
-                        <span style="font-size: 2rem;">📋</span>
-                        <span class="font-bold" style="font-size: 0.85rem; color: #0284c7;">Click &amp; Paste HTF Screenshot (Ctrl+V)</span>
+                        <span class="font-bold" style="font-size: 0.88rem; color: #0284c7;">Click &amp; Paste HTF Screenshot (Ctrl+V)</span>
                         <small style="color: #64748b;">or click to browse image</small>
                     </div>
                 </div>
@@ -195,8 +194,7 @@
                     </div>
 
                     <div class="wl-dz-placeholder" id="ltfPlaceholder" style="{% if idea and idea.ltf_image_url %}display:none;{% endif %}">
-                        <span style="font-size: 2rem;">⚡</span>
-                        <span class="font-bold" style="font-size: 0.85rem; color: #0284c7;">Click &amp; Paste LTF Screenshot (Ctrl+V)</span>
+                        <span class="font-bold" style="font-size: 0.88rem; color: #0284c7;">Click &amp; Paste LTF Screenshot (Ctrl+V)</span>
                         <small style="color: #64748b;">or click to browse image</small>
                     </div>
                 </div>
@@ -212,7 +210,7 @@
 
         <!-- Section 5: Structural Bias, Confirmation & Detailed Notes -->
         <div class="form-section-block">
-            <h4 class="form-section-title">📝 Analysis & Execution Playbook Notes</h4>
+            <h4 class="form-section-title">Analysis &amp; Execution Playbook Notes</h4>
             <div class="form-section-grid" style="grid-template-columns: 1fr 1fr;">
                 <div class="form-group">
                     <label>HTF Bias</label>
@@ -225,7 +223,7 @@
             </div>
 
             <div class="form-group" style="margin-top: 0.75rem;">
-                <label>Pre-Trade Plan & Waiting Game Checklist</label>
+                <label>Pre-Trade Plan &amp; Waiting Game Checklist</label>
                 <textarea name="notes" rows="3" placeholder="What are the conditions for invalidation? News events to watch? Management plan..." class="form-input" style="resize: vertical;">{{ idea.notes if idea and idea.notes else '' }}</textarea>
             </div>
         </div>
@@ -233,7 +231,7 @@
         <!-- Form Actions Bar -->
         <div class="form-actions-bar">
             <button type="submit" class="btn-save-trade-submit" style="padding: 0.75rem 1.75rem;">
-                💾 {% if idea %}Update Trade Idea{% else %}Save to Watchlist{% endif %}
+                {% if idea %}Update Trade Idea{% else %}Save to Watchlist{% endif %}
             </button>
             <a href="/watchlist/" class="btn-cancel-trade">Cancel</a>
         </div>
@@ -242,9 +240,6 @@
 </div>
 
 <script>
-// ============================================================================
-// 1. Auto Calculate R:R
-// ============================================================================
 function calcPlannedRR() {
     const entry = parseFloat(document.getElementById('plannedEntry').value);
     const sl = parseFloat(document.getElementById('plannedSL').value);
@@ -268,9 +263,6 @@ function calcPlannedRR() {
     if (badge) badge.textContent = 'Auto';
 }
 
-// ============================================================================
-// 2. Clipboard Paste & Image Upload Handling for HTF & LTF
-// ============================================================================
 let activeDropzoneType = 'htf';
 
 document.getElementById('htfDropzone').addEventListener('focus', () => { activeDropzoneType = 'htf'; });
@@ -278,11 +270,8 @@ document.getElementById('ltfDropzone').addEventListener('focus', () => { activeD
 
 window.addEventListener('paste', function(e) {
     const items = (e.clipboardData || e.originalEvent.clipboardData).items;
-    let foundImage = false;
-
     for (let i = 0; i < items.length; i++) {
         if (items[i].type.indexOf('image') !== -1) {
-            foundImage = true;
             const blob = items[i].getAsFile();
             uploadImageBlob(blob, activeDropzoneType);
             break;
@@ -305,14 +294,12 @@ function uploadImageBlob(blob, type) {
     const formData = new FormData();
     formData.append('image', blob, `${type}_paste.png`);
 
-    // Preview immediately using FileReader
     const reader = new FileReader();
     reader.onload = function(e) {
         showPreview(type, e.target.result);
     };
     reader.readAsDataURL(blob);
 
-    // Upload to server
     fetch('/watchlist/api/upload_image', {
         method: 'POST',
         body: formData

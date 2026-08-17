@@ -4,17 +4,17 @@
     <div class="wl-card-header">
         <div class="wl-card-title-row">
             <span class="wl-dir-badge dir-{{ idea.direction|lower }}">
-                {{ "▲ LONG" if idea.direction == 'LONG' else "▼ SHORT" }}
+                {{ "LONG" if idea.direction == 'LONG' else "SHORT" }}
             </span>
             <span class="wl-inst-badge font-bold">
                 {{ idea.instrument_obj.name if idea.instrument_obj else "Custom" }}
             </span>
             <span class="wl-status-pill status-pill-{{ idea.status|lower }}">
-                {% if idea.status == 'WAITING' %}⏳ Waiting
-                {% elif idea.status == 'MONITORING' %}👀 Monitoring
-                {% elif idea.status == 'EXECUTED' %}🚀 Live
-                {% elif idea.status == 'INVALIDATED' %}🚫 Invalidated
-                {% elif idea.status == 'MISSED' %}💨 Missed
+                {% if idea.status == 'WAITING' %}Waiting
+                {% elif idea.status == 'MONITORING' %}Monitoring
+                {% elif idea.status == 'EXECUTED' %}Live
+                {% elif idea.status == 'INVALIDATED' %}Invalidated
+                {% elif idea.status == 'MISSED' %}Missed
                 {% else %}{{ idea.status }}{% endif %}
             </span>
         </div>
@@ -88,7 +88,7 @@
 
         {% if idea.tradingview_url and not idea.htf_image_url and not idea.ltf_image_url %}
         <a href="{{ idea.tradingview_url }}" target="_blank" rel="noopener noreferrer" class="wl-tv-link">
-            <span>📈 View TradingView Chart Snapshot &rarr;</span>
+            <span>View TradingView Snapshot &rarr;</span>
         </a>
         {% endif %}
     </div>
@@ -105,7 +105,7 @@
         {% endif %}
         {% if idea.ltf_confirmation %}
         <div class="wl-note-row">
-            <span class="note-key">Confirmation:</span>
+            <span class="note-key">Trigger:</span>
             <span class="note-text">{{ idea.ltf_confirmation }}</span>
         </div>
         {% endif %}
@@ -119,16 +119,16 @@
     <div class="wl-card-actions">
         {% if idea.status != 'EXECUTED' %}
         <a href="/watchlist/{{ idea.id }}/promote" class="wl-btn-promote" title="Promote setup directly into Live Trade Log">
-            ⚡ Convert to Live Trade &rarr;
+            Convert to Live Trade &rarr;
         </a>
         {% else %}
             {% if idea.promoted_trade_id %}
             <a href="/trades/{{ idea.promoted_trade_id }}" class="wl-btn-promoted-view">
-                ✅ View Live Trade #{{ idea.promoted_trade_id }}
+                View Live Trade #{{ idea.promoted_trade_id }} &rarr;
             </a>
             {% else %}
             <a href="/trades/new" class="wl-btn-promoted-view">
-                ✅ Executed in Live
+                Executed in Live
             </a>
             {% endif %}
         {% endif %}
@@ -137,18 +137,18 @@
         <div class="wl-card-tools">
             <form method="POST" action="/watchlist/{{ idea.id }}/status" style="display:inline;">
                 <select name="status" onchange="this.form.submit()" class="wl-status-select" title="Change Stage">
-                    <option value="WAITING" {% if idea.status == 'WAITING' %}selected{% endif %}>⏳ Waiting</option>
-                    <option value="MONITORING" {% if idea.status == 'MONITORING' %}selected{% endif %}>👀 Monitoring</option>
-                    <option value="EXECUTED" {% if idea.status == 'EXECUTED' %}selected{% endif %}>🚀 Live</option>
-                    <option value="INVALIDATED" {% if idea.status == 'INVALIDATED' %}selected{% endif %}>🚫 Invalidated</option>
-                    <option value="MISSED" {% if idea.status == 'MISSED' %}selected{% endif %}>💨 Missed</option>
+                    <option value="WAITING" {% if idea.status == 'WAITING' %}selected{% endif %}>Waiting</option>
+                    <option value="MONITORING" {% if idea.status == 'MONITORING' %}selected{% endif %}>Monitoring</option>
+                    <option value="EXECUTED" {% if idea.status == 'EXECUTED' %}selected{% endif %}>Live</option>
+                    <option value="INVALIDATED" {% if idea.status == 'INVALIDATED' %}selected{% endif %}>Invalidated</option>
+                    <option value="MISSED" {% if idea.status == 'MISSED' %}selected{% endif %}>Missed</option>
                 </select>
             </form>
 
-            <a href="/watchlist/{{ idea.id }}/edit" class="wl-tool-btn" title="Edit Setup">✏️</a>
+            <a href="/watchlist/{{ idea.id }}/edit" class="wl-tool-btn" title="Edit Setup">Edit</a>
             
             <form method="POST" action="/watchlist/{{ idea.id }}/delete" onsubmit="return confirm('Delete this trade idea?');" style="display:inline;">
-                <button type="submit" class="wl-tool-btn btn-tool-del" title="Delete Setup">🗑️</button>
+                <button type="submit" class="wl-tool-btn btn-tool-del" title="Delete Setup">Delete</button>
             </form>
         </div>
     </div>
