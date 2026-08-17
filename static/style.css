@@ -9266,6 +9266,42 @@ main.main-full-bleed {
     object-fit: contain;
 }
 
+/* Mobile Kanban Column Tabs (Hidden on Desktop) */
+.wl-mobile-column-tabs {
+    display: none;
+    gap: 0.35rem;
+    overflow-x: auto;
+    padding-bottom: 0.5rem;
+    margin-bottom: 0.75rem;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+}
+
+.wl-mobile-column-tabs::-webkit-scrollbar {
+    display: none;
+}
+
+.wl-m-col-tab {
+    flex-shrink: 0;
+    padding: 0.4rem 0.75rem;
+    font-size: 0.75rem;
+    font-weight: 700;
+    border-radius: 20px;
+    border: 1px solid #cbd5e1;
+    background: #ffffff;
+    color: #475569;
+    cursor: pointer;
+    white-space: nowrap;
+    transition: all 0.15s ease;
+}
+
+.wl-m-col-tab.active {
+    background: #0284c7;
+    color: #ffffff;
+    border-color: #0284c7;
+    box-shadow: 0 2px 6px rgba(2, 132, 199, 0.25);
+}
+
 @media (max-width: 1024px) {
     .wl-kanban-board {
         grid-template-columns: 1fr 1fr;
@@ -9278,12 +9314,119 @@ main.main-full-bleed {
     }
 }
 
-@media (max-width: 640px) {
-    .wl-kanban-board {
-        grid-template-columns: 1fr;
+@media (max-width: 768px) {
+    .wl-mobile-column-tabs {
+        display: flex;
+    }
+    .wl-header-bar {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 0.75rem;
+    }
+    .wl-header-actions {
+        width: 100%;
+        display: flex;
+        gap: 0.5rem;
+    }
+    .wl-header-actions .btn-primary-add,
+    .wl-header-actions .btn-secondary {
+        flex: 1;
+        justify-content: center;
+        text-align: center;
+        padding: 0.55rem 0.75rem;
+        font-size: 0.8rem;
     }
     .wl-metrics-ribbon {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 0.45rem;
+    }
+    .wl-metric-card {
+        padding: 0.5rem 0.65rem;
+    }
+    .wl-metric-val {
+        font-size: 1.25rem;
+    }
+    .wl-controls-bar {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 0.65rem;
+        padding: 0.65rem;
+    }
+    .wl-filter-form {
+        display: grid;
         grid-template-columns: 1fr 1fr;
+        gap: 0.45rem;
+        width: 100%;
+    }
+    .wl-filter-group {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 0.2rem;
+    }
+    .wl-select {
+        width: 100%;
+    }
+    .wl-btn-reset {
+        grid-column: span 2;
+        text-align: center;
+    }
+    .wl-view-switcher {
+        width: 100%;
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+    }
+    .wl-vs-btn {
+        text-align: center;
+        padding: 0.45rem;
+    }
+    .wl-kanban-board {
+        grid-template-columns: 1fr;
+        gap: 0.75rem;
+    }
+    .wl-cards-grid {
+        grid-template-columns: 1fr;
+    }
+    .wl-form-container {
+        padding: 0.75rem;
+    }
+    .form-section-grid {
+        grid-template-columns: 1fr !important;
+    }
+    .wl-tf-layer-grid {
+        grid-template-columns: 1fr !important;
+        gap: 0.75rem;
+    }
+    .wl-tf-layer-header {
+        flex-wrap: wrap;
+        gap: 0.4rem;
+    }
+    .wl-tf-title-box {
+        flex: 1;
+        min-width: 100%;
+    }
+    .wl-tf-builder-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 0.5rem;
+    }
+    .wl-tf-builder-header button {
+        width: 100%;
+    }
+    .wl-rm-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 0.5rem;
+    }
+    .wl-rm-header .modal-close {
+        align-self: flex-end;
+        margin-top: -2rem;
+    }
+    .wl-roadmap-tabs {
+        width: 100%;
+    }
+    .wl-rm-tab {
+        flex: 1;
+        text-align: center;
     }
 }
 

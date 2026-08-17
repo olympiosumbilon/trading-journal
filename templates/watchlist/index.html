@@ -136,10 +136,30 @@
     <!-- VIEW MODE 1: KANBAN PIPELINE BOARD -->
     <!-- ========================================================================= -->
     {% if view_mode == 'kanban' %}
+    
+    <!-- Mobile Kanban Column Tab Selector -->
+    <div class="wl-mobile-column-tabs">
+        <button type="button" class="wl-m-col-tab active" onclick="showMobileKanbanCol('all', this)">
+            All Stages
+        </button>
+        <button type="button" class="wl-m-col-tab" onclick="showMobileKanbanCol('waiting', this)">
+            Waiting ({{ kanban['WAITING']|length }})
+        </button>
+        <button type="button" class="wl-m-col-tab" onclick="showMobileKanbanCol('monitoring', this)">
+            Monitoring ({{ kanban['MONITORING']|length }})
+        </button>
+        <button type="button" class="wl-m-col-tab" onclick="showMobileKanbanCol('executed', this)">
+            Live ({{ kanban['EXECUTED']|length }})
+        </button>
+        <button type="button" class="wl-m-col-tab" onclick="showMobileKanbanCol('resolved', this)">
+            Inactive ({{ kanban['RESOLVED']|length }})
+        </button>
+    </div>
+
     <div class="wl-kanban-board">
         
         <!-- Column 1: WAITING -->
-        <div class="wl-kanban-col">
+        <div class="wl-kanban-col" id="colWaiting">
             <div class="wl-col-header col-waiting">
                 <div class="col-title-wrap">
                     <span class="col-dot dot-waiting"></span>
@@ -157,7 +177,7 @@
         </div>
 
         <!-- Column 2: MONITORING -->
-        <div class="wl-kanban-col">
+        <div class="wl-kanban-col" id="colMonitoring">
             <div class="wl-col-header col-monitoring">
                 <div class="col-title-wrap">
                     <span class="col-dot dot-monitoring"></span>
@@ -175,7 +195,7 @@
         </div>
 
         <!-- Column 3: EXECUTED -->
-        <div class="wl-kanban-col">
+        <div class="wl-kanban-col" id="colExecuted">
             <div class="wl-col-header col-executed">
                 <div class="col-title-wrap">
                     <span class="col-dot dot-executed"></span>
@@ -193,7 +213,7 @@
         </div>
 
         <!-- Column 4: RESOLVED (Invalidated / Missed) -->
-        <div class="wl-kanban-col">
+        <div class="wl-kanban-col" id="colResolved">
             <div class="wl-col-header col-resolved">
                 <div class="col-title-wrap">
                     <span class="col-dot dot-resolved"></span>
@@ -274,6 +294,30 @@ function switchViewMode(mode) {
     const url = new URL(window.location.href);
     url.searchParams.set('view_mode', mode);
     window.location.href = url.toString();
+}
+
+function showMobileKanbanCol(colKey, tabBtn) {
+    document.querySelectorAll('.wl-m-col-tab').forEach(b => b.classList.remove('active'));
+    if (tabBtn) tabBtn.classList.add('active');
+
+    const colMap = {
+        'waiting': document.getElementById('colWaiting'),
+        'monitoring': document.getElementById('colMonitoring'),
+        'executed': document.getElementById('colExecuted'),
+        'resolved': document.getElementById('colResolved'),
+    };
+
+    if (colKey === 'all') {
+        Object.values(colMap).forEach(col => {
+            if (col) col.style.display = '';
+        });
+    } else {
+        Object.entries(colMap).forEach(([key, col]) => {
+            if (col) {
+                col.style.display = (key === colKey) ? 'block' : 'none';
+            }
+        });
+    }
 }
 
 function openChartModal(src, title) {
