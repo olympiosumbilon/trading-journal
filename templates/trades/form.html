@@ -76,8 +76,8 @@
                 <div class="calc-field">
                     <label>Direction</label>
                     <select id="calcDirection" onchange="recalcPositionSize()">
-                        <option value="long" {% if prefill and prefill.direction == 'LONG' %}selected{% endif %}>LONG (Buy)</option>
-                        <option value="short" {% if prefill and prefill.direction == 'SHORT' %}selected{% endif %}>SHORT (Sell)</option>
+                        <option value="long" {% if prefill and (prefill.direction|upper == 'LONG') %}selected{% endif %}>LONG (Buy)</option>
+                        <option value="short" {% if prefill and (prefill.direction|upper == 'SHORT') %}selected{% endif %}>SHORT (Sell)</option>
                     </select>
                 </div>
             </div>
@@ -85,7 +85,7 @@
             <div class="calc-field-row three-col">
                 <div class="calc-field">
                     <label>Entry Price ($)</label>
-                    <input type="number" id="calcEntry" placeholder="e.g. 150.00" step="any" value="{{ prefill.entry_price if prefill and prefill.entry_price else '' }}" oninput="recalcPositionSize()">
+                    <input type="number" id="calcEntry" placeholder="e.g. 150.00" step="any" value="{{ prefill.entry_price if prefill and prefill.entry_price else (prefill.planned_entry if prefill and prefill.planned_entry else '') }}" oninput="recalcPositionSize()">
                 </div>
                 <div class="calc-field">
                     <div class="calc-label-row">
@@ -95,11 +95,11 @@
                             <option value="pct">% Distance</option>
                         </select>
                     </div>
-                    <input type="number" id="calcSL" placeholder="e.g. 147.00" step="any" value="{{ prefill.stop_loss if prefill and prefill.stop_loss else '' }}" oninput="recalcPositionSize()">
+                    <input type="number" id="calcSL" placeholder="e.g. 147.00" step="any" value="{{ prefill.stop_loss if prefill and prefill.stop_loss else (prefill.planned_sl if prefill and prefill.planned_sl else '') }}" oninput="recalcPositionSize()">
                 </div>
                 <div class="calc-field">
                     <label>Take Profit Price ($)</label>
-                    <input type="number" id="calcTP" placeholder="e.g. 160.00" step="any" value="{{ prefill.tp_target if prefill and prefill.tp_target else '' }}" oninput="recalcPositionSize()">
+                    <input type="number" id="calcTP" placeholder="e.g. 160.00" step="any" value="{{ prefill.tp_target if prefill and prefill.tp_target else (prefill.planned_tp if prefill and prefill.planned_tp else '') }}" oninput="recalcPositionSize()">
                 </div>
             </div>
 
