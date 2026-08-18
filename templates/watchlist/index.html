@@ -175,7 +175,10 @@
                     <span class="col-dot dot-waiting"></span>
                     <h3>Waiting for POI</h3>
                 </div>
-                <span class="col-count-badge">{{ kanban['WAITING']|length }}</span>
+                <div style="display:flex; align-items:center; gap:0.35rem;">
+                    <span class="col-count-badge">{{ kanban['WAITING']|length }}</span>
+                    <button type="button" class="wl-col-btn-toggle" onclick="toggleKanbanCol('colWaiting')" title="Minimize / Expand Column">➖</button>
+                </div>
             </div>
             <div class="wl-col-cards">
                 {% for idea in kanban['WAITING'] %}
@@ -193,7 +196,10 @@
                     <span class="col-dot dot-monitoring"></span>
                     <h3>Monitoring Trigger</h3>
                 </div>
-                <span class="col-count-badge">{{ kanban['MONITORING']|length }}</span>
+                <div style="display:flex; align-items:center; gap:0.35rem;">
+                    <span class="col-count-badge">{{ kanban['MONITORING']|length }}</span>
+                    <button type="button" class="wl-col-btn-toggle" onclick="toggleKanbanCol('colMonitoring')" title="Minimize / Expand Column">➖</button>
+                </div>
             </div>
             <div class="wl-col-cards">
                 {% for idea in kanban['MONITORING'] %}
@@ -211,7 +217,10 @@
                     <span class="col-dot dot-executed"></span>
                     <h3>Live / Executed</h3>
                 </div>
-                <span class="col-count-badge">{{ kanban['EXECUTED']|length }}</span>
+                <div style="display:flex; align-items:center; gap:0.35rem;">
+                    <span class="col-count-badge">{{ kanban['EXECUTED']|length }}</span>
+                    <button type="button" class="wl-col-btn-toggle" onclick="toggleKanbanCol('colExecuted')" title="Minimize / Expand Column">➖</button>
+                </div>
             </div>
             <div class="wl-col-cards">
                 {% for idea in kanban['EXECUTED'] %}
@@ -222,21 +231,38 @@
             </div>
         </div>
 
-        <!-- Column 4: RESOLVED (Invalidated / Missed) -->
+        <!-- Column 4: RESOLVED (Invalidated / Missed / Archived) -->
         <div class="wl-kanban-col" id="colResolved">
             <div class="wl-col-header col-resolved">
                 <div class="col-title-wrap">
                     <span class="col-dot dot-resolved"></span>
                     <h3>Resolved / Inactive</h3>
                 </div>
-                <span class="col-count-badge">{{ kanban['RESOLVED']|length }}</span>
+                <div style="display:flex; align-items:center; gap:0.35rem;">
+                    <span class="col-count-badge">{{ kanban['RESOLVED']|length }}</span>
+                    <button type="button" class="wl-col-btn-toggle" onclick="toggleKanbanCol('colResolved')" title="Minimize / Expand Column">➖</button>
+                </div>
             </div>
             <div class="wl-col-cards">
-                {% for idea in kanban['RESOLVED'] %}
-                    {% include "watchlist/_card.html" %}
+                {% set resolved_items = kanban['RESOLVED'] %}
+                {% if resolved_items %}
+                    {% for idea in resolved_items[:5] %}
+                        {% include "watchlist/_card.html" %}
+                    {% endfor %}
+
+                    {% if resolved_items|length > 5 %}
+                    <div id="resolvedMoreBox" style="display:none; flex-direction:column; gap:0.85rem;">
+                        {% for idea in resolved_items[5:] %}
+                            {% include "watchlist/_card.html" %}
+                        {% endfor %}
+                    </div>
+                    <button type="button" class="btn-load-more-archived" id="btnToggleMoreResolved" onclick="toggleMoreResolved()">
+                        📦 Show All Archived Setups ({{ resolved_items|length - 5 }} more) &darr;
+                    </button>
+                    {% endif %}
                 {% else %}
                     <div class="wl-empty-col">No invalidated or missed setups.</div>
-                {% endfor %}
+                {% endif %}
             </div>
         </div>
 
@@ -347,6 +373,47 @@ function closeChartModal(e) {
         if (modal) modal.style.display = 'none';
     }
 }
+
+function toggleKanbanCol(colId) {
+    const col = document.getElementById(colId);
+    if (!col) return;
+    col.classList.toggle('col-collapsed');
+    const isCollapsed = col.classList.contains('col-collapsed');
+    const btn = col.querySelector('.wl-col-btn-toggle');
+    if (btn) btn.textContent = isCollapsed ? '➕' : '➖';
+    try {
+        localStorage.setItem(`col_collapsed_${colId}`, isCollapsed ? '1' : '0');
+    } catch(e) {}
+}
+
+function toggleMoreResolved() {
+    const box = document.getElementById('resolvedMoreBox');
+    const btn = document.getElementById('btnToggleMoreResolved');
+    if (!box || !btn) return;
+    if (box.style.display === 'none' || !box.style.display) {
+        box.style.display = 'flex';
+        btn.textContent = '↑ Show Less';
+    } else {
+        box.style.display = 'none';
+        btn.innerHTML = '📦 Show All Archived Setups &darr;';
+    }
+}
+
+// Restore saved column collapsed states on page load
+document.addEventListener('DOMContentLoaded', () => {
+    ['colWaiting', 'colMonitoring', 'colExecuted', 'colResolved'].forEach(colId => {
+        try {
+            if (localStorage.getItem(`col_collapsed_${colId}`) === '1') {
+                const col = document.getElementById(colId);
+                if (col) {
+                    col.classList.add('col-collapsed');
+                    const btn = col.querySelector('.wl-col-btn-toggle');
+                    if (btn) btn.textContent = '➕';
+                }
+            }
+        } catch(e) {}
+    });
+});
 </script>
 
 {% include "watchlist/_roadmap_modal.html" %}
