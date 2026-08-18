@@ -412,6 +412,7 @@ def create_trade(
     entry_news: str = Form(""),
     management_news: str = Form(""),
     entry_candle_size: str = Form(""),
+    adverse_wick_price: str = Form(""),
     mae_sl_buffer: str = Form(""),
     mfe: str = Form(""),
     comments: str = Form(""),
@@ -517,6 +518,7 @@ def create_trade(
             entry_news=entry_news or None,
             management_news=management_news or None,
             entry_candle_size=float(entry_candle_size) if entry_candle_size else None,
+            adverse_wick_price=float(adverse_wick_price) if adverse_wick_price else None,
             mae_sl_buffer=float(mae_sl_buffer) if mae_sl_buffer else None,
             mfe=float(mfe) if mfe else None,
             comments=comments or None,
@@ -709,6 +711,7 @@ def update_trade(
     entry_news: str = Form(""),
     management_news: str = Form(""),
     entry_candle_size: str = Form(""),
+    adverse_wick_price: str = Form(""),
     mae_sl_buffer: str = Form(""),
     mfe: str = Form(""),
     comments: str = Form(""),
@@ -812,6 +815,7 @@ def update_trade(
         trade.entry_news = entry_news or None
         trade.management_news = management_news or None
         trade.entry_candle_size = float(entry_candle_size) if entry_candle_size else None
+        trade.adverse_wick_price = float(adverse_wick_price) if adverse_wick_price else None
         trade.mae_sl_buffer = float(mae_sl_buffer) if mae_sl_buffer else None
         trade.mfe = float(mfe) if mfe else None
         trade.comments = comments or None

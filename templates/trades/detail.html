@@ -92,7 +92,11 @@
             <span class="m-val mono">{{ trade.entry_candle_size or "—" }}</span>
         </div>
         <div class="metric-item">
-            <span class="m-label">SL BUFFER</span>
+            <span class="m-label">ADVERSE WICK</span>
+            <span class="m-val mono">{{ trade.adverse_wick_price or "—" }}</span>
+        </div>
+        <div class="metric-item">
+            <span class="m-label">MAE SL BUFFER</span>
             <span class="m-val mono">{{ trade.mae_sl_buffer or "—" }}</span>
         </div>
         <div class="metric-item">

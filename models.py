@@ -93,6 +93,7 @@ class Trade(Base):
 
     # Price data
     entry_candle_size = Column(Float, nullable=True)
+    adverse_wick_price = Column(Float, nullable=True)
     mae_sl_buffer = Column(Float, nullable=True)
     mfe = Column(Float, nullable=True)
 
