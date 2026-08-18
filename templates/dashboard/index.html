@@ -681,10 +681,13 @@ new Chart(ctx, {
             },
             y: {
                 grid: { color: '#1e293b' },
+                suggestedMin: 0,
                 ticks: {
                     color: '#94a3b8',
                     font: { size: 10 },
-                    callback: (v) => v + 'R'
+                    callback: function(v) {
+                        return (typeof v === 'number' ? Number(v.toFixed(2)) : v) + 'R';
+                    }
                 }
             }
         }

@@ -205,8 +205,8 @@ def dashboard(request: Request, year: str = ""):
         day_rankings.sort(key=lambda x: (x["total_r"], x["win_rate"]), reverse=True)
 
         # 6. Cumulative R data series
-        cum_labels = []
-        cum_values = []
+        cum_labels = ["Start"] if trades_list else []
+        cum_values = [0.0] if trades_list else []
         running_c = 0.0
         for idx, t in enumerate(trades_list):
             running_c += (t.fixed_r_target or 0.0)

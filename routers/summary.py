@@ -142,8 +142,8 @@ def summary(request: Request, year: str = ""):
         kpi_summary = calc_all_time_kpi(trades)
 
         # 2. Cumulative R Chart Series
-        cum_labels = []
-        cum_values = []
+        cum_labels = ["Start"] if trades else []
+        cum_values = [0.0] if trades else []
         running_cum_r = 0.0
         for idx, t in enumerate(trades):
             running_cum_r += (t.fixed_r_target or 0.0)
