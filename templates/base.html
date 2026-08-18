@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{% block title %}Trading Journal{% endblock %}</title>
-    <link rel="stylesheet" href="/static/style.css?v=20260818c">
+    <link rel="stylesheet" href="/static/style.css?v=20260818d">
 </head>
 <body>
     <nav class="main-nav">
@@ -131,6 +131,26 @@
             document.body.style.overflow = '';
         }
     }
+
+    // Global smart positioning for desktop hover popovers
+    document.addEventListener('mouseover', function(e) {
+        const wrapper = e.target.closest('.interactive-trade-wrapper');
+        if (wrapper && window.innerWidth > 768) {
+            const popover = wrapper.querySelector('.trade-hover-popover');
+            if (popover) {
+                const rect = wrapper.getBoundingClientRect();
+                const popoverHeight = 240;
+                const spaceBelow = window.innerHeight - rect.bottom;
+                const spaceAbove = rect.top;
+                
+                if (spaceBelow < popoverHeight && spaceAbove > spaceBelow) {
+                    popover.classList.add('popover-pos-up');
+                } else {
+                    popover.classList.remove('popover-pos-up');
+                }
+            }
+        }
+    });
 
     // Global mobile delegate click listener for trade count badges
     document.addEventListener('click', function(e) {

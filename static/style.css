@@ -4428,6 +4428,41 @@ a {
     border-color: transparent transparent #090d16 transparent;
 }
 
+/* Upward Popover (when near bottom of screen or table) */
+.trade-hover-popover.popover-pos-up,
+tbody tr:nth-last-child(-n+3) .trade-hover-popover,
+.matrix-table tbody tr:nth-last-child(-n+3) .trade-hover-popover,
+tfoot .trade-hover-popover {
+    top: auto;
+    bottom: calc(100% + 8px);
+    transform: translateX(-50%) translateY(-4px);
+}
+
+.trade-hover-popover.popover-pos-up::before,
+tbody tr:nth-last-child(-n+3) .trade-hover-popover::before,
+.matrix-table tbody tr:nth-last-child(-n+3) .trade-hover-popover::before,
+tfoot .trade-hover-popover::before {
+    bottom: auto;
+    top: 100%;
+    border-color: #334155 transparent transparent transparent;
+}
+
+.trade-hover-popover.popover-pos-up::after,
+tbody tr:nth-last-child(-n+3) .trade-hover-popover::after,
+.matrix-table tbody tr:nth-last-child(-n+3) .trade-hover-popover::after,
+tfoot .trade-hover-popover::after {
+    bottom: auto;
+    top: 100%;
+    border-color: #090d16 transparent transparent transparent;
+}
+
+.interactive-trade-wrapper:hover .trade-hover-popover.popover-pos-up,
+tbody tr:nth-last-child(-n+3) .interactive-trade-wrapper:hover .trade-hover-popover,
+.matrix-table tbody tr:nth-last-child(-n+3) .interactive-trade-wrapper:hover .trade-hover-popover,
+tfoot .interactive-trade-wrapper:hover .trade-hover-popover {
+    transform: translateX(-50%) translateY(0);
+}
+
 .popover-header {
     display: flex;
     justify-content: space-between;
