@@ -75,7 +75,7 @@
                 </div>
                 <div class="calc-field">
                     <label>Direction</label>
-                    <select id="calcDirection" onchange="recalcPositionSize()">
+                    <select id="calcDirection" onchange="recalcPositionSize(); recalcAdverseWick();">
                         <option value="long" {% if prefill and (prefill.direction|upper == 'LONG') %}selected{% endif %}>LONG (Buy)</option>
                         <option value="short" {% if prefill and (prefill.direction|upper == 'SHORT') %}selected{% endif %}>SHORT (Sell)</option>
                     </select>
@@ -85,7 +85,7 @@
             <div class="calc-field-row three-col">
                 <div class="calc-field">
                     <label>Entry Price ($)</label>
-                    <input type="number" id="calcEntry" placeholder="e.g. 150.00" step="any" value="{{ prefill.entry_price if prefill and prefill.entry_price else (prefill.planned_entry if prefill and prefill.planned_entry else '') }}" oninput="recalcPositionSize()">
+                    <input type="number" id="calcEntry" placeholder="e.g. 150.00" step="any" value="{{ prefill.entry_price if prefill and prefill.entry_price else (prefill.planned_entry if prefill and prefill.planned_entry else '') }}" oninput="recalcPositionSize(); recalcAdverseWick();">
                 </div>
                 <div class="calc-field">
                     <div class="calc-label-row">
@@ -95,7 +95,7 @@
                             <option value="pct">% Distance</option>
                         </select>
                     </div>
-                    <input type="number" id="calcSL" placeholder="e.g. 147.00" step="any" value="{{ prefill.stop_loss if prefill and prefill.stop_loss else (prefill.planned_sl if prefill and prefill.planned_sl else '') }}" oninput="recalcPositionSize()">
+                    <input type="number" id="calcSL" placeholder="e.g. 147.00" step="any" value="{{ prefill.stop_loss if prefill and prefill.stop_loss else (prefill.planned_sl if prefill and prefill.planned_sl else '') }}" oninput="recalcPositionSize(); recalcAdverseWick();">
                 </div>
                 <div class="calc-field">
                     <label>Take Profit Price ($)</label>
@@ -777,6 +777,7 @@ function recalcPositionSize() {
 
     // Auto-calculate Candle Size, MAE SL Buffer, and MFE in Section 3
     autoCalcGeometryFromPrices();
+    recalcAdverseWick();
 }
 
 function autoCalcGeometryFromPrices() {
@@ -787,6 +788,7 @@ function autoCalcGeometryFromPrices() {
     const slBufferInput = document.getElementById('formSLBuffer');
     const mfeInput = document.getElementById('formMFE');
     const hint = document.getElementById('autoCalcGeometryHint');
+    const wickInput = document.getElementById('formAdverseWick');
 
     if (entry > 0 && sl > 0) {
         const candleDist = Math.abs(entry - sl);
@@ -794,7 +796,8 @@ function autoCalcGeometryFromPrices() {
             candleInput.value = candleDist.toFixed(4);
             candleInput.dataset.auto = 'true';
         }
-        if (slBufferInput && (!slBufferInput.value || slBufferInput.dataset.auto === 'true')) {
+        const hasWick = wickInput && wickInput.value && wickInput.value.trim() !== '';
+        if (!hasWick && slBufferInput && (!slBufferInput.value || slBufferInput.dataset.auto === 'true')) {
             slBufferInput.value = '0.0000';
             slBufferInput.dataset.auto = 'true';
         }
@@ -1006,6 +1009,7 @@ document.addEventListener('DOMContentLoaded', function() {
 // ============================================================================
 function recalcAdverseWick() {
     const slInput = document.getElementById('calcSL');
+    const entryInput = document.getElementById('calcEntry');
     const dirSelect = document.getElementById('calcDirection');
     const wickInput = document.getElementById('formAdverseWick');
     const bufferInput = document.getElementById('formSLBuffer');
@@ -1013,9 +1017,40 @@ function recalcAdverseWick() {
 
     if (!wickInput || !bufferInput) return;
 
-    const wickVal = parseFloat(wickInput.value);
-    const slVal = slInput ? parseFloat(slInput.value) : NaN;
-    const dir = dirSelect ? dirSelect.value.toUpperCase() : 'LONG';
+    const rawWickStr = (wickInput.value || '').toString().trim().replace(/,/g, '').replace(/\$/g, '');
+    if (!rawWickStr) {
+        if (hint) {
+            hint.style.display = 'none';
+            hint.textContent = '';
+        }
+        return;
+    }
+
+    const wickVal = parseFloat(rawWickStr);
+    const slVal = slInput ? parseFloat((slInput.value || '').toString().trim().replace(/,/g, '').replace(/\$/g, '')) : NaN;
+    const entryVal = entryInput ? parseFloat((entryInput.value || '').toString().trim().replace(/,/g, '').replace(/\$/g, '')) : NaN;
+    
+    // Determine direction
+    let dir = 'LONG';
+    if (dirSelect) {
+        const dVal = (dirSelect.value || '').toString().toUpperCase();
+        if (dVal.includes('SHORT') || dVal.includes('SELL')) {
+            dir = 'SHORT';
+        }
+    } else if (!isNaN(entryVal) && !isNaN(slVal)) {
+        dir = slVal > entryVal ? 'SHORT' : 'LONG';
+    }
+
+    if (isNaN(slVal) || slVal <= 0) {
+        if (hint) {
+            hint.style.display = 'inline-block';
+            hint.textContent = '⚠️ Enter Stop Loss in Calculator above';
+            hint.style.color = '#dc2626';
+            hint.style.background = '#fef2f2';
+            hint.style.borderColor = '#fecaca';
+        }
+        return;
+    }
 
     if (!isNaN(wickVal) && !isNaN(slVal) && slVal > 0) {
         let excess = 0.0;
@@ -1026,7 +1061,7 @@ function recalcAdverseWick() {
         }
         
         excess = parseFloat(excess.toFixed(4));
-        bufferInput.value = excess;
+        bufferInput.value = excess.toFixed(4);
 
         if (hint) {
             hint.style.display = 'inline-block';
@@ -1036,7 +1071,7 @@ function recalcAdverseWick() {
                 hint.style.background = '#fef3c7';
                 hint.style.borderColor = '#fde68a';
             } else {
-                hint.textContent = `✅ Clean (0.00)`;
+                hint.textContent = `✅ Clean (0.0000)`;
                 hint.style.color = '#15803d';
                 hint.style.background = '#dcfce7';
                 hint.style.borderColor = '#bbf7d0';
