@@ -4,7 +4,10 @@ import mimetypes
 from pathlib import Path
 from typing import Dict, List, Any, Optional
 
-COURSE_ROOT = os.environ.get("PHOTON_COURSE_PATH", r"D:\Trading\Photon File\Photon -  Zero To Funded 2024")
+COURSE_ROOT = os.environ.get(
+    "PHOTON_COURSE_PATH",
+    "/courses" if os.name != "nt" else r"D:\Trading\Photon File\Photon -  Zero To Funded 2024",
+)
 
 VIDEO_EXTENSIONS = {".mp4", ".ts", ".mkv", ".mov", ".webm", ".avi", ".m4v"}
 DOC_EXTENSIONS = {".docx", ".doc", ".pdf", ".txt", ".xlsx", ".xls", ".png", ".jpg", ".jpeg", ".url"}

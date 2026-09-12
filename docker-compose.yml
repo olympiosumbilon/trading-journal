@@ -10,6 +10,9 @@ services:
     volumes:
       - ./media:/app/media
       - ./uploads:/app/uploads
+      - /opt/pyowserver/courses/Photon -  Zero To Funded 2024:/courses:ro
+    environment:
+      PHOTON_COURSE_PATH: /courses
     networks:
       - n8n_default
 
