@@ -92,6 +92,10 @@ class Trade(Base):
     comments = Column(Text, nullable=True)
 
     # Price data
+    direction = Column(String, nullable=True, default="LONG")
+    entry_price = Column(Float, nullable=True)
+    stop_loss = Column(Float, nullable=True)
+    take_profit = Column(Float, nullable=True)
     entry_candle_size = Column(Float, nullable=True)
     adverse_wick_price = Column(Float, nullable=True)
     mae_sl_buffer = Column(Float, nullable=True)
@@ -249,4 +253,3 @@ class WatchlistIdea(Base):
                 "note": self.ltf_confirmation or ""
             })
         return res
-

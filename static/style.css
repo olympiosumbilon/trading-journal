@@ -8622,6 +8622,165 @@ main.main-full-bleed {
 .wl-metric-executed .wl-metric-val { color: #10b981; }
 .wl-metric-invalidated .wl-metric-val { color: #94a3b8; }
 
+.wl-lifecycle-tabs {
+    display: flex;
+    gap: 0.45rem;
+    margin-bottom: 1rem;
+    border-bottom: 1px solid #e2e8f0;
+    overflow-x: auto;
+}
+
+.wl-lifecycle-tab {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.45rem;
+    padding: 0.7rem 0.9rem;
+    color: #64748b;
+    font-size: 0.82rem;
+    font-weight: 800;
+    text-decoration: none;
+    white-space: nowrap;
+    border-bottom: 3px solid transparent;
+}
+
+.wl-lifecycle-tab span {
+    min-width: 1.35rem;
+    padding: 0.1rem 0.35rem;
+    border-radius: 999px;
+    background: #f1f5f9;
+    text-align: center;
+    font-size: 0.7rem;
+}
+
+.wl-lifecycle-tab.active {
+    color: #0284c7;
+    border-bottom-color: #0284c7;
+}
+
+.wl-lifecycle-tab:hover,
+.wl-lifecycle-tab.active:hover {
+    color: #0369a1;
+    text-decoration: none;
+}
+
+.wl-lifecycle-tab:hover span,
+.wl-lifecycle-tab.active:hover span {
+    color: #0369a1;
+    background: #e0f2fe;
+}
+
+.wl-running-panel,
+.wl-history-panel {
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    border-radius: 12px;
+    padding: 1rem;
+}
+
+.wl-history-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    margin-bottom: 0.9rem;
+}
+
+.wl-history-header h2 { margin: 0; color: #0f172a; font-size: 1.1rem; }
+.wl-history-header p { margin: 0.2rem 0 0; color: #64748b; font-size: 0.8rem; }
+.wl-history-header > span { color: #64748b; font-size: 0.8rem; font-weight: 700; white-space: nowrap; }
+
+.wl-history-table-wrap { overflow-x: auto; }
+.wl-history-table { width: 100%; min-width: 720px; border-collapse: collapse; background: #fff; border: 1px solid #e2e8f0; }
+.wl-history-table th { padding: 0.65rem 0.75rem; background: #f1f5f9; color: #64748b; font-size: 0.7rem; text-align: left; text-transform: uppercase; letter-spacing: 0.04em; }
+.wl-history-table td { padding: 0.7rem 0.75rem; border-top: 1px solid #f1f5f9; color: #334155; font-size: 0.82rem; vertical-align: middle; }
+.wl-history-table td small { display: block; margin-top: 0.15rem; color: #94a3b8; }
+.wl-review-pill { display: inline-block; padding: 0.18rem 0.45rem; border: 1px solid #fed7aa; border-radius: 999px; background: #fff7ed; color: #c2410c; font-size: 0.7rem; font-weight: 800; }
+.wl-history-empty { padding: 2.5rem !important; color: #94a3b8 !important; text-align: center; }
+.wl-history-pagination { display: flex; justify-content: center; align-items: center; gap: 1rem; padding-top: 1rem; color: #64748b; font-size: 0.8rem; font-weight: 700; }
+.wl-history-pagination a { color: #0284c7; text-decoration: none; }
+
+.trade-direction-badge {
+    display: inline-block;
+    padding: 0.15rem 0.42rem;
+    border-radius: 999px;
+    font-size: 0.68rem;
+    font-weight: 800;
+    letter-spacing: 0.02em;
+    line-height: 1.2;
+    white-space: nowrap;
+}
+
+.trade-direction-badge.direction-long {
+    color: #047857;
+    background: #d1fae5;
+    border: 1px solid #a7f3d0;
+}
+
+.trade-direction-badge.direction-short {
+    color: #be123c;
+    background: #ffe4e6;
+    border: 1px solid #fecdd3;
+}
+
+.wl-list-panel {
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    border-radius: 12px;
+    padding: 1rem;
+}
+
+.wl-list-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    margin-bottom: 0.9rem;
+}
+
+.wl-list-header h2 { margin: 0; color: #0f172a; font-size: 1.1rem; }
+.wl-list-header p { margin: 0.2rem 0 0; color: #64748b; font-size: 0.8rem; }
+.wl-list-header > span { color: #64748b; font-size: 0.8rem; font-weight: 700; white-space: nowrap; }
+.wl-list-table-wrap { overflow-x: auto; }
+.wl-list-table { width: 100%; min-width: 980px; border-collapse: collapse; background: #fff; border: 1px solid #e2e8f0; }
+.wl-list-table th { padding: 0.65rem 0.7rem; background: #f1f5f9; color: #64748b; font-size: 0.68rem; text-align: left; text-transform: uppercase; letter-spacing: 0.04em; white-space: nowrap; }
+.wl-list-table td { padding: 0.65rem 0.7rem; border-top: 1px solid #f1f5f9; color: #334155; font-size: 0.8rem; vertical-align: middle; white-space: nowrap; }
+.wl-list-table td small { display: block; margin-top: 0.12rem; color: #94a3b8; }
+.wl-list-status-form { margin: 0; }
+.wl-list-table .wl-status-select { min-width: 112px; }
+
+.wl-active-view-controls {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    margin-bottom: 1rem;
+}
+
+.wl-active-status-tabs {
+    display: flex;
+    gap: 0.35rem;
+    flex-wrap: wrap;
+}
+
+.wl-active-status-tab {
+    padding: 0.42rem 0.7rem;
+    border: 1px solid #cbd5e1;
+    border-radius: 999px;
+    color: #475569;
+    background: #fff;
+    font-size: 0.78rem;
+    font-weight: 700;
+    text-decoration: none;
+}
+
+.wl-active-status-tab.active,
+.wl-active-status-tab:hover {
+    color: #0369a1;
+    background: #e0f2fe;
+    border-color: #7dd3fc;
+    text-decoration: none;
+}
+
 /* Filter & Controls Bar */
 .wl-controls-bar {
     display: flex;
@@ -8706,7 +8865,7 @@ main.main-full-bleed {
    ========================================================================== */
 .wl-kanban-board {
     display: grid;
-    grid-template-columns: repeat(4, 1fr);
+    grid-template-columns: repeat(3, 1fr);
     gap: 1.15rem;
     align-items: flex-start;
 }
@@ -9629,6 +9788,9 @@ main.main-full-bleed {
 }
 
 @media (max-width: 768px) {
+    .wl-active-view-controls { align-items: stretch; flex-direction: column; }
+    .wl-list-header { align-items: flex-start; flex-direction: column; gap: 0.35rem; }
+    .wl-history-header { align-items: flex-start; flex-direction: column; gap: 0.35rem; }
     .wl-mobile-column-tabs {
         display: flex;
     }
@@ -9642,8 +9804,8 @@ main.main-full-bleed {
         display: flex;
         gap: 0.5rem;
     }
-    .wl-header-actions .btn-primary-add,
-    .wl-header-actions .btn-secondary {
+    .wl-header-actions .wl-btn-roadmap,
+    .wl-header-actions .wl-btn-new-idea {
         flex: 1;
         justify-content: center;
         text-align: center;
@@ -9995,14 +10157,6 @@ main.main-full-bleed {
         grid-template-columns: 1fr;
     }
 }
-
-
-
-
-
-
-
-
 
 
 

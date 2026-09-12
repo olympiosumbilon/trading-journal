@@ -80,7 +80,7 @@ def get_crypto_news(force_refresh: bool = False) -> List[Dict[str, Any]]:
                         collected.append({
                             "source": name,
                             "title": clean_title,
-                            "link": clean_link.strip(),
+                            "link": (raw_link or "#").strip(),
                             "pub_date": raw_date.strip(),
                             "description": clean_desc,
                             "category": cat

@@ -26,6 +26,38 @@ templates.env.filters["duration"] = format_duration
 MEDIA_DIR = Path("media/screenshots")
 MEDIA_DIR.mkdir(parents=True, exist_ok=True)
 
+FINAL_OUTCOMES = {
+    "FULL_TP",
+    "FULL_SL",
+    "BREAK_EVEN",
+    "RUNNER",
+    "TRAILING_STOP",
+    "CUT_LOSS",
+}
+
+
+def is_closed_trade(trade):
+    if not trade:
+        return False
+    if (trade.outcome_type or "AUTO").upper() in FINAL_OUTCOMES:
+        return True
+    return False
+
+
+def trade_result_label(trade):
+    if not trade:
+        return "Needs Review"
+    outcome = (trade.outcome_type or "AUTO").upper()
+    if outcome != "AUTO":
+        return outcome
+    if trade.is_win is True:
+        return "WIN"
+    if trade.is_loss is True:
+        return "LOSS"
+    if trade.fixed_r_target == 0:
+        return "BREAK_EVEN"
+    return "Needs Review"
+
 
 def save_base64_or_upload(image_data_str: str, file_upload: UploadFile = None, prefix: str = "wl") -> str:
     """Helper to save pasted base64 data URL or uploaded file into media/screenshots."""
@@ -69,8 +101,17 @@ def watchlist_index(
     instrument_id: str = "",
     session_id: str = "",
     strategy_id: str = "",
-    view_mode: str = "kanban",  # "kanban" or "grid"
+    view_mode: str = "list",  # "list" or "grid"
+    active_status: str = "ALL",
+    view: str = "active",  # "active", "running", or "history"
+    page: int = 1,
+    per_page: int = 25,
 ):
+    if view_mode not in {"list", "grid", "kanban"}:
+        view_mode = "list"
+    if view != "active" and view_mode == "kanban":
+        view_mode = "list"
+    active_status = active_status.upper() if active_status else "ALL"
     with SessionLocal() as db:
         instruments = db.query(Instrument).order_by(Instrument.name).all()
         sessions = db.query(Session).order_by(Session.name).all()
@@ -113,21 +154,57 @@ def watchlist_index(
         total_missed = db.query(WatchlistIdea).filter(WatchlistIdea.status == "MISSED").count()
         total_active = total_waiting + total_monitoring
 
-        # Filter ideas based on scope_filter
-        if scope_filter == "ACTIVE":
-            display_ideas = [i for i in all_ideas if i.status not in {"INVALIDATED", "RESOLVED"}]
-        elif scope_filter == "ARCHIVED":
-            display_ideas = [i for i in all_ideas if i.status in {"INVALIDATED", "RESOLVED"} or (i.status == "EXECUTED" and i.promoted_trade_id is not None)]
+        # Keep converted open trades separate from closed/history records.
+        active_ideas = [
+            i for i in all_ideas
+            if i.status in {"WAITING", "MONITORING"}
+            or (i.status == "EXECUTED" and not is_closed_trade(i.promoted_trade_obj))
+        ]
+        running_ideas = [
+            i for i in all_ideas
+            if i.status == "EXECUTED" and not is_closed_trade(i.promoted_trade_obj)
+        ]
+        history_ideas = [
+            i for i in all_ideas
+            if i.status in {"INVALIDATED", "MISSED", "RESOLVED"}
+            or (
+                i.status == "EXECUTED" and is_closed_trade(i.promoted_trade_obj)
+            )
+        ]
+
+        if view == "running":
+            display_ideas = running_ideas
+        elif view == "history":
+            display_ideas = history_ideas
         else:
-            display_ideas = all_ideas
+            display_ideas = active_ideas
+
+        # Legacy scope links still work, but the explicit tabs are the primary UI.
+        if scope_filter == "ARCHIVED":
+            view = "history"
+            display_ideas = history_ideas
+        elif scope_filter == "ACTIVE":
+            view = "active"
+            display_ideas = active_ideas
+
+        if view == "active" and active_status != "ALL":
+            status_map = {"WAITING": "WAITING", "MONITORING": "MONITORING", "RUNNING": "EXECUTED"}
+            selected_status = status_map.get(active_status)
+            if selected_status:
+                display_ideas = [i for i in display_ideas if i.status == selected_status]
 
         # Kanban columns
         kanban = {
             "WAITING": [i for i in display_ideas if i.status == "WAITING"],
             "MONITORING": [i for i in display_ideas if i.status == "MONITORING"],
             "EXECUTED": [i for i in display_ideas if i.status == "EXECUTED"],
-            "RESOLVED": [i for i in display_ideas if i.status in {"INVALIDATED", "MISSED", "RESOLVED"}],
         }
+
+        total_history = len(history_ideas)
+        total_running = len(running_ideas)
+        total_pages = max(1, (total_history + per_page - 1) // per_page)
+        page = max(1, min(page, total_pages))
+        history_page = history_ideas[(page - 1) * per_page: page * per_page]
 
         # Query param messages
         msg = request.query_params.get("msg", "")
@@ -138,6 +215,9 @@ def watchlist_index(
         "watchlist/index.html",
         {
             "ideas": display_ideas,
+            "active_ideas": active_ideas,
+            "running_ideas": running_ideas,
+            "history_ideas": history_page,
             "kanban": kanban,
             "instruments": instruments,
             "sessions": sessions,
@@ -148,6 +228,8 @@ def watchlist_index(
             "total_waiting": total_waiting,
             "total_monitoring": total_monitoring,
             "total_executed": total_executed,
+            "total_running": total_running,
+            "total_history": total_history,
             "total_invalidated": total_invalidated,
             "total_missed": total_missed,
             "status_filter": status_filter,
@@ -156,10 +238,33 @@ def watchlist_index(
             "session_id": session_id,
             "strategy_id": strategy_id,
             "view_mode": view_mode,
+            "active_status": active_status,
+            "view": view,
+            "page": page,
+            "per_page": per_page,
+            "total_pages": total_pages,
+            "trade_result_label": trade_result_label,
             "msg": msg,
             "error": error,
         },
     )
+
+
+@router.post("/{idea_id}/return-to-monitoring")
+def return_to_monitoring(idea_id: int):
+    with SessionLocal() as db:
+        idea = db.query(WatchlistIdea).get(idea_id)
+        if not idea:
+            raise HTTPException(status_code=404, detail="Watchlist Idea not found")
+        if idea.status != "EXECUTED" or not idea.promoted_trade_id:
+            raise HTTPException(status_code=400, detail="Only a linked running trade can return to monitoring")
+        trade = db.get(Trade, idea.promoted_trade_id)
+        if is_closed_trade(trade):
+            raise HTTPException(status_code=400, detail="Closed trades cannot return to monitoring")
+        idea.promoted_trade_id = None
+        idea.status = "MONITORING"
+        db.commit()
+    return RedirectResponse(url="/watchlist/?view=active&msg=Setup+returned+to+Monitoring", status_code=303)
 
 
 @router.post("/{idea_id}/archive")
@@ -471,7 +576,7 @@ def update_watchlist_idea(
         new_status = status.upper() if status else "WAITING"
         idea.status = new_status
 
-        if new_status in {"EXECUTED", "INVALIDATED", "MISSED"} and old_status not in {"EXECUTED", "INVALIDATED", "MISSED"}:
+        if new_status in {"INVALIDATED", "MISSED", "RESOLVED"} and old_status not in {"INVALIDATED", "MISSED", "RESOLVED"}:
             idea.resolved_at = datetime.now()
 
         saved_title = str(idea.title)
@@ -491,7 +596,7 @@ def quick_update_status(idea_id: int, status: str = Form(...)):
         new_status = status.upper().strip()
         idea.status = new_status
 
-        if new_status in {"EXECUTED", "INVALIDATED", "MISSED"} and old_status not in {"EXECUTED", "INVALIDATED", "MISSED"}:
+        if new_status in {"INVALIDATED", "MISSED", "RESOLVED"} and old_status not in {"INVALIDATED", "MISSED", "RESOLVED"}:
             idea.resolved_at = datetime.now()
 
         db.commit()

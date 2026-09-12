@@ -11,3 +11,7 @@ python-multipart
 pydantic-settings
 requests
 apscheduler
+
+# Testing
+pytest
+httpx

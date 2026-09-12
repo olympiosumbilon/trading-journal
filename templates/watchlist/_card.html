@@ -170,16 +170,22 @@
             {% endif %}
         {% endif %}
 
+        {% if idea.status == 'EXECUTED' and idea.promoted_trade_id and idea.promoted_trade_obj and (idea.promoted_trade_obj.outcome_type or 'AUTO') == 'AUTO' %}
+        <form method="POST" action="/watchlist/{{ idea.id }}/return-to-monitoring" onsubmit="return confirm('Return this open trade setup to Monitoring?');">
+            <button type="submit" class="wl-btn-tool" style="background:#fff7ed;color:#c2410c;border-color:#fed7aa;">Return to Monitoring</button>
+        </form>
+        {% endif %}
+
         <!-- Bottom Action Toolbar -->
         <div class="wl-card-tools-bar">
             <form method="POST" action="/watchlist/{{ idea.id }}/status" class="wl-status-form">
                 <select name="status" onchange="this.form.submit()" class="wl-status-select" title="Change Stage">
                     <option value="WAITING" {% if idea.status == 'WAITING' %}selected{% endif %}>Waiting</option>
                     <option value="MONITORING" {% if idea.status == 'MONITORING' %}selected{% endif %}>Monitoring</option>
-                    <option value="EXECUTED" {% if idea.status == 'EXECUTED' %}selected{% endif %}>Live</option>
+                    <option value="EXECUTED" {% if idea.status == 'EXECUTED' %}selected{% endif %}>Running Trade</option>
                     <option value="INVALIDATED" {% if idea.status == 'INVALIDATED' %}selected{% endif %}>Invalidated</option>
                     <option value="MISSED" {% if idea.status == 'MISSED' %}selected{% endif %}>Missed</option>
-                    <option value="RESOLVED" {% if idea.status == 'RESOLVED' %}selected{% endif %}>Archived</option>
+                    <option value="RESOLVED" {% if idea.status == 'RESOLVED' %}selected{% endif %}>Archive / History</option>
                 </select>
             </form>
 

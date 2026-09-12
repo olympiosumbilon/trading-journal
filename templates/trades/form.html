@@ -9,17 +9,20 @@
         <h1>{% if trade %}Edit Trade #{{ trade.id }}{% else %}Log New Trade{% endif %}</h1>
     </div>
     <div class="header-actions">
-        <button type="button" class="btn-calc-toggle" onclick="toggleCalculator()">
-            <span id="calcToggleIcon">⚡</span> <span id="calcToggleText">Hide Risk Calculator</span>
-        </button>
         <a href="/trades/" class="btn-back">&larr; Back to Trades</a>
     </div>
 </div>
 
 <!-- ========================================================================= -->
+<!-- MAIN TRADE ENTRY FORM (includes the calculator fields below) -->
+<!-- ========================================================================= -->
+<form method="post" action="{% if trade %}/trades/{{ trade.id }}/edit{% else %}/trades/{% endif %}" class="trade-form-card">
+    <input type="hidden" name="from_watchlist_id" value="{{ prefill.from_watchlist_id if prefill and prefill.from_watchlist_id else '' }}">
+
+<!-- ========================================================================= -->
 <!-- ⚡ LIVE RISK, POSITION SIZE & EXCHANGE FEE CALCULATOR (CRYPTO & FOREX) -->
 <!-- ========================================================================= -->
-<div class="calc-wrapper" id="riskCalculatorCard">
+<div class="calc-wrapper" id="riskCalculatorCard" style="display:none !important;">
     <div class="calc-header">
         <div class="calc-header-title">
             <span class="calc-badge">LIVE PRE-TRADE TOOL</span>
@@ -85,7 +88,7 @@
             <div class="calc-field-row three-col">
                 <div class="calc-field">
                     <label>Entry Price ($)</label>
-                    <input type="number" id="calcEntry" placeholder="e.g. 150.00" step="any" value="{{ prefill.entry_price if prefill and prefill.entry_price else (prefill.planned_entry if prefill and prefill.planned_entry else '') }}" oninput="recalcPositionSize(); recalcAdverseWick();">
+                    <input type="number" id="calcEntry" placeholder="e.g. 150.00" step="any" value="" oninput="recalcPositionSize(); recalcAdverseWick();">
                 </div>
                 <div class="calc-field">
                     <div class="calc-label-row">
@@ -95,11 +98,11 @@
                             <option value="pct">% Distance</option>
                         </select>
                     </div>
-                    <input type="number" id="calcSL" placeholder="e.g. 147.00" step="any" value="{{ prefill.stop_loss if prefill and prefill.stop_loss else (prefill.planned_sl if prefill and prefill.planned_sl else '') }}" oninput="recalcPositionSize(); recalcAdverseWick();">
+                    <input type="number" id="calcSL" placeholder="e.g. 147.00" step="any" value="" oninput="recalcPositionSize(); recalcAdverseWick();">
                 </div>
                 <div class="calc-field">
                     <label>Take Profit Price ($)</label>
-                    <input type="number" id="calcTP" placeholder="e.g. 160.00" step="any" value="{{ prefill.tp_target if prefill and prefill.tp_target else (prefill.planned_tp if prefill and prefill.planned_tp else '') }}" oninput="recalcPositionSize()">
+                    <input type="number" id="calcTP" placeholder="e.g. 160.00" step="any" value="" oninput="recalcPositionSize()">
                 </div>
             </div>
 
@@ -175,12 +178,7 @@
     </div>
 </div>
 
-<!-- ========================================================================= -->
-<!-- MAIN TRADE ENTRY FORM -->
-<!-- ========================================================================= -->
-<form method="post" action="{% if trade %}/trades/{{ trade.id }}/edit{% else %}/trades/{% endif %}" class="trade-form-card">
-    <input type="hidden" name="from_watchlist_id" value="{{ prefill.from_watchlist_id if prefill and prefill.from_watchlist_id else '' }}">
-    
+<!-- Main trade fields continue below the calculator. -->
     <!-- 0. Execution Status & Quality Tags Banner -->
     <div class="form-section-block execution-status-block">
         <div class="exec-status-header">
@@ -301,6 +299,25 @@
                     {% endfor %}
                 </select>
             </div>
+            <div class="form-group">
+                <label>Direction</label>
+                <select name="direction" id="tradeDirection" onchange="recalcGeometryFromSetup(); recalcAdverseWick();">
+                    <option value="LONG" {% if (trade and trade.direction != 'SHORT') or (not trade and (not prefill or prefill.direction|upper != 'SHORT')) %}selected{% endif %}>LONG</option>
+                    <option value="SHORT" {% if (trade and trade.direction == 'SHORT') or (prefill and prefill.direction|upper == 'SHORT') %}selected{% endif %}>SHORT</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label>Entry Price</label>
+                <input type="number" name="entry_price" id="setupEntry" step="any" value="{{ trade.entry_price if trade and trade.entry_price is not none else (prefill.entry_price if prefill and prefill.entry_price else (prefill.planned_entry if prefill and prefill.planned_entry else '')) }}" oninput="recalcGeometryFromSetup(); recalcAdverseWick();">
+            </div>
+            <div class="form-group">
+                <label>Stop Loss</label>
+                <input type="number" name="stop_loss" id="setupStopLoss" step="any" value="{{ trade.stop_loss if trade and trade.stop_loss is not none else (prefill.stop_loss if prefill and prefill.stop_loss else (prefill.planned_sl if prefill and prefill.planned_sl else '')) }}" oninput="recalcGeometryFromSetup(); recalcAdverseWick();">
+            </div>
+            <div class="form-group">
+                <label>Take Profit</label>
+                <input type="number" name="take_profit" id="setupTakeProfit" step="any" value="{{ trade.take_profit if trade and trade.take_profit is not none else (prefill.tp_target if prefill and prefill.tp_target else (prefill.planned_tp if prefill and prefill.planned_tp else '')) }}" oninput="recalcGeometryFromSetup()">
+            </div>
         </div>
     </div>
 
@@ -315,22 +332,22 @@
         <div class="form-section-grid grid-geometry" style="grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));">
             <div class="form-group">
                 <label>Entry Candle Size (pips / $)</label>
-                <input type="number" step="0.0001" name="entry_candle_size" id="formCandleSize" value="{{ trade.entry_candle_size if trade else '' }}" placeholder="Auto from |Entry - SL|">
+                <input type="number" step="0.000000001" name="entry_candle_size" id="formCandleSize" value="{{ trade.entry_candle_size if trade else '' }}" placeholder="Auto from |Entry - SL|">
             </div>
             <div class="form-group">
                 <div style="display:flex; justify-content:space-between; align-items:center;">
                     <label>Adverse Wick Price (Extreme High/Low)</label>
                     <span id="adverseWickHint" style="font-size:0.7rem; font-weight:700; padding:0.1rem 0.4rem; border-radius:4px; border:1px solid transparent; display:none;"></span>
                 </div>
-                <input type="number" step="0.0001" name="adverse_wick_price" id="formAdverseWick" value="{{ trade.adverse_wick_price if trade else '' }}" placeholder="e.g. 63778.5" oninput="recalcAdverseWick()" onchange="recalcAdverseWick()">
+                <input type="number" step="0.000000001" name="adverse_wick_price" id="formAdverseWick" value="{{ trade.adverse_wick_price if trade else '' }}" placeholder="e.g. 63778.500000000" oninput="recalcAdverseWick()" onchange="recalcAdverseWick()">
             </div>
             <div class="form-group">
                 <label>MAE SL Buffer (Excess over SL)</label>
-                <input type="number" step="0.0001" name="mae_sl_buffer" id="formSLBuffer" value="{{ trade.mae_sl_buffer if trade else '' }}" placeholder="Auto from Wick or 0.0">
+                <input type="number" step="0.000000001" name="mae_sl_buffer" id="formSLBuffer" value="{{ trade.mae_sl_buffer if trade else '' }}" placeholder="Auto from Wick or 0.000000000">
             </div>
             <div class="form-group">
                 <label>MFE (Take Profit distance % / pips)</label>
-                <input type="number" step="0.0001" name="mfe" id="formMFE" value="{{ trade.mfe if trade else '' }}" placeholder="Auto from |TP - Entry|">
+                <input type="number" step="0.000000001" name="mfe" id="formMFE" value="{{ trade.mfe if trade else '' }}" placeholder="Auto from |TP - Entry|">
             </div>
         </div>
     </div>
@@ -597,6 +614,19 @@
 {% endif %}
 
 <script>
+// The legacy calculator is retained only for backward-compatible scripts; it
+// must not participate in the trade form now that Setup & Trade Edge owns the fields.
+function disableLegacyCalculator() {
+    const card = document.getElementById('riskCalculatorCard');
+    if (!card) return;
+    card.querySelectorAll('input, select, button, textarea').forEach(control => {
+        control.disabled = true;
+        control.removeAttribute('required');
+    });
+}
+
+disableLegacyCalculator();
+
 // ============================================================================
 // 0. Toggle Risk Calculator
 // ============================================================================
@@ -781,9 +811,9 @@ function recalcPositionSize() {
 }
 
 function autoCalcGeometryFromPrices() {
-    const entry = parseFloat(document.getElementById('calcEntry')?.value) || 0;
-    const sl = parseFloat(document.getElementById('calcSL')?.value) || 0;
-    const tp = parseFloat(document.getElementById('calcTP')?.value) || 0;
+    const entry = parseFloat(document.getElementById('setupEntry')?.value) || 0;
+    const sl = parseFloat(document.getElementById('setupStopLoss')?.value) || 0;
+    const tp = parseFloat(document.getElementById('setupTakeProfit')?.value) || 0;
     const candleInput = document.getElementById('formCandleSize');
     const slBufferInput = document.getElementById('formSLBuffer');
     const mfeInput = document.getElementById('formMFE');
@@ -793,21 +823,25 @@ function autoCalcGeometryFromPrices() {
     if (entry > 0 && sl > 0) {
         const candleDist = Math.abs(entry - sl);
         if (candleInput && (!candleInput.value || candleInput.value === '0' || candleInput.dataset.auto === 'true')) {
-            candleInput.value = candleDist.toFixed(4);
+            candleInput.value = candleDist.toFixed(9);
             candleInput.dataset.auto = 'true';
         }
         const hasWick = wickInput && wickInput.value && wickInput.value.trim() !== '';
         if (!hasWick && slBufferInput && (!slBufferInput.value || slBufferInput.dataset.auto === 'true')) {
-            slBufferInput.value = '0.0000';
+            slBufferInput.value = '0.000000000';
             slBufferInput.dataset.auto = 'true';
         }
         if (tp > 0 && mfeInput && (!mfeInput.value || mfeInput.value === '0' || mfeInput.dataset.auto === 'true')) {
             const tpDist = Math.abs(tp - entry);
-            mfeInput.value = tpDist.toFixed(4);
+            mfeInput.value = tpDist.toFixed(9);
             mfeInput.dataset.auto = 'true';
         }
         if (hint) hint.style.display = 'inline-block';
     }
+}
+
+function recalcGeometryFromSetup() {
+    autoCalcGeometryFromPrices();
 }
 
 function resetCalcOutputs(dollarRisk) {
@@ -855,10 +889,10 @@ function applyCalcToForm() {
     const tpDist = tp > 0 ? (direction === 'long' ? (tp - entry) : (entry - tp)) : 0;
 
     // Apply to Form fields
-    document.getElementById('formCandleSize').value = Math.abs(slDist).toFixed(4);
-    document.getElementById('formSLBuffer').value = '0.0000';
+    document.getElementById('formCandleSize').value = Math.abs(slDist).toFixed(9);
+    document.getElementById('formSLBuffer').value = '0.000000000';
     if (tp > 0) {
-        document.getElementById('formMFE').value = Math.abs(tpDist).toFixed(4);
+        document.getElementById('formMFE').value = Math.abs(tpDist).toFixed(9);
     }
 
     // 1. Sync Coin / Instrument
@@ -870,7 +904,7 @@ function applyCalcToForm() {
     // Append summary to comments
     const commentField = document.getElementById('formComments');
     const coinLabel = coinVal ? `${coinVal.toUpperCase().trim()} ` : '';
-    const calcSummary = `[${coinLabel}${direction.toUpperCase()} @ $${entry} | SL: $${computedSLPrice.toFixed(2)} | TP: $${tp || '—'} | Lev: ${leverage}x | Size: ${units} ($${margin} margin) | Fees: ${fees} | Target: ${netR}]`;
+    const calcSummary = `[${coinLabel}${direction.toUpperCase()} @ $${formatCalcPrice(entry)} | SL: $${formatCalcPrice(computedSLPrice)} | TP: $${tp > 0 ? formatCalcPrice(tp) : '—'} | Lev: ${leverage}x | Size: ${units} ($${margin} margin) | Fees: ${fees} | Target: ${netR}]`;
     if (!commentField.value.includes(calcSummary)) {
         commentField.value = commentField.value ? commentField.value + '\n' + calcSummary : calcSummary;
     }
@@ -883,6 +917,13 @@ function applyCalcToForm() {
         btn.textContent = '📥 Apply Values to Trade Form Below';
         btn.style.background = '';
     }, 2000);
+}
+
+function formatCalcPrice(value) {
+    const number = Number(value);
+    if (!Number.isFinite(number)) return '—';
+    const decimals = Math.abs(number) < 1 ? 8 : Math.abs(number) < 1000 ? 4 : 2;
+    return number.toFixed(decimals).replace(/\.?0+$/, '');
 }
 
 function onCalcCoinChange(val) {
@@ -1008,9 +1049,9 @@ document.addEventListener('DOMContentLoaded', function() {
 // Adverse Wick Overshoot Auto-Calculation
 // ============================================================================
 function recalcAdverseWick() {
-    const slInput = document.getElementById('calcSL');
-    const entryInput = document.getElementById('calcEntry');
-    const dirSelect = document.getElementById('calcDirection');
+    const slInput = document.getElementById('setupStopLoss');
+    const entryInput = document.getElementById('setupEntry');
+    const dirSelect = document.getElementById('tradeDirection');
     const wickInput = document.getElementById('formAdverseWick');
     const bufferInput = document.getElementById('formSLBuffer');
     const hint = document.getElementById('adverseWickHint');
@@ -1044,7 +1085,7 @@ function recalcAdverseWick() {
     if (isNaN(slVal) || slVal <= 0) {
         if (hint) {
             hint.style.display = 'inline-block';
-            hint.textContent = '⚠️ Enter Stop Loss in Calculator above';
+            hint.textContent = '⚠️ Enter Stop Loss above';
             hint.style.color = '#dc2626';
             hint.style.background = '#fef2f2';
             hint.style.borderColor = '#fecaca';
@@ -1060,8 +1101,8 @@ function recalcAdverseWick() {
             excess = Math.max(0.0, slVal - wickVal);
         }
         
-        excess = parseFloat(excess.toFixed(4));
-        bufferInput.value = excess.toFixed(4);
+        excess = parseFloat(excess.toFixed(9));
+        bufferInput.value = excess.toFixed(9);
 
         if (hint) {
             hint.style.display = 'inline-block';
@@ -1071,7 +1112,7 @@ function recalcAdverseWick() {
                 hint.style.background = '#fef3c7';
                 hint.style.borderColor = '#fde68a';
             } else {
-                hint.textContent = `✅ Clean (0.0000)`;
+                hint.textContent = `✅ Clean (0.000000000)`;
                 hint.style.color = '#15803d';
                 hint.style.background = '#dcfce7';
                 hint.style.borderColor = '#bbf7d0';

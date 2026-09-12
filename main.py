@@ -2,6 +2,7 @@ from fastapi import FastAPI, Request
 from fastapi.templating import Jinja2Templates
 from fastapi.staticfiles import StaticFiles
 from database import Base, engine
+from sqlalchemy import String, inspect, text
 from routers import trades, dashboard, ai, automations, settings, summary, analysis, course, watchlist
 from apscheduler.schedulers.background import BackgroundScheduler
 from services.automation_service import check_alerts
@@ -35,6 +36,17 @@ def _alert_check_job():
 @app.on_event("startup")
 def startup():
     Base.metadata.create_all(bind=engine)
+    # Add nullable trade price fields to databases created before price persistence.
+    table_columns = {column["name"]: column for column in inspect(engine).get_columns("trades")}
+    with engine.begin() as connection:
+        direction_column = table_columns.get("direction")
+        if direction_column and not isinstance(direction_column["type"], String):
+            connection.execute(text("ALTER TABLE trades ALTER COLUMN direction TYPE VARCHAR USING direction::text"))
+        for column in ("entry_price", "stop_loss", "take_profit"):
+            if column not in table_columns:
+                connection.execute(text(f"ALTER TABLE trades ADD COLUMN {column} FLOAT"))
+        if "direction" not in table_columns:
+            connection.execute(text("ALTER TABLE trades ADD COLUMN direction VARCHAR"))
     scheduler.add_job(_alert_check_job, "interval", minutes=30, id="alert_check")
     scheduler.start()
     print("[AUTOMATION] Background scheduler started. Alert checks every 30 minutes.")

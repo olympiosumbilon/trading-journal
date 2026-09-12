@@ -127,6 +127,15 @@ def get_lookup_data(db):
     }
 
 
+def parse_optional_float(value: str):
+    if value is None or not str(value).strip():
+        return None
+    try:
+        return float(str(value).strip())
+    except ValueError:
+        return None
+
+
 @router.get("/")
 def list_trades(
     request: Request,
@@ -409,6 +418,10 @@ def create_trade(
     strategy_id: str = Form(""),
     probability_level_id: str = Form(""),
     mtf_phase_id: str = Form(""),
+    direction: str = Form("LONG"),
+    entry_price: str = Form(""),
+    stop_loss: str = Form(""),
+    take_profit: str = Form(""),
     entry_news: str = Form(""),
     management_news: str = Form(""),
     entry_candle_size: str = Form(""),
@@ -515,6 +528,10 @@ def create_trade(
             strategy_id=int(strategy_id) if strategy_id else None,
             probability_level_id=int(probability_level_id) if probability_level_id else None,
             mtf_phase_id=int(mtf_phase_id) if mtf_phase_id else None,
+            direction=direction.strip().upper() if direction else "LONG",
+            entry_price=parse_optional_float(entry_price),
+            stop_loss=parse_optional_float(stop_loss),
+            take_profit=parse_optional_float(take_profit),
             entry_news=entry_news or None,
             management_news=management_news or None,
             entry_candle_size=float(entry_candle_size) if entry_candle_size else None,
@@ -708,6 +725,10 @@ def update_trade(
     strategy_id: str = Form(""),
     probability_level_id: str = Form(""),
     mtf_phase_id: str = Form(""),
+    direction: str = Form("LONG"),
+    entry_price: str = Form(""),
+    stop_loss: str = Form(""),
+    take_profit: str = Form(""),
     entry_news: str = Form(""),
     management_news: str = Form(""),
     entry_candle_size: str = Form(""),
@@ -812,6 +833,10 @@ def update_trade(
         trade.strategy_id = int(strategy_id) if strategy_id else None
         trade.probability_level_id = int(probability_level_id) if probability_level_id else None
         trade.mtf_phase_id = int(mtf_phase_id) if mtf_phase_id else None
+        trade.direction = direction.strip().upper() if direction else "LONG"
+        trade.entry_price = parse_optional_float(entry_price)
+        trade.stop_loss = parse_optional_float(stop_loss)
+        trade.take_profit = parse_optional_float(take_profit)
         trade.entry_news = entry_news or None
         trade.management_news = management_news or None
         trade.entry_candle_size = float(entry_candle_size) if entry_candle_size else None
@@ -1010,5 +1035,3 @@ def delete_screenshot_item(
             trade.screenshot_3 = urls[2] if len(urls) > 2 else None
         db.commit()
     return RedirectResponse(url=f"/trades/{trade_id}", status_code=303)
-
-

@@ -36,15 +36,21 @@
             <span class="wl-metric-label">Monitoring Trigger</span>
             <span class="wl-metric-val">{{ total_monitoring }}</span>
         </a>
-        <a href="/watchlist/?status_filter=EXECUTED" class="wl-metric-card wl-metric-executed {% if status_filter == 'EXECUTED' %}active-filter{% endif %}">
-            <span class="wl-metric-label">Live / Executed</span>
-            <span class="wl-metric-val">{{ total_executed }}</span>
+        <a href="/watchlist/?view=running" class="wl-metric-card wl-metric-executed {% if view == 'running' %}active-filter{% endif %}">
+            <span class="wl-metric-label">Live / Running</span>
+            <span class="wl-metric-val">{{ total_running }}</span>
         </a>
-        <a href="/watchlist/?status_filter=INVALIDATED" class="wl-metric-card wl-metric-invalidated {% if status_filter == 'INVALIDATED' %}active-filter{% endif %}">
-            <span class="wl-metric-label">Invalidated / Missed</span>
-            <span class="wl-metric-val">{{ total_invalidated + total_missed }}</span>
+        <a href="/watchlist/?view=history" class="wl-metric-card wl-metric-invalidated {% if view == 'history' %}active-filter{% endif %}">
+            <span class="wl-metric-label">History</span>
+            <span class="wl-metric-val">{{ total_history }}</span>
         </a>
     </div>
+
+    <nav class="wl-lifecycle-tabs" aria-label="Watchlist lifecycle views">
+        <a href="/watchlist/?view=active" class="wl-lifecycle-tab {% if view == 'active' %}active{% endif %}">Active Pipeline <span>{{ total_active }}</span></a>
+        <a href="/watchlist/?view=running" class="wl-lifecycle-tab {% if view == 'running' %}active{% endif %}">Running Trades <span>{{ total_running }}</span></a>
+        <a href="/watchlist/?view=history" class="wl-lifecycle-tab {% if view == 'history' %}active{% endif %}">History <span>{{ total_history }}</span></a>
+    </nav>
 
     <!-- Filter & View Controls Bar -->
     <div class="wl-controls-bar">
@@ -108,15 +114,22 @@
             {% endif %}
         </form>
 
-        <div class="wl-view-switcher">
-            <button type="button" class="wl-vs-btn {% if view_mode == 'kanban' %}active{% endif %}" onclick="switchViewMode('kanban')" title="Kanban Board View">
-                Kanban
-            </button>
-            <button type="button" class="wl-vs-btn {% if view_mode == 'grid' %}active{% endif %}" onclick="switchViewMode('grid')" title="Grid Cards View">
-                Grid
-            </button>
+        {% if view != 'active' %}<div class="wl-view-switcher"><button type="button" class="wl-vs-btn {% if view_mode == 'list' %}active{% endif %}" onclick="switchViewMode('list')">List</button><button type="button" class="wl-vs-btn {% if view_mode == 'grid' %}active{% endif %}" onclick="switchViewMode('grid')">Grid</button></div>{% endif %}
+    </div>
+
+    {% if view == 'active' %}
+    <div class="wl-active-view-controls">
+        <div class="wl-active-status-tabs" aria-label="Active pipeline status filter">
+            {% for status_value, status_label in [('ALL', 'All'), ('WAITING', 'Waiting'), ('MONITORING', 'Monitoring'), ('RUNNING', 'Running')] %}
+            <a href="/watchlist/?view=active&view_mode={{ view_mode }}&active_status={{ status_value }}" class="wl-active-status-tab {% if active_status == status_value %}active{% endif %}">{{ status_label }}</a>
+            {% endfor %}
+        </div>
+        <div class="wl-view-switcher" aria-label="Active pipeline layout">
+            <button type="button" class="wl-vs-btn {% if view_mode == 'list' %}active{% endif %}" onclick="switchViewMode('list')">List</button>
+            <button type="button" class="wl-vs-btn {% if view_mode == 'kanban' %}active{% endif %}" onclick="switchViewMode('kanban')">Kanban</button>
         </div>
     </div>
+    {% endif %}
 
     <!-- Alert Toasts -->
     {% if msg or error %}
@@ -142,130 +155,58 @@
     </div>
     {% endif %}
 
-    <!-- ========================================================================= -->
-    <!-- VIEW MODE 1: KANBAN PIPELINE BOARD -->
-    <!-- ========================================================================= -->
-    {% if view_mode == 'kanban' %}
-    
-    <!-- Mobile Kanban Column Tab Selector -->
-    <div class="wl-mobile-column-tabs">
-        <button type="button" class="wl-m-col-tab active" onclick="showMobileKanbanCol('all', this)">
-            All Stages
-        </button>
-        <button type="button" class="wl-m-col-tab" onclick="showMobileKanbanCol('waiting', this)">
-            Waiting ({{ kanban['WAITING']|length }})
-        </button>
-        <button type="button" class="wl-m-col-tab" onclick="showMobileKanbanCol('monitoring', this)">
-            Monitoring ({{ kanban['MONITORING']|length }})
-        </button>
-        <button type="button" class="wl-m-col-tab" onclick="showMobileKanbanCol('executed', this)">
-            Live ({{ kanban['EXECUTED']|length }})
-        </button>
-        <button type="button" class="wl-m-col-tab" onclick="showMobileKanbanCol('resolved', this)">
-            Inactive ({{ kanban['RESOLVED']|length }})
-        </button>
+    {% if view == 'history' and view_mode == 'grid' %}
+    <div class="wl-history-panel wl-history-grid-panel">
+        <div class="wl-history-header"><div><h2>Setup History</h2><p>Closed and inactive watchlist records.</p></div><span>{{ total_history }} records</span></div>
+        <div class="wl-cards-grid">
+            {% for idea in history_ideas %}
+                {% include "watchlist/_card.html" %}
+            {% else %}
+                <div class="wl-empty-full"><h3>No history records yet.</h3></div>
+            {% endfor %}
+        </div>
+        {% if total_pages > 1 %}<div class="wl-history-pagination">{% if page > 1 %}<a href="/watchlist/?view=history&view_mode=grid&page={{ page - 1 }}">Previous</a>{% endif %}<span>Page {{ page }} of {{ total_pages }}</span>{% if page < total_pages %}<a href="/watchlist/?view=history&view_mode=grid&page={{ page + 1 }}">Next</a>{% endif %}</div>{% endif %}
     </div>
-
-    <div class="wl-kanban-board">
-        
-        <!-- Column 1: WAITING -->
-        <div class="wl-kanban-col" id="colWaiting">
-            <div class="wl-col-header col-waiting">
-                <div class="col-title-wrap">
-                    <span class="col-dot dot-waiting"></span>
-                    <h3>Waiting for POI</h3>
-                </div>
-                <div style="display:flex; align-items:center; gap:0.35rem;">
-                    <span class="col-count-badge">{{ kanban['WAITING']|length }}</span>
-                    <button type="button" class="wl-col-btn-toggle" onclick="toggleKanbanCol('colWaiting')" title="Minimize / Expand Column">➖</button>
-                </div>
-            </div>
-            <div class="wl-col-cards">
-                {% for idea in kanban['WAITING'] %}
-                    {% include "watchlist/_card.html" %}
-                {% else %}
-                    <div class="wl-empty-col">No setups waiting for POI.</div>
-                {% endfor %}
-            </div>
+    {% elif view == 'history' %}
+    <div class="wl-history-panel">
+        <div class="wl-history-header"><div><h2>Setup History</h2><p>Closed and inactive watchlist records.</p></div><span>{{ total_history }} records</span></div>
+        <div class="wl-history-table-wrap">
+            <table class="wl-history-table"><thead><tr><th>Date</th><th>Setup</th><th>Direction</th><th>Result</th><th>R</th><th>Trade</th><th></th></tr></thead><tbody>
+            {% for idea in history_ideas %}
+            <tr>
+                <td>{{ idea.resolved_at.strftime('%Y-%m-%d') if idea.resolved_at else (idea.updated_at.strftime('%Y-%m-%d') if idea.updated_at else '—') }}</td>
+                <td><a href="/watchlist/{{ idea.id }}" class="wl-title-link">{{ idea.title }}</a><small>{{ idea.instrument_obj.name if idea.instrument_obj else 'Custom' }}</small></td>
+                <td><span class="wl-dir-badge dir-{{ idea.direction|lower }}">{{ idea.direction }}</span></td>
+                <td>{% if idea.promoted_trade_obj %}{{ trade_result_label(idea.promoted_trade_obj) }}{% elif idea.status == 'EXECUTED' %}<span class="wl-review-pill">Needs Review</span>{% else %}{{ idea.status }}{% endif %}</td>
+                <td>{% if idea.promoted_trade_obj and idea.promoted_trade_obj.fixed_r_target is not none %}{{ '%.2f'|format(idea.promoted_trade_obj.fixed_r_target) }}R{% else %}—{% endif %}</td>
+                <td>{% if idea.promoted_trade_id %}<a href="/trades/{{ idea.promoted_trade_id }}">#{{ idea.promoted_trade_id }}</a>{% else %}—{% endif %}</td>
+                <td><a class="wl-btn-tool" href="/watchlist/{{ idea.id }}">View</a></td>
+            </tr>
+            {% else %}<tr><td colspan="7" class="wl-history-empty">No history records yet.</td></tr>{% endfor %}
+            </tbody></table>
         </div>
-
-        <!-- Column 2: MONITORING -->
-        <div class="wl-kanban-col" id="colMonitoring">
-            <div class="wl-col-header col-monitoring">
-                <div class="col-title-wrap">
-                    <span class="col-dot dot-monitoring"></span>
-                    <h3>Monitoring Trigger</h3>
-                </div>
-                <div style="display:flex; align-items:center; gap:0.35rem;">
-                    <span class="col-count-badge">{{ kanban['MONITORING']|length }}</span>
-                    <button type="button" class="wl-col-btn-toggle" onclick="toggleKanbanCol('colMonitoring')" title="Minimize / Expand Column">➖</button>
-                </div>
-            </div>
-            <div class="wl-col-cards">
-                {% for idea in kanban['MONITORING'] %}
-                    {% include "watchlist/_card.html" %}
-                {% else %}
-                    <div class="wl-empty-col">No setups currently being monitored.</div>
-                {% endfor %}
-            </div>
+        {% if total_pages > 1 %}<div class="wl-history-pagination">{% if page > 1 %}<a href="/watchlist/?view=history&page={{ page - 1 }}">Previous</a>{% endif %}<span>Page {{ page }} of {{ total_pages }}</span>{% if page < total_pages %}<a href="/watchlist/?view=history&page={{ page + 1 }}">Next</a>{% endif %}</div>{% endif %}
+    </div>
+    {% elif view == 'running' and view_mode == 'grid' %}
+    <div class="wl-running-panel"><div class="wl-history-header"><div><h2>Running Trades</h2><p>Converted setups with no final result yet.</p></div><span>{{ total_running }} open</span></div><div class="wl-cards-grid">{% for idea in running_ideas %}{% include "watchlist/_card.html" %}{% else %}<div class="wl-empty-full"><h3>No running trades</h3><p class="text-muted">Converted trades will stay here until you set a final result.</p></div>{% endfor %}</div></div>
+    {% elif view_mode == 'list' %}
+    <div class="wl-list-panel">
+        <div class="wl-list-header"><div><h2>{% if view == 'running' %}Running Trades{% else %}Active Pipeline{% endif %}</h2><p>Use the status selector in each row to move a setup manually.</p></div><span>{{ ideas|length }} records</span></div>
+        <div class="wl-list-table-wrap">
+            <table class="wl-list-table"><thead><tr><th>Date</th><th>Setup</th><th>Direction</th><th>Status</th><th>Entry</th><th>SL</th><th>TP</th><th>Trade</th><th>Actions</th></tr></thead><tbody>
+            {% for idea in ideas %}
+            <tr>
+                <td>{{ idea.created_at.strftime('%Y-%m-%d') if idea.created_at else '—' }}</td>
+                <td><a href="/watchlist/{{ idea.id }}" class="wl-title-link">{{ idea.title }}</a><small>{{ idea.instrument_obj.name if idea.instrument_obj else 'Custom' }}</small></td>
+                <td><span class="wl-dir-badge dir-{{ idea.direction|lower }}">{{ idea.direction }}</span></td>
+                <td><form method="POST" action="/watchlist/{{ idea.id }}/status" class="wl-list-status-form"><select name="status" onchange="this.form.submit()" class="wl-status-select"><option value="WAITING" {% if idea.status == 'WAITING' %}selected{% endif %}>Waiting</option><option value="MONITORING" {% if idea.status == 'MONITORING' %}selected{% endif %}>Monitoring</option><option value="EXECUTED" {% if idea.status == 'EXECUTED' %}selected{% endif %}>Running</option><option value="RESOLVED" {% if idea.status == 'RESOLVED' %}selected{% endif %}>Archive</option></select></form></td>
+                <td class="font-mono">{{ idea.planned_entry if idea.planned_entry is not none else '—' }}</td><td class="font-mono val-neg">{{ idea.planned_sl if idea.planned_sl is not none else '—' }}</td><td class="font-mono val-pos">{{ idea.planned_tp if idea.planned_tp is not none else '—' }}</td>
+                <td>{% if idea.promoted_trade_id %}<a href="/trades/{{ idea.promoted_trade_id }}">#{{ idea.promoted_trade_id }}</a>{% else %}—{% endif %}</td>
+                <td><a href="/watchlist/{{ idea.id }}" class="wl-btn-tool">View</a> <a href="/watchlist/{{ idea.id }}/edit" class="wl-btn-tool">Edit</a></td>
+            </tr>
+            {% else %}<tr><td colspan="9" class="wl-history-empty">No watchlist records found.</td></tr>{% endfor %}
+            </tbody></table>
         </div>
-
-        <!-- Column 3: EXECUTED -->
-        <div class="wl-kanban-col" id="colExecuted">
-            <div class="wl-col-header col-executed">
-                <div class="col-title-wrap">
-                    <span class="col-dot dot-executed"></span>
-                    <h3>Live / Executed</h3>
-                </div>
-                <div style="display:flex; align-items:center; gap:0.35rem;">
-                    <span class="col-count-badge">{{ kanban['EXECUTED']|length }}</span>
-                    <button type="button" class="wl-col-btn-toggle" onclick="toggleKanbanCol('colExecuted')" title="Minimize / Expand Column">➖</button>
-                </div>
-            </div>
-            <div class="wl-col-cards">
-                {% for idea in kanban['EXECUTED'] %}
-                    {% include "watchlist/_card.html" %}
-                {% else %}
-                    <div class="wl-empty-col">No executed trades from watchlist yet.</div>
-                {% endfor %}
-            </div>
-        </div>
-
-        <!-- Column 4: RESOLVED (Invalidated / Missed / Archived) -->
-        <div class="wl-kanban-col" id="colResolved">
-            <div class="wl-col-header col-resolved">
-                <div class="col-title-wrap">
-                    <span class="col-dot dot-resolved"></span>
-                    <h3>Resolved / Inactive</h3>
-                </div>
-                <div style="display:flex; align-items:center; gap:0.35rem;">
-                    <span class="col-count-badge">{{ kanban['RESOLVED']|length }}</span>
-                    <button type="button" class="wl-col-btn-toggle" onclick="toggleKanbanCol('colResolved')" title="Minimize / Expand Column">➖</button>
-                </div>
-            </div>
-            <div class="wl-col-cards">
-                {% set resolved_items = kanban['RESOLVED'] %}
-                {% if resolved_items %}
-                    {% for idea in resolved_items[:5] %}
-                        {% include "watchlist/_card.html" %}
-                    {% endfor %}
-
-                    {% if resolved_items|length > 5 %}
-                    <div id="resolvedMoreBox" style="display:none; flex-direction:column; gap:0.85rem;">
-                        {% for idea in resolved_items[5:] %}
-                            {% include "watchlist/_card.html" %}
-                        {% endfor %}
-                    </div>
-                    <button type="button" class="btn-load-more-archived" id="btnToggleMoreResolved" onclick="toggleMoreResolved()">
-                        📦 Show All Archived Setups ({{ resolved_items|length - 5 }} more) &darr;
-                    </button>
-                    {% endif %}
-                {% else %}
-                    <div class="wl-empty-col">No invalidated or missed setups.</div>
-                {% endif %}
-            </div>
-        </div>
-
     </div>
 
     <!-- ========================================================================= -->
@@ -339,8 +280,7 @@ function showMobileKanbanCol(colKey, tabBtn) {
     const colMap = {
         'waiting': document.getElementById('colWaiting'),
         'monitoring': document.getElementById('colMonitoring'),
-        'executed': document.getElementById('colExecuted'),
-        'resolved': document.getElementById('colResolved'),
+        'running': document.getElementById('colRunning'),
     };
 
     if (colKey === 'all') {
@@ -401,7 +341,7 @@ function toggleMoreResolved() {
 
 // Restore saved column collapsed states on page load
 document.addEventListener('DOMContentLoaded', () => {
-    ['colWaiting', 'colMonitoring', 'colExecuted', 'colResolved'].forEach(colId => {
+    ['colWaiting', 'colMonitoring', 'colRunning'].forEach(colId => {
         try {
             if (localStorage.getItem(`col_collapsed_${colId}`) === '1') {
                 const col = document.getElementById(colId);

@@ -21,7 +21,7 @@
                 <span class="wl-status-pill status-pill-{{ idea.status|lower }}" style="font-size: 0.82rem; padding: 0.35rem 0.85rem;">
                     {% if idea.status == 'WAITING' %}Waiting for POI
                     {% elif idea.status == 'MONITORING' %}Monitoring Trigger
-                    {% elif idea.status == 'EXECUTED' %}Live / Executed
+                    {% elif idea.status == 'EXECUTED' %}Running Trade
                     {% elif idea.status == 'INVALIDATED' %}Invalidated
                     {% elif idea.status == 'MISSED' %}Missed Entry
                     {% else %}{{ idea.status }}{% endif %}

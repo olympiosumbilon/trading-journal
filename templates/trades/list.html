@@ -184,6 +184,7 @@
                     <div class="tpr-id-pair">
                         <span class="tpr-id">#{{ trade.id }}</span>
                         <span class="tpr-pair">{{ trade.instrument_obj.name if trade.instrument_obj else "—" }}</span>
+                        <span class="trade-direction-badge direction-{{ (trade.direction or 'LONG')|lower }}">{{ trade.direction or 'LONG' }}</span>
                         {% if trade.session_obj %}
                         <span class="tpr-session-tag">{{ trade.session_obj.name }}</span>
                         {% endif %}
@@ -262,6 +263,7 @@
                     <th>Date</th>
                     <th>Time</th>
                     <th>Instrument</th>
+                    <th>Direction</th>
                     <th>Session</th>
                     <th>Setup</th>
                     <th>Prob</th>
@@ -293,6 +295,7 @@
                         <span class="status-pill status-swept">SWEPT</span>
                         {% endif %}
                     </td>
+                    <td><span class="trade-direction-badge direction-{{ (trade.direction or 'LONG')|lower }}">{{ trade.direction or 'LONG' }}</span></td>
                     <td>{{ trade.session_obj.name if trade.session_obj else "" }}</td>
                     <td>
                         <div>{{ trade.strategy_obj.name if trade.strategy_obj else "" }}</div>
@@ -338,7 +341,7 @@
                 </tr>
                 {% else %}
                 <tr>
-                    <td colspan="11" class="empty-state">No trades found for the selected filters.</td>
+                    <td colspan="12" class="empty-state">No trades found for the selected filters.</td>
                 </tr>
                 {% endfor %}
             </tbody>

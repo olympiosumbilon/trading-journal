@@ -17,6 +17,7 @@ node_modules/
 # Media & local data
 media/
 uploads/
+*.db
 *.log
 scratch/
 
