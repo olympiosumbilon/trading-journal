@@ -17,6 +17,8 @@ from models import (
     WatchlistIdea, Trade, Instrument, Session, Strategy, ProbabilityLevel, MTFPhase, TradeScreenshot,
 )
 from utils.template_helpers import format_time_12h, format_duration
+from routers.trades import sync_trade_screenshots, auto_detect_session_id
+from services.calculation_service import compute_portfolio_stats
 
 router = APIRouter()
 templates = Jinja2Templates(directory="templates")
@@ -198,6 +200,7 @@ def watchlist_index(
             "WAITING": [i for i in display_ideas if i.status == "WAITING"],
             "MONITORING": [i for i in display_ideas if i.status == "MONITORING"],
             "EXECUTED": [i for i in display_ideas if i.status == "EXECUTED"],
+            "RESOLVED": [i for i in all_ideas if i.status in {"INVALIDATED", "MISSED", "RESOLVED"}],
         }
 
         total_history = len(history_ideas)
@@ -334,6 +337,8 @@ def create_watchlist_idea(
     tradingview_url: str = Form(""),
     timeframe_layers_json: str = Form("[]"),
     status: str = Form("WAITING"),
+    entry_date: str = Form(""),
+    entry_time: str = Form(""),
 ):
     with SessionLocal() as db:
         title = title.strip()
@@ -419,6 +424,24 @@ def create_watchlist_idea(
         db.commit()
         db.refresh(idea)
 
+        if status.upper() == "EXECUTED" and entry_time and entry_time.strip():
+            if not entry_date or not entry_date.strip():
+                entry_date = datetime.now().strftime("%Y-%m-%d")
+            create_live_trade_from_idea(
+                db=db,
+                idea=idea,
+                entry_date_str=entry_date.strip(),
+                entry_time_str=entry_time.strip(),
+                entry_price_str=str(p_entry) if p_entry is not None else "",
+                stop_loss_str=str(p_sl) if p_sl is not None else "",
+                take_profit_str=str(p_tp) if p_tp is not None else "",
+                session_id_str=session_id,
+                strategy_id_str=strategy_id,
+                probability_id_str=probability_level_id,
+                phase_id_str=mtf_phase_id,
+                comments_str="",
+            )
+
     return RedirectResponse(url=f"/watchlist/?msg=Setup+{quote(title)}+added+to+Watchlist", status_code=303)
 
 
@@ -440,11 +463,20 @@ def watchlist_detail(request: Request, idea_id: int):
         if not idea:
             raise HTTPException(status_code=404, detail="Watchlist Idea not found")
 
+        sessions = db.query(Session).order_by(Session.name).all()
+        strategies = db.query(Strategy).order_by(Strategy.is_active.desc(), Strategy.name.asc()).all()
+        probabilities = db.query(ProbabilityLevel).order_by(ProbabilityLevel.name).all()
+        phases = db.query(MTFPhase).order_by(MTFPhase.name).all()
+
         return templates.TemplateResponse(
             request,
             "watchlist/detail.html",
             {
                 "idea": idea,
+                "sessions": sessions,
+                "strategies": strategies,
+                "probabilities": probabilities,
+                "phases": phases,
             },
         )
 
@@ -452,7 +484,13 @@ def watchlist_detail(request: Request, idea_id: int):
 @router.get("/{idea_id}/edit")
 def watchlist_edit_form(request: Request, idea_id: int):
     with SessionLocal() as db:
-        idea = db.query(WatchlistIdea).get(idea_id)
+        idea = (
+            db.query(WatchlistIdea)
+            .options(
+                selectinload(WatchlistIdea.promoted_trade_obj)
+            )
+            .get(idea_id)
+        )
         if not idea:
             raise HTTPException(status_code=404, detail="Watchlist Idea not found")
 
@@ -498,6 +536,8 @@ def update_watchlist_idea(
     tradingview_url: str = Form(""),
     timeframe_layers_json: str = Form("[]"),
     status: str = Form("WAITING"),
+    entry_date: str = Form(""),
+    entry_time: str = Form(""),
 ):
     with SessionLocal() as db:
         idea = db.query(WatchlistIdea).get(idea_id)
@@ -579,14 +619,189 @@ def update_watchlist_idea(
         if new_status in {"INVALIDATED", "MISSED", "RESOLVED"} and old_status not in {"INVALIDATED", "MISSED", "RESOLVED"}:
             idea.resolved_at = datetime.now()
 
+        # If updated to EXECUTED and timing is provided
+        if new_status == "EXECUTED" and not idea.promoted_trade_id and entry_time and entry_time.strip():
+            if not entry_date or not entry_date.strip():
+                entry_date = datetime.now().strftime("%Y-%m-%d")
+            create_live_trade_from_idea(
+                db=db,
+                idea=idea,
+                entry_date_str=entry_date.strip(),
+                entry_time_str=entry_time.strip(),
+                entry_price_str=str(p_entry) if p_entry is not None else "",
+                stop_loss_str=str(p_sl) if p_sl is not None else "",
+                take_profit_str=str(p_tp) if p_tp is not None else "",
+                session_id_str=session_id,
+                strategy_id_str=strategy_id,
+                probability_id_str=probability_level_id,
+                phase_id_str=mtf_phase_id,
+                comments_str="",
+            )
+        elif new_status == "EXECUTED" and idea.promoted_trade_id and entry_time and entry_time.strip():
+            promoted_trade = db.query(Trade).get(idea.promoted_trade_id)
+            if promoted_trade:
+                if entry_date and entry_date.strip():
+                    try:
+                        promoted_trade.entry_date = datetime.strptime(entry_date.strip(), "%Y-%m-%d").date()
+                    except Exception:
+                        pass
+                try:
+                    promoted_trade.entry_time = datetime.strptime(entry_time.strip()[:5], "%H:%M").time()
+                except Exception:
+                    pass
+
         saved_title = str(idea.title)
         db.commit()
 
     return RedirectResponse(url=f"/watchlist/?msg=Setup+{quote(saved_title)}+updated", status_code=303)
 
 
+def create_live_trade_from_idea(
+    db,
+    idea: WatchlistIdea,
+    entry_date_str: str,
+    entry_time_str: str,
+    entry_price_str: str = "",
+    stop_loss_str: str = "",
+    take_profit_str: str = "",
+    session_id_str: str = "",
+    strategy_id_str: str = "",
+    probability_id_str: str = "",
+    phase_id_str: str = "",
+    comments_str: str = "",
+) -> Trade:
+    if not entry_date_str or not entry_date_str.strip():
+        raise ValueError("Start Date is required to convert into a live trade.")
+    if not entry_time_str or not entry_time_str.strip():
+        raise ValueError("Start Time is required to convert into a live trade.")
+
+    parsed_date = datetime.strptime(entry_date_str.strip(), "%Y-%m-%d").date()
+    parsed_time = datetime.strptime(entry_time_str.strip()[:5], "%H:%M").time()
+
+    def parse_float(val):
+        try:
+            return float(str(val).strip()) if val and str(val).strip() else None
+        except Exception:
+            return None
+
+    p_entry = parse_float(entry_price_str) if entry_price_str else idea.planned_entry
+    p_sl = parse_float(stop_loss_str) if stop_loss_str else idea.planned_sl
+    p_tp = parse_float(take_profit_str) if take_profit_str else idea.planned_tp
+
+    candle_size = None
+    if p_entry is not None and p_sl is not None:
+        candle_size = round(abs(p_entry - p_sl), 5)
+
+    fixed_r = idea.planned_rr
+    if fixed_r is None and p_entry is not None and p_sl is not None and p_tp is not None and candle_size and candle_size > 0:
+        fixed_r = round(abs(p_tp - p_entry) / candle_size, 2)
+
+    final_session_id = None
+    if session_id_str and str(session_id_str).isdigit():
+        final_session_id = int(session_id_str)
+    elif idea.session_id:
+        final_session_id = idea.session_id
+    else:
+        final_session_id = auto_detect_session_id(db, entry_time_str.strip()[:5])
+
+    final_strategy_id = int(strategy_id_str) if strategy_id_str and str(strategy_id_str).isdigit() else idea.strategy_id
+    final_probability_id = int(probability_id_str) if probability_id_str and str(probability_id_str).isdigit() else idea.probability_level_id
+    final_phase_id = int(phase_id_str) if phase_id_str and str(phase_id_str).isdigit() else idea.mtf_phase_id
+
+    # Extract layer screenshots & notes
+    layer_items = []
+    if idea.layers_list:
+        for idx, lyr in enumerate(idea.layers_list, 1):
+            shot = (lyr.get("image_url") or lyr.get("tv_url") or "").strip()
+            title = (lyr.get("title") or f"Layer #{idx}").strip()
+            if shot:
+                layer_items.append((shot, title))
+
+    if not layer_items:
+        for idx, raw in enumerate([idea.htf_image_url, idea.ltf_image_url, idea.tradingview_url], 1):
+            if raw and raw.strip():
+                layer_items.append((raw.strip(), f"Chart #{idx}"))
+
+    notes_sections = []
+    if comments_str and comments_str.strip():
+        notes_sections.append(comments_str.strip())
+    else:
+        if idea.notes and idea.notes.strip():
+            notes_sections.append(f"📌 General Trade Plan:\n{idea.notes.strip()}")
+        layer_notes = []
+        if idea.layers_list:
+            for idx, lyr in enumerate(idea.layers_list, 1):
+                lyr_title = lyr.get("title") or f"Layer #{idx}"
+                lyr_note = lyr.get("note") or ""
+                if lyr_note and lyr_note.strip():
+                    layer_notes.append(f"• [{lyr_title}]: {lyr_note.strip()}")
+        if layer_notes:
+            notes_sections.append("🎯 Timeframe Analysis & Bias:\n" + "\n".join(layer_notes))
+
+    combined_notes = "\n\n".join(notes_sections) if notes_sections else f"Converted from Watchlist: {idea.title}"
+
+    trade = Trade(
+        entry_date=parsed_date,
+        entry_time=parsed_time,
+        session_id=final_session_id,
+        instrument_id=idea.instrument_id,
+        strategy_id=final_strategy_id,
+        probability_level_id=final_probability_id,
+        mtf_phase_id=final_phase_id,
+        direction=idea.direction or "LONG",
+        entry_price=p_entry,
+        stop_loss=p_sl,
+        take_profit=p_tp,
+        entry_candle_size=candle_size,
+        fixed_r_target=fixed_r,
+        comments=combined_notes,
+        execution_status="LIVE",
+        outcome_type="AUTO",
+    )
+    trade.day = parsed_date.day
+    trade.day_of_week = parsed_date.weekday()
+    trade.month_number = parsed_date.month
+    trade.month_name = parsed_date.strftime("%B")
+    trade.year = parsed_date.year
+    trade.quarter = (parsed_date.month - 1) // 3 + 1
+
+    db.add(trade)
+    db.commit()
+    db.refresh(trade)
+
+    raw_urls = [s_url for s_url, _ in layer_items]
+    raw_captions = [s_cap for _, s_cap in layer_items]
+    sync_trade_screenshots(db, trade, raw_urls, raw_captions)
+
+    idea.promoted_trade_id = trade.id
+    idea.status = "EXECUTED"
+    idea.resolved_at = datetime.now()
+    db.commit()
+
+    all_trades = db.query(Trade).order_by(Trade.id).all()
+    for t in all_trades:
+        _ = t.instrument_obj
+        t.total_r = None
+        t.is_win = None
+        t.is_loss = None
+        t.win_streak = None
+        t.loss_streak = None
+        t.peak_r = None
+        t.drawdown = None
+        t.max_drawdown = None
+    compute_portfolio_stats(all_trades)
+    db.commit()
+
+    return trade
+
+
 @router.post("/{idea_id}/status")
-def quick_update_status(idea_id: int, status: str = Form(...)):
+def quick_update_status(
+    idea_id: int,
+    status: str = Form(...),
+    entry_date: str = Form(""),
+    entry_time: str = Form(""),
+):
     with SessionLocal() as db:
         idea = db.query(WatchlistIdea).get(idea_id)
         if not idea:
@@ -599,9 +814,91 @@ def quick_update_status(idea_id: int, status: str = Form(...)):
         if new_status in {"INVALIDATED", "MISSED", "RESOLVED"} and old_status not in {"INVALIDATED", "MISSED", "RESOLVED"}:
             idea.resolved_at = datetime.now()
 
+        # If converted to EXECUTED and not yet promoted to a trade
+        if new_status == "EXECUTED" and not idea.promoted_trade_id:
+            if entry_date.strip() and entry_time.strip():
+                try:
+                    create_live_trade_from_idea(db, idea, entry_date, entry_time)
+                    return RedirectResponse(
+                        url=f"/watchlist/?msg=Setup+converted+to+Live+Trade+#{idea.promoted_trade_id}",
+                        status_code=303
+                    )
+                except Exception as e:
+                    return RedirectResponse(
+                        url=f"/watchlist/?convert_id={idea_id}&error={quote(str(e))}",
+                        status_code=303
+                    )
+
         db.commit()
 
     return RedirectResponse(url=f"/watchlist/?msg=Status+updated+to+{new_status}", status_code=303)
+
+
+@router.post("/{idea_id}/convert-to-trade")
+def convert_watchlist_to_trade(
+    idea_id: int,
+    entry_date: str = Form(""),
+    entry_time: str = Form(""),
+    entry_price: str = Form(""),
+    stop_loss: str = Form(""),
+    take_profit: str = Form(""),
+    session_id: str = Form(""),
+    strategy_id: str = Form(""),
+    probability_level_id: str = Form(""),
+    mtf_phase_id: str = Form(""),
+    comments: str = Form(""),
+):
+    with SessionLocal() as db:
+        idea = (
+            db.query(WatchlistIdea)
+            .options(
+                selectinload(WatchlistIdea.instrument_obj),
+                selectinload(WatchlistIdea.session_obj),
+                selectinload(WatchlistIdea.strategy_obj),
+            )
+            .get(idea_id)
+        )
+        if not idea:
+            raise HTTPException(status_code=404, detail="Watchlist Idea not found")
+
+        if not entry_date.strip() or not entry_time.strip():
+            return RedirectResponse(
+                url=f"/watchlist/?convert_id={idea_id}&error=Start+Date+and+Start+Time+are+strictly+required+to+insert+into+Live+Trades",
+                status_code=303
+            )
+
+        if idea.promoted_trade_id:
+            return RedirectResponse(
+                url=f"/watchlist/?msg=Setup+is+already+logged+in+Trade+#{idea.promoted_trade_id}",
+                status_code=303
+            )
+
+        try:
+            trade = create_live_trade_from_idea(
+                db,
+                idea,
+                entry_date_str=entry_date,
+                entry_time_str=entry_time,
+                entry_price_str=entry_price,
+                stop_loss_str=stop_loss,
+                take_profit_str=take_profit,
+                session_id_str=session_id,
+                strategy_id_str=strategy_id,
+                probability_id_str=probability_level_id,
+                phase_id_str=mtf_phase_id,
+                comments_str=comments,
+            )
+            trade_num = trade.id
+        except Exception as e:
+            return RedirectResponse(
+                url=f"/watchlist/?convert_id={idea_id}&error={quote(str(e))}",
+                status_code=303
+            )
+
+    return RedirectResponse(
+        url=f"/watchlist/?msg=Live+Trade+#{trade_num}+created+and+linked+successfully!",
+        status_code=303
+    )
 
 
 @router.get("/{idea_id}/promote")

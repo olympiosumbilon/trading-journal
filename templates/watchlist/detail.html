@@ -1,9 +1,28 @@
 {% extends "base.html" %}
 
 {% block title %}{{ idea.title }} — Market Watchlist — Trading Journal{% endblock %}
+{% block extra_head %}
+<link rel="stylesheet" href="/static/watchlist.css?v=20261013e">
+{% endblock %}
 
 {% block content %}
-<div class="wl-detail-container">
+<div class="wl-detail-container"
+     data-idea-id="{{ idea.id }}"
+     data-idea-title="{{ idea.title|e }}"
+     data-idea-direction="{{ idea.direction }}"
+     data-idea-instrument="{{ idea.instrument_obj.name if idea.instrument_obj else 'Custom' }}"
+     data-idea-strategy="{{ idea.strategy_obj.name if idea.strategy_obj else '' }}"
+     data-idea-strategy-id="{{ idea.strategy_id or '' }}"
+     data-idea-probability-id="{{ idea.probability_level_id or '' }}"
+     data-idea-phase-id="{{ idea.mtf_phase_id or '' }}"
+     data-idea-instrument-id="{{ idea.instrument_id or '' }}"
+     data-idea-entry="{{ idea.planned_entry or '' }}"
+     data-idea-sl="{{ idea.planned_sl or '' }}"
+     data-idea-tp="{{ idea.planned_tp or '' }}"
+     data-idea-rr="{{ idea.planned_rr or '' }}"
+     data-idea-session-id="{{ idea.session_id or '' }}"
+     data-idea-notes="{{ (idea.notes or '')|e }}"
+     data-promoted-trade-id="{{ idea.promoted_trade_id or '' }}">
 
     <!-- Top Header Bar -->
     <div class="wl-header-bar">
@@ -29,11 +48,11 @@
             </div>
         </div>
 
-        <div class="wl-header-actions">
+        <div class="wl-header-actions" style="display: flex; align-items: center; gap: 8px;">
             {% if idea.status != 'EXECUTED' %}
-            <a href="/watchlist/{{ idea.id }}/promote" class="btn-save-trade-submit" style="padding: 0.65rem 1.35rem; font-size: 0.9rem; text-decoration: none; display: inline-flex; align-items: center; gap: 0.4rem;">
+            <button type="button" class="btn-save-trade-submit" onclick="openConvertModalFromCard(this)" style="padding: 0.65rem 1.35rem; font-size: 0.9rem; cursor: pointer; border: none; display: inline-flex; align-items: center; gap: 0.4rem;">
                 Convert to Live Trade &rarr;
-            </a>
+            </button>
             {% else %}
                 {% if idea.promoted_trade_id %}
                 <a href="/trades/{{ idea.promoted_trade_id }}" class="btn-secondary" style="padding: 0.65rem 1.25rem;">
@@ -42,6 +61,9 @@
                 {% endif %}
             {% endif %}
             <a href="/watchlist/{{ idea.id }}/edit" class="btn-back">Edit</a>
+            <form method="POST" action="/watchlist/{{ idea.id }}/delete" onsubmit="return confirm('Delete this trade idea?');" style="margin: 0; display: inline;">
+                <button type="submit" class="btn-back" style="color: #dc2626; border-color: #fecaca; background: #fff;" title="Delete Idea">Delete</button>
+            </form>
         </div>
     </div>
 
@@ -248,4 +270,5 @@ function closeChartModal(e) {
     }
 }
 </script>
+{% include "watchlist/_convert_modal.html" %}
 {% endblock %}

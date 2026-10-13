@@ -1,6 +1,9 @@
 {% extends "base.html" %}
 
 {% block title %}{% if idea %}Edit Trade Idea — {{ idea.title }}{% else %}Log New Trade Idea{% endif %} — Trading Journal{% endblock %}
+{% block extra_head %}
+<link rel="stylesheet" href="/static/watchlist.css?v=20261013e">
+{% endblock %}
 
 {% block content %}
 <div class="wl-form-container">
@@ -17,7 +20,7 @@
     </div>
 
     <!-- Main Idea Form -->
-    <form method="POST" action="{% if idea %}/watchlist/{{ idea.id }}/edit{% else %}/watchlist/new{% endif %}" class="wl-main-form" id="watchlistForm" onsubmit="prepareTimeframeLayersBeforeSubmit()">
+    <form method="POST" action="{% if idea %}/watchlist/{{ idea.id }}/edit{% else %}/watchlist/new{% endif %}" class="wl-main-form" id="watchlistForm" onsubmit="return prepareTimeframeLayersBeforeSubmit(event)">
         
         <input type="hidden" name="timeframe_layers_json" id="timeframeLayersJsonInput" value="[]">
 
@@ -25,7 +28,7 @@
         <div class="form-section-block">
             <h4 class="form-section-title">Setup Identification &amp; Direction</h4>
             
-            <div class="form-section-grid" style="grid-template-columns: 1.2fr 1fr 1fr; margin-bottom: 0.85rem;">
+            <div class="form-section-grid" style="grid-template-columns: 1.2fr 1fr 1fr;">
                 <div class="form-group">
                     <label>Instrument / Coin <span style="color:#e11d48;">*</span></label>
                     <select name="instrument_id" id="instrumentSelect" class="form-input font-bold" required>
@@ -52,7 +55,7 @@
 
                 <div class="form-group">
                     <label>Pipeline Stage</label>
-                    <select name="status" class="form-input font-bold">
+                    <select name="status" id="pipelineStatusSelect" class="form-input font-bold" onchange="toggleExecutedTimeFields()">
                         <option value="WAITING" {% if not idea or idea.status == 'WAITING' %}selected{% endif %}>Waiting for POI</option>
                         <option value="MONITORING" {% if idea and idea.status == 'MONITORING' %}selected{% endif %}>Monitoring Trigger</option>
                         <option value="EXECUTED" {% if idea and idea.status == 'EXECUTED' %}selected{% endif %}>Live / Executed</option>
@@ -62,7 +65,28 @@
                 </div>
             </div>
 
-            <div class="form-group">
+            <!-- Dynamic Live Execution Timing Box (shown & required when Stage is Live / Executed) -->
+            <div id="executedTimeBox" class="wl-executed-timing-panel" style="display: {% if idea and idea.status == 'EXECUTED' %}block{% else %}none{% endif %};">
+                <div class="wl-executed-timing-header">
+                    <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#059669" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                    <span><strong>Live Execution Timing:</strong> Start Time is required to insert and log this setup into Trades immediately.</span>
+                </div>
+                <div class="form-section-grid" style="grid-template-columns: 1fr 1fr; gap: 0.85rem; margin-top: 0.65rem;">
+                    <div class="form-group" style="margin-bottom:0;">
+                        <label for="executedEntryDate">Start Date <span style="color:#e11d48;">*</span></label>
+                        <input type="date" name="entry_date" id="executedEntryDate" class="form-input font-bold"
+                               value="{% if idea and idea.promoted_trade_obj and idea.promoted_trade_obj.entry_date %}{{ idea.promoted_trade_obj.entry_date.strftime('%Y-%m-%d') }}{% endif %}">
+                    </div>
+                    <div class="form-group" style="margin-bottom:0;">
+                        <label for="executedEntryTime">Start Time (PHT) <span style="color:#e11d48;">*</span></label>
+                        <input type="time" name="entry_time" id="executedEntryTime" class="form-input font-bold"
+                               value="{% if idea and idea.promoted_trade_obj and idea.promoted_trade_obj.entry_time %}{{ idea.promoted_trade_obj.entry_time.strftime('%H:%M') }}{% endif %}">
+                        <small class="text-muted" style="font-size: 0.73rem; display: block; margin-top: 3px;">Auto-detects session (Asia / London / NY)</small>
+                    </div>
+                </div>
+            </div>
+
+            <div class="form-group" style="margin-top: 0.75rem;">
                 <label>Setup Title / Reference Name <small class="text-muted">(Optional — e.g. SOLUSD LC-1 M15 Demand Sweep)</small></label>
                 <input type="text" name="title" id="ideaTitle" value="{{ idea.title if idea else '' }}" placeholder="Auto-generated from Instrument + Strategy if left empty" class="form-input">
             </div>
@@ -71,7 +95,7 @@
         <!-- Section 2: Strategy Edge & Confluence -->
         <div class="form-section-block">
             <h4 class="form-section-title">Strategy Model &amp; Market Context</h4>
-            <div class="form-section-grid" style="grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));">
+            <div class="form-section-grid wl-form-grid-4">
                 <div class="form-group">
                     <label>Strategy / Setup Model</label>
                     <select name="strategy_id" class="form-input">
@@ -128,7 +152,7 @@
         <!-- Section 3: Planned Levels & R:R Geometry -->
         <div class="form-section-block">
             <h4 class="form-section-title">Planned Execution Levels &amp; Target R:R</h4>
-            <div class="form-section-grid grid-geometry-mobile" style="grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));">
+            <div class="form-section-grid wl-form-grid-4">
                 <div class="form-group">
                     <label>Planned Entry Price</label>
                     <input type="number" step="any" name="planned_entry" id="plannedEntry" value="{{ idea.planned_entry if idea and idea.planned_entry is not none else '' }}" placeholder="e.g. 142.50" class="form-input" oninput="calcPlannedRR()">
@@ -481,7 +505,83 @@ function clearLayerDropzone(e, layerId) {
     document.getElementById(`placeholder_${layerId}`).style.display = 'flex';
 }
 
-function prepareTimeframeLayersBeforeSubmit() {
+function toggleExecutedTimeFields() {
+    const stageSelect = document.getElementById('pipelineStatusSelect');
+    const timeBox = document.getElementById('executedTimeBox');
+    const dateInput = document.getElementById('executedEntryDate');
+    const timeInput = document.getElementById('executedEntryTime');
+
+    if (!stageSelect || !timeBox || !timeInput || !dateInput) return;
+
+    const isExecuted = stageSelect.value === 'EXECUTED';
+    if (isExecuted) {
+        timeBox.style.display = 'block';
+        timeInput.required = true;
+        dateInput.required = true;
+
+        // Auto-fill current PHT date/time if empty
+        if (!dateInput.value) {
+            try {
+                const now = new Date();
+                const phtStr = now.toLocaleDateString('en-CA', { timeZone: 'Asia/Manila' });
+                dateInput.value = phtStr;
+            } catch(e) {
+                const now = new Date();
+                const yyyy = now.getFullYear();
+                const mm = String(now.getMonth() + 1).padStart(2, '0');
+                const dd = String(now.getDate()).padStart(2, '0');
+                dateInput.value = `${yyyy}-${mm}-${dd}`;
+            }
+        }
+        if (!timeInput.value) {
+            try {
+                const now = new Date();
+                const phtTime = now.toLocaleTimeString('en-GB', { timeZone: 'Asia/Manila', hour: '2-digit', minute: '2-digit', hour12: false });
+                timeInput.value = phtTime;
+            } catch(e) {
+                const now = new Date();
+                const hh = String(now.getHours()).padStart(2, '0');
+                const min = String(now.getMinutes()).padStart(2, '0');
+                timeInput.value = `${hh}:${min}`;
+            }
+        }
+    } else {
+        timeBox.style.display = 'none';
+        timeInput.required = false;
+        dateInput.required = false;
+    }
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+    toggleExecutedTimeFields();
+});
+
+function prepareTimeframeLayersBeforeSubmit(event) {
+    const stageSelect = document.getElementById('pipelineStatusSelect');
+    const timeInput = document.getElementById('executedEntryTime');
+    const dateInput = document.getElementById('executedEntryDate');
+
+    if (stageSelect && stageSelect.value === 'EXECUTED') {
+        if (!timeInput || !timeInput.value.trim()) {
+            if (event && event.preventDefault) event.preventDefault();
+            alert('Start Time is required when Pipeline Stage is set to Live / Executed.');
+            if (timeInput) {
+                timeInput.focus();
+                timeInput.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            }
+            return false;
+        }
+        if (!dateInput || !dateInput.value.trim()) {
+            if (event && event.preventDefault) event.preventDefault();
+            alert('Start Date is required when Pipeline Stage is set to Live / Executed.');
+            if (dateInput) {
+                dateInput.focus();
+                dateInput.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            }
+            return false;
+        }
+    }
+
     const layers = [];
     document.querySelectorAll('.wl-tf-layer-card').forEach(card => {
         const title = card.querySelector('.tf-layer-title')?.value || '';
@@ -505,6 +605,7 @@ function prepareTimeframeLayersBeforeSubmit() {
     });
 
     document.getElementById('timeframeLayersJsonInput').value = JSON.stringify(layers);
+    return true;
 }
 
 function escapeHtml(text) {

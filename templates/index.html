@@ -124,35 +124,256 @@
             </div>
             <div class="hsh-right">
                 <div class="heatmap-tabs">
-                    <button type="button" class="hm-tab-btn active" onclick="switchHeatmapTab('rsi', 'https://www.coinglass.com/pro/i/RsiHeatMap', this)">
+                    <button type="button" class="hm-tab-btn active" onclick="switchTerminalTab('crypto-heatmap', this, 'https://www.tradingview.com/markets/cryptocurrencies/prices-all/')">
+                        🔥 Live Crypto Heatmap
+                    </button>
+                    <button type="button" class="hm-tab-btn" onclick="switchTerminalTab('crypto-technicals', this, 'https://www.tradingview.com/markets/cryptocurrencies/prices-all/')">
+                        📊 Technicals & RSI
+                    </button>
+                    <button type="button" class="hm-tab-btn" onclick="switchTerminalTab('economic-calendar', this, 'https://www.tradingview.com/economic-calendar/')">
+                        📅 Macro Calendar
+                    </button>
+                    <button type="button" class="hm-tab-btn" onclick="switchTerminalTab('coinglass-rsi', this, 'https://www.coinglass.com/pro/i/RsiHeatMap')">
                         🌡️ Coinglass RSI
                     </button>
-                    <button type="button" class="hm-tab-btn" onclick="switchHeatmapTab('liquidation', 'https://www.coinglass.com/pro/futures/LiquidationHeatMap', this)">
-                        🔥 Liquidations
+                    <button type="button" class="hm-tab-btn" onclick="switchTerminalTab('coinglass-liq', this, 'https://www.coinglass.com/pro/futures/LiquidationHeatMap')">
+                        💥 Liquidations
                     </button>
-                    <button type="button" class="hm-tab-btn" onclick="switchHeatmapTab('forexfactory', 'https://www.forexfactory.com/calendar', this)">
+                    <button type="button" class="hm-tab-btn" onclick="switchTerminalTab('forexfactory', this, 'https://www.forexfactory.com/calendar')">
                         🔴 ForexFactory
                     </button>
-                    <button type="button" class="hm-tab-btn" onclick="switchHeatmapTab('cryptocraft', 'https://www.cryptocraft.com/calendar', this)">
+                    <button type="button" class="hm-tab-btn" onclick="switchTerminalTab('cryptocraft', this, 'https://www.cryptocraft.com/calendar')">
                         🪙 CryptoCraft
                     </button>
                 </div>
-                <a id="extCoinglassBtn" href="https://www.coinglass.com/pro/i/RsiHeatMap" target="_blank" rel="noopener noreferrer" class="btn-open-ext">
+                <a id="extCoinglassBtn" href="https://www.tradingview.com/markets/cryptocurrencies/prices-all/" target="_blank" rel="noopener noreferrer" class="btn-open-ext">
                     🔗 Open Fullscreen ↗
                 </a>
             </div>
         </div>
 
-        <!-- Heatmap / Terminal Iframe Viewer Frame -->
+        <!-- Heatmap / Terminal Viewport -->
         <div class="coinglass-iframe-wrapper">
-            <iframe id="coinglassFrame" src="https://www.coinglass.com/pro/i/RsiHeatMap" title="Market Analytics Terminal" class="coinglass-embed-frame" allow="fullscreen" sandbox="allow-scripts allow-same-origin allow-popups allow-forms"></iframe>
+            <!-- 1. LIVE TRADINGVIEW CRYPTO COINS HEATMAP -->
+            <div id="pane-crypto-heatmap" class="terminal-pane" style="display: block;">
+                <div class="tradingview-widget-container" style="height:100%; width:100%;">
+                    <div class="tradingview-widget-container__widget" style="height:100%; width:100%;"></div>
+                    <script type="text/javascript" src="https://s3.tradingview.com/external-embedding/embed-widget-crypto-coins-heatmap.js" async>
+                    {
+                        "dataSource": "Crypto",
+                        "blockSize": "market_cap_calc",
+                        "blockColor": "change",
+                        "locale": "en",
+                        "symbolUrl": "",
+                        "colorTheme": "dark",
+                        "hasTopBar": true,
+                        "isDataSetDefault": false,
+                        "hideSymbolLogo": false,
+                        "widgetsSize": "adaptive",
+                        "autosize": true
+                    }
+                    </script>
+                </div>
+            </div>
+
+            <!-- 2. LIVE TRADINGVIEW TECHNICALS & RSI SCREENER -->
+            <div id="pane-crypto-technicals" class="terminal-pane" style="display: none;">
+                <div id="tv-technicals-widget-container" class="tradingview-widget-container" style="height:100%; width:100%;">
+                    <div class="tradingview-widget-container__widget" style="height:100%; width:100%;"></div>
+                </div>
+            </div>
+
+            <!-- 3. LIVE TRADINGVIEW ECONOMIC CALENDAR -->
+            <div id="pane-economic-calendar" class="terminal-pane" style="display: none;">
+                <div id="tv-calendar-widget-container" class="tradingview-widget-container" style="height:100%; width:100%;">
+                    <div class="tradingview-widget-container__widget" style="height:100%; width:100%;"></div>
+                </div>
+            </div>
+
+            <!-- 4. COINGLASS RSI INTELLIGENCE PORTAL -->
+            <div id="pane-coinglass-rsi" class="terminal-pane launchpad-pane" style="display: none;">
+                <div class="launchpad-card">
+                    <div class="launchpad-badge-row">
+                        <span class="live-status-dot"></span>
+                        <span class="live-status-text">EXTERNAL PRO PORTAL</span>
+                    </div>
+                    <h3 class="launchpad-title">🌡️ Coinglass Multi-Timeframe RSI HeatMap</h3>
+                    <p class="launchpad-subtitle">
+                        Relative Strength Index heatmap across 200+ crypto pairs. Identify extreme momentum exhaustion, overbought tops, and capitulation bottoms.
+                    </p>
+                    <div class="launchpad-cta-box">
+                        <a href="https://www.coinglass.com/pro/i/RsiHeatMap" target="_blank" rel="noopener noreferrer" class="btn-launch-pro">
+                            🚀 Launch Coinglass RSI HeatMap in Pro View ↗
+                        </a>
+                        <span class="launchpad-note">
+                            🔒 Coinglass requires direct tab access due to anti-bot and security policies (cannot be framed inside localhost).
+                        </span>
+                    </div>
+                    <div class="launchpad-guide-grid">
+                        <div class="guide-card">
+                            <span class="gc-tag tag-red">RSI &gt; 75 &bull; Overbought</span>
+                            <h4>Reversal / Exhaustion Zone</h4>
+                            <p>Momentum is extended. Look for bearish divergence or liquidity sweeps before executing short pullback setups.</p>
+                        </div>
+                        <div class="guide-card">
+                            <span class="gc-tag tag-green">RSI &lt; 25 &bull; Oversold</span>
+                            <h4>Capitulation / Bottom Zone</h4>
+                            <p>Extreme selling pressure. Look for absorption volume and reclaim of key intraday levels for long bounce trades.</p>
+                        </div>
+                        <div class="guide-card">
+                            <span class="gc-tag tag-blue">RSI 45 - 55 &bull; Neutral</span>
+                            <h4>Trend Continuation Range</h4>
+                            <p>Equilibrium state. Trade in the direction of the dominant higher timeframe trend (4H/1D).</p>
+                        </div>
+                    </div>
+                    <div class="launchpad-links-bar">
+                        <span class="ll-label">Direct Pro Links:</span>
+                        <a href="https://www.coinglass.com/pro/i/RsiHeatMap" target="_blank" rel="noopener noreferrer" class="ll-link">4H / 1D RSI Heatmap ↗</a>
+                        <a href="https://www.coinglass.com/pro/futures/LiquidationHeatMap" target="_blank" rel="noopener noreferrer" class="ll-link">Liquidation Heatmap ↗</a>
+                        <a href="https://www.coinglass.com/pro/orderbook/large-orders" target="_blank" rel="noopener noreferrer" class="ll-link">Large Limit Orders ↗</a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 5. COINGLASS LIQUIDATIONS INTELLIGENCE PORTAL -->
+            <div id="pane-coinglass-liq" class="terminal-pane launchpad-pane" style="display: none;">
+                <div class="launchpad-card">
+                    <div class="launchpad-badge-row">
+                        <span class="live-status-dot"></span>
+                        <span class="live-status-text">EXTERNAL PRO PORTAL</span>
+                    </div>
+                    <h3 class="launchpad-title">💥 Coinglass Futures Liquidation HeatMap</h3>
+                    <p class="launchpad-subtitle">
+                        Visual map of estimated liquidation leverage pools and price magnet clusters across Binance, Bybit, and OKX.
+                    </p>
+                    <div class="launchpad-cta-box">
+                        <a href="https://www.coinglass.com/pro/futures/LiquidationHeatMap" target="_blank" rel="noopener noreferrer" class="btn-launch-pro">
+                            🚀 Launch Coinglass Liquidation Map in Pro View ↗
+                        </a>
+                        <span class="launchpad-note">
+                            🔒 Coinglass requires direct tab access due to anti-bot and security policies (cannot be framed inside localhost).
+                        </span>
+                    </div>
+                    <div class="launchpad-guide-grid">
+                        <div class="guide-card">
+                            <span class="gc-tag tag-amber">High Density Pool</span>
+                            <h4>Price Magnet Zones</h4>
+                            <p>Thick liquidation clusters act as gravitational price magnets where market makers seek counter-party exit liquidity.</p>
+                        </div>
+                        <div class="guide-card">
+                            <span class="gc-tag tag-red">Liquidity Sweep</span>
+                            <h4>Post-Sweep Reversal</h4>
+                            <p>When major leverage clusters get taken out with high delta volume, watch for immediate absorption and mean-reversion.</p>
+                        </div>
+                        <div class="guide-card">
+                            <span class="gc-tag tag-blue">Cascading Stops</span>
+                            <h4>Breakout Fuel</h4>
+                            <p>Consecutive liquidation layers fuel rapid directional expansion during session openings (London / New York).</p>
+                        </div>
+                    </div>
+                    <div class="launchpad-links-bar">
+                        <span class="ll-label">Direct Pro Links:</span>
+                        <a href="https://www.coinglass.com/pro/futures/LiquidationHeatMap" target="_blank" rel="noopener noreferrer" class="ll-link">Liquidation Heatmap ↗</a>
+                        <a href="https://www.coinglass.com/LiquidationData" target="_blank" rel="noopener noreferrer" class="ll-link">24H Liquidation Stats ↗</a>
+                        <a href="https://www.coinglass.com/FundingRate" target="_blank" rel="noopener noreferrer" class="ll-link">Funding Rates ↗</a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 6. FOREXFACTORY INTELLIGENCE PORTAL -->
+            <div id="pane-forexfactory" class="terminal-pane launchpad-pane" style="display: none;">
+                <div class="launchpad-card">
+                    <div class="launchpad-badge-row">
+                        <span class="live-status-dot"></span>
+                        <span class="live-status-text">EXTERNAL PRO PORTAL</span>
+                    </div>
+                    <h3 class="launchpad-title">🔴 ForexFactory Macro Economic Calendar</h3>
+                    <p class="launchpad-subtitle">
+                        Real-time economic releases, high-impact Red Folder events, central bank interest rate decisions, CPI inflation, and NFP prints.
+                    </p>
+                    <div class="launchpad-cta-box">
+                        <a href="https://www.forexfactory.com/calendar" target="_blank" rel="noopener noreferrer" class="btn-launch-pro">
+                            🚀 Launch ForexFactory Calendar in Live View ↗
+                        </a>
+                        <span class="launchpad-note">
+                            🔒 ForexFactory uses Cloudflare protection preventing direct iframe embeds. Opens directly in live view.
+                        </span>
+                    </div>
+                    <div class="launchpad-guide-grid">
+                        <div class="guide-card">
+                            <span class="gc-tag tag-red">🔴 Red Folder Events</span>
+                            <h4>High Volatility Risk</h4>
+                            <p>CPI, FOMC, Non-Farm Payrolls (NFP), PPI, and Central Bank rate decisions. Avoid entering 15 mins before/after release.</p>
+                        </div>
+                        <div class="guide-card">
+                            <span class="gc-tag tag-amber">🟠 Orange Folder</span>
+                            <h4>Moderate Volatility</h4>
+                            <p>Retail sales, PMI manufacturing/services, consumer sentiment. Can generate intraday continuation swings.</p>
+                        </div>
+                        <div class="guide-card">
+                            <span class="gc-tag tag-green">⚡ Execution Protocol</span>
+                            <h4>Spread & Slippage Safety</h4>
+                            <p>Standardize 1R risk management. Do not widen stops ahead of high-impact releases.</p>
+                        </div>
+                    </div>
+                    <div class="launchpad-links-bar">
+                        <span class="ll-label">Direct Pro Links:</span>
+                        <a href="https://www.forexfactory.com/calendar" target="_blank" rel="noopener noreferrer" class="ll-link">ForexFactory Live Calendar ↗</a>
+                        <a href="https://www.forexfactory.com/news" target="_blank" rel="noopener noreferrer" class="ll-link">Breaking Financial News ↗</a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 7. CRYPTOCRAFT INTELLIGENCE PORTAL -->
+            <div id="pane-cryptocraft" class="terminal-pane launchpad-pane" style="display: none;">
+                <div class="launchpad-card">
+                    <div class="launchpad-badge-row">
+                        <span class="live-status-dot"></span>
+                        <span class="live-status-text">EXTERNAL PRO PORTAL</span>
+                    </div>
+                    <h3 class="launchpad-title">🪙 CryptoCraft Macro & Regulatory Calendar</h3>
+                    <p class="launchpad-subtitle">
+                        Crypto-native economic calendar tracking SEC regulatory deadlines, ETF decision dates, token unlocks, protocol upgrades, and hard forks.
+                    </p>
+                    <div class="launchpad-cta-box">
+                        <a href="https://www.cryptocraft.com/calendar" target="_blank" rel="noopener noreferrer" class="btn-launch-pro">
+                            🚀 Launch CryptoCraft Calendar in Live View ↗
+                        </a>
+                        <span class="launchpad-note">
+                            🔒 CryptoCraft uses Cloudflare protection preventing direct iframe embeds. Opens directly in live view.
+                        </span>
+                    </div>
+                    <div class="launchpad-guide-grid">
+                        <div class="guide-card">
+                            <span class="gc-tag tag-red">Regulatory Events</span>
+                            <h4>SEC / ETF Approvals</h4>
+                            <p>High macro impact on BTC and ETH institutional liquidity and derivatives open interest.</p>
+                        </div>
+                        <div class="guide-card">
+                            <span class="gc-tag tag-blue">Token Unlocks</span>
+                            <h4>Circulating Supply Influx</h4>
+                            <p>Large cliff unlocks increase spot sell pressure. Match with bearish technical setups.</p>
+                        </div>
+                        <div class="guide-card">
+                            <span class="gc-tag tag-green">Hard Forks / Upgrades</span>
+                            <h4>Protocol Catalysts</h4>
+                            <p>Network upgrades (e.g. Ethereum Dencun) often see "buy rumor, sell news" execution dynamics.</p>
+                        </div>
+                    </div>
+                    <div class="launchpad-links-bar">
+                        <span class="ll-label">Direct Pro Links:</span>
+                        <a href="https://www.cryptocraft.com/calendar" target="_blank" rel="noopener noreferrer" class="ll-link">CryptoCraft Live Calendar ↗</a>
+                        <a href="https://www.cryptocraft.com/news" target="_blank" rel="noopener noreferrer" class="ll-link">Crypto Market Wire ↗</a>
+                    </div>
+                </div>
+            </div>
         </div>
 
         <!-- Terminal Footer Notes -->
         <div class="heatmap-footer-notes">
             <div class="hfn-item">
                 <span class="hfn-title">💡 Pro Trading Execution Tip:</span>
-                <p>Check <strong>ForexFactory (Red Folders)</strong> and <strong>CryptoCraft</strong> before entering trades to avoid high-volatility news spikes (e.g. CPI, FOMC rate announcements). Use the <strong>Coinglass RSI HeatMap</strong> to confirm momentum exhaustion before executing pullback setups.</p>
+                <p>Check <strong>ForexFactory (Red Folders)</strong> and <strong>CryptoCraft</strong> before entering trades to avoid high-volatility news spikes (e.g. CPI, FOMC rate announcements). Use the <strong>Live HeatMap & Screener</strong> to confirm momentum exhaustion before executing pullback setups.</p>
             </div>
         </div>
     </div>
@@ -176,15 +397,71 @@ function filterNewsCategory(category, btnElem) {
     });
 }
 
-// Switch Coinglass Tab
-function switchHeatmapTab(tabKey, targetUrl, btnElem) {
+// Track TradingView widget initializations
+const tvWidgetsInit = {
+    'crypto-heatmap': true,
+    'crypto-technicals': false,
+    'economic-calendar': false
+};
+
+// Switch Terminal Tab
+function switchTerminalTab(tabKey, btnElem, targetUrl) {
     document.querySelectorAll('.hm-tab-btn').forEach(b => b.classList.remove('active'));
     if (btnElem) btnElem.classList.add('active');
 
-    const frame = document.getElementById('coinglassFrame');
     const extBtn = document.getElementById('extCoinglassBtn');
-    if (frame) frame.src = targetUrl;
-    if (extBtn) extBtn.href = targetUrl;
+    if (extBtn && targetUrl) {
+        extBtn.href = targetUrl;
+    }
+
+    document.querySelectorAll('.terminal-pane').forEach(p => p.style.display = 'none');
+
+    const activePane = document.getElementById('pane-' + tabKey);
+    if (activePane) {
+        activePane.style.display = (tabKey.startsWith('coinglass') || tabKey === 'forexfactory' || tabKey === 'cryptocraft') ? 'flex' : 'block';
+    }
+
+    // Lazy load widgets when their tab is first opened
+    if (tabKey === 'crypto-technicals' && !tvWidgetsInit['crypto-technicals']) {
+        tvWidgetsInit['crypto-technicals'] = true;
+        const container = document.getElementById('tv-technicals-widget-container');
+        if (container) {
+            const script = document.createElement('script');
+            script.type = 'text/javascript';
+            script.src = 'https://s3.tradingview.com/external-embedding/embed-widget-screener.js';
+            script.async = true;
+            script.innerHTML = JSON.stringify({
+                "width": "100%",
+                "height": "100%",
+                "defaultColumn": "technical",
+                "screener_type": "crypto_mkt",
+                "displayCurrency": "USD",
+                "colorTheme": "dark",
+                "locale": "en",
+                "isTransparent": true
+            });
+            container.appendChild(script);
+        }
+    } else if (tabKey === 'economic-calendar' && !tvWidgetsInit['economic-calendar']) {
+        tvWidgetsInit['economic-calendar'] = true;
+        const container = document.getElementById('tv-calendar-widget-container');
+        if (container) {
+            const script = document.createElement('script');
+            script.type = 'text/javascript';
+            script.src = 'https://s3.tradingview.com/external-embedding/embed-widget-events.js';
+            script.async = true;
+            script.innerHTML = JSON.stringify({
+                "colorTheme": "dark",
+                "isTransparent": true,
+                "width": "100%",
+                "height": "100%",
+                "locale": "en",
+                "importanceFilter": "0,1",
+                "currencyFilter": "USD,EUR,GBP,JPY,CAD,AUD,NZD,CHF"
+            });
+            container.appendChild(script);
+        }
+    }
 }
 
 // Async News Refresh

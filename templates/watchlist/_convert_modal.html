@@ -1,0 +1,689 @@
+<style>
+/* Scoped Styles for Convert Watchlist to Live Trade Modal */
+.wl-convert-modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background: rgba(15, 23, 42, 0.75);
+    backdrop-filter: blur(6px);
+    -webkit-backdrop-filter: blur(6px);
+    z-index: 999999;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 1.25rem;
+    box-sizing: border-box;
+    animation: wlConvertFadeIn 0.18s ease-out;
+}
+
+@keyframes wlConvertFadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+@keyframes wlConvertSlideUp {
+    from { opacity: 0; transform: translateY(14px) scale(0.98); }
+    to { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+.wl-convert-modal-card {
+    background: #ffffff;
+    border-radius: 14px;
+    width: 100%;
+    max-width: 580px;
+    box-shadow: 0 25px 50px -12px rgba(15, 23, 42, 0.35), 0 0 0 1px rgba(226, 232, 240, 0.9);
+    padding: 1.5rem;
+    display: flex;
+    flex-direction: column;
+    gap: 1.1rem;
+    animation: wlConvertSlideUp 0.22s cubic-bezier(0.16, 1, 0.3, 1);
+    max-height: 92vh;
+    overflow-y: auto;
+    box-sizing: border-box;
+}
+
+.wl-convert-modal-header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 1rem;
+    border-bottom: 1px solid #f1f5f9;
+    padding-bottom: 0.85rem;
+}
+
+.wl-convert-header-title {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+.wl-convert-header-icon {
+    font-size: 1.6rem;
+    line-height: 1;
+    background: #ecfdf5;
+    padding: 0.5rem;
+    border-radius: 10px;
+    border: 1px solid #a7f3d0;
+}
+
+.wl-convert-title {
+    margin: 0;
+    font-size: 1.15rem;
+    font-weight: 800;
+    color: #0f172a;
+    line-height: 1.25;
+}
+
+.wl-convert-subtitle {
+    margin: 0.2rem 0 0;
+    font-size: 0.8rem;
+    color: #64748b;
+}
+
+.wl-convert-close-btn {
+    background: #f1f5f9;
+    border: none;
+    font-size: 1.25rem;
+    line-height: 1;
+    color: #64748b;
+    cursor: pointer;
+    width: 32px;
+    height: 32px;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.15s ease;
+}
+
+.wl-convert-close-btn:hover {
+    background: #e2e8f0;
+    color: #0f172a;
+}
+
+.wl-convert-context-card {
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    border-radius: 10px;
+    padding: 0.85rem 1rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.wl-convert-context-main {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 0.45rem;
+}
+
+.wl-convert-context-title {
+    font-size: 0.88rem;
+    font-weight: 700;
+    color: #1e293b;
+    margin-left: 0.25rem;
+}
+
+.wl-convert-context-levels {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.85rem;
+    font-size: 0.8rem;
+    color: #475569;
+    padding-top: 0.35rem;
+    border-top: 1px dashed #e2e8f0;
+}
+
+.wl-convert-form-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.85rem;
+}
+
+.wl-convert-field {
+    display: flex;
+    flex-direction: column;
+    gap: 0.35rem;
+}
+
+.wl-convert-label {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    font-size: 0.78rem;
+    font-weight: 700;
+    color: #334155;
+}
+
+.wl-convert-input,
+.wl-convert-select,
+.wl-convert-textarea {
+    width: 100%;
+    border: 1px solid #cbd5e1;
+    border-radius: 8px;
+    padding: 0.5rem 0.75rem;
+    font-size: 0.88rem;
+    font-family: inherit;
+    background: #ffffff;
+    color: #0f172a;
+    transition: border-color 0.15s ease, box-shadow 0.15s ease;
+    box-sizing: border-box;
+}
+
+.wl-convert-input:focus,
+.wl-convert-select:focus,
+.wl-convert-textarea:focus {
+    border-color: #10b981;
+    outline: none;
+    box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.18);
+}
+
+.wl-convert-actions {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.75rem;
+    margin-top: 0.5rem;
+    padding-top: 0.85rem;
+    border-top: 1px solid #f1f5f9;
+}
+
+.wl-convert-actions-right {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.wl-convert-btn-cancel {
+    background: #f1f5f9;
+    border: 1px solid #cbd5e1;
+    color: #475569;
+    font-size: 0.82rem;
+    font-weight: 700;
+    padding: 0.55rem 0.95rem;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.15s ease;
+}
+
+.wl-convert-btn-cancel:hover {
+    background: #e2e8f0;
+    color: #1e293b;
+}
+
+.wl-convert-btn-link {
+    font-size: 0.8rem;
+    font-weight: 700;
+    color: #0284c7;
+    text-decoration: none;
+    padding: 0.55rem 0.85rem;
+    border-radius: 8px;
+    transition: background 0.15s ease;
+}
+
+.wl-convert-btn-link:hover {
+    background: #f0f9ff;
+    text-decoration: underline;
+}
+
+.wl-convert-btn-submit {
+    background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+    border: 1px solid #059669;
+    color: #ffffff;
+    font-size: 0.86rem;
+    font-weight: 800;
+    padding: 0.6rem 1.15rem;
+    border-radius: 8px;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.45rem;
+    box-shadow: 0 4px 12px rgba(16, 185, 129, 0.28);
+    transition: all 0.15s ease;
+}
+
+.wl-convert-btn-submit:hover {
+    background: linear-gradient(135deg, #059669 0%, #047857 100%);
+    box-shadow: 0 6px 16px rgba(16, 185, 129, 0.38);
+    transform: translateY(-1px);
+}
+
+@media (max-width: 640px) {
+    .wl-convert-form-grid {
+        grid-template-columns: 1fr;
+    }
+    .wl-convert-actions {
+        flex-direction: column-reverse;
+        align-items: stretch;
+    }
+    .wl-convert-actions-right {
+        flex-direction: column;
+        align-items: stretch;
+    }
+    .wl-convert-btn-link {
+        text-align: center;
+    }
+}
+</style>
+
+<!-- Interactive Modal: Convert Watchlist Setup to Live Running Trade -->
+<div id="wlConvertModal" class="wl-convert-modal-overlay" style="display: none;" onclick="handleConvertOverlayClick(event)">
+    <div class="wl-convert-modal-card" role="dialog" aria-modal="true" aria-labelledby="convertModalTitle">
+        <!-- Header -->
+        <div class="wl-convert-modal-header">
+            <div class="wl-convert-header-title">
+                <div class="wl-convert-header-icon">🚀</div>
+                <div>
+                    <h3 id="convertModalTitle" class="wl-convert-title">Convert Setup to Live Trade</h3>
+                    <p class="wl-convert-subtitle">Enter start date & time to officially insert into your Trade Log</p>
+                </div>
+            </div>
+            <button type="button" class="wl-convert-close-btn" onclick="closeConvertModal()" title="Close dialog">&times;</button>
+        </div>
+
+        <!-- Setup Summary Context -->
+        <div class="wl-convert-context-card">
+            <div class="wl-convert-context-main">
+                <span id="convertBadgeDirection" class="wl-dir-badge dir-long">LONG</span>
+                <span id="convertBadgePair" class="wl-inst-badge font-bold">EURUSD</span>
+                <span id="convertBadgeStrategy" class="wl-tag tag-strat">Strategy</span>
+                <span id="convertSetupTitle" class="wl-convert-context-title">Market Setup</span>
+            </div>
+            <div class="wl-convert-context-levels">
+                <span class="geo-item">Planned Entry: <b id="convertContextEntry" class="font-mono">—</b></span>
+                <span class="geo-item">SL: <b id="convertContextSL" class="font-mono text-danger">—</b></span>
+                <span class="geo-item">TP: <b id="convertContextTP" class="font-mono text-success">—</b></span>
+                <span class="geo-item">Target R: <b id="convertContextRR" class="font-mono text-primary">—</b></span>
+            </div>
+        </div>
+
+        <!-- Conversion Form -->
+        <form id="wlConvertForm" method="POST" action="" onsubmit="return validateConvertForm(this)">
+            <input type="hidden" name="idea_id" id="convertIdeaId" value="">
+
+            <div class="wl-convert-form-grid">
+                <!-- Start Date (REQUIRED) -->
+                <div class="wl-convert-field">
+                    <label class="wl-convert-label" for="convertEntryDate">
+                        <span>📅 Start Date <span style="color:#ef4444; font-weight:800;">*</span></span>
+                        <small class="text-muted">Execution Date</small>
+                    </label>
+                    <input type="date" name="entry_date" id="convertEntryDate" class="wl-convert-input" required>
+                </div>
+
+                <!-- Start Time (REQUIRED) -->
+                <div class="wl-convert-field">
+                    <label class="wl-convert-label" for="convertEntryTime">
+                        <span>🕒 Start Time (PH Time) <span style="color:#ef4444; font-weight:800;">*</span></span>
+                        <small class="text-muted">Fill Timestamp</small>
+                    </label>
+                    <input type="time" name="entry_time" id="convertEntryTime" class="wl-convert-input" required oninput="autoSelectConvertSession(this.value)">
+                </div>
+
+                <!-- Strategy / Setup Model -->
+                <div class="wl-convert-field">
+                    <label class="wl-convert-label" for="convertStrategySelect">
+                        <span>⚡ Strategy / Setup Model</span>
+                        <small class="text-muted">Setup Model</small>
+                    </label>
+                    <select name="strategy_id" id="convertStrategySelect" class="wl-convert-select">
+                        <option value="">-- Select Strategy --</option>
+                        {% if strategies %}
+                        {% for st in strategies %}
+                        <option value="{{ st.id }}">{{ st.name }}</option>
+                        {% endfor %}
+                        {% endif %}
+                    </select>
+                </div>
+
+                <!-- Session -->
+                <div class="wl-convert-field">
+                    <label class="wl-convert-label" for="convertSessionSelect">
+                        <span>🌐 Session</span>
+                        <small id="convertSessionHint" style="font-size:0.75rem; color:#0284c7;"></small>
+                    </label>
+                    <select name="session_id" id="convertSessionSelect" class="wl-convert-select">
+                        <option value="">-- Select Session --</option>
+                        {% if sessions %}
+                        {% for s in sessions %}
+                        <option value="{{ s.id }}" data-name="{{ s.name }}">{{ s.name }}</option>
+                        {% endfor %}
+                        {% endif %}
+                    </select>
+                </div>
+
+                <!-- Probability Level -->
+                <div class="wl-convert-field">
+                    <label class="wl-convert-label" for="convertProbabilitySelect">
+                        <span>📊 Probability Level</span>
+                        <small class="text-muted">Confluence Grade</small>
+                    </label>
+                    <select name="probability_level_id" id="convertProbabilitySelect" class="wl-convert-select">
+                        <option value="">-- Select Probability --</option>
+                        {% if probabilities %}
+                        {% for p in probabilities %}
+                        <option value="{{ p.id }}">{{ p.name }}</option>
+                        {% endfor %}
+                        {% endif %}
+                    </select>
+                </div>
+
+                <!-- MTF Phase -->
+                <div class="wl-convert-field">
+                    <label class="wl-convert-label" for="convertPhaseSelect">
+                        <span>🔄 MTF Phase</span>
+                        <small class="text-muted">Market Structure</small>
+                    </label>
+                    <select name="mtf_phase_id" id="convertPhaseSelect" class="wl-convert-select">
+                        <option value="">-- Select MTF Phase --</option>
+                        {% if phases %}
+                        {% for ph in phases %}
+                        <option value="{{ ph.id }}">{{ ph.name }}</option>
+                        {% endfor %}
+                        {% endif %}
+                    </select>
+                </div>
+
+                <!-- Actual Entry Price -->
+                <div class="wl-convert-field">
+                    <label class="wl-convert-label" for="convertEntryPrice">
+                        <span>🎯 Entry Price</span>
+                        <small class="text-muted">Actual Fill</small>
+                    </label>
+                    <input type="number" step="any" name="entry_price" id="convertEntryPrice" class="wl-convert-input font-mono" placeholder="e.g. 1.08500">
+                </div>
+
+                <!-- Stop Loss -->
+                <div class="wl-convert-field">
+                    <label class="wl-convert-label" for="convertStopLoss">
+                        <span>🛡️ Stop Loss</span>
+                        <small class="text-muted">Invalidation Level</small>
+                    </label>
+                    <input type="number" step="any" name="stop_loss" id="convertStopLoss" class="wl-convert-input font-mono" placeholder="e.g. 1.08200">
+                </div>
+
+                <!-- Take Profit -->
+                <div class="wl-convert-field">
+                    <label class="wl-convert-label" for="convertTakeProfit">
+                        <span>🎯 Take Profit</span>
+                        <small class="text-muted">Target Level</small>
+                    </label>
+                    <input type="number" step="any" name="take_profit" id="convertTakeProfit" class="wl-convert-input font-mono" placeholder="e.g. 1.09200">
+                </div>
+
+                <!-- Planned Geometry Preview -->
+                <div class="wl-convert-field">
+                    <label class="wl-convert-label">
+                        <span>📐 Target R Multiple</span>
+                        <small class="text-muted">Geometry</small>
+                    </label>
+                    <div style="height: 38px; display: flex; align-items: center; padding: 0 0.75rem; background: #f8fafc; border: 1px solid #cbd5e1; border-radius: 8px; font-weight: 700; color: #059669; font-size: 0.88rem;">
+                        Target R: <span id="convertContextRRInline" style="margin-left: 0.4rem;">—</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Notes / Comments -->
+            <div class="wl-convert-field" style="margin-top: 0.85rem;">
+                <label class="wl-convert-label" for="convertComments">
+                    <span>📝 Execution Notes / Trade Plan</span>
+                </label>
+                <textarea name="comments" id="convertComments" rows="2" class="wl-convert-textarea" placeholder="Merged from setup plan & layer notes..."></textarea>
+            </div>
+
+            <!-- Footer Buttons -->
+            <div class="wl-convert-actions">
+                <button type="button" class="wl-convert-btn-cancel" onclick="closeConvertModal()">
+                    Cancel
+                </button>
+                <div class="wl-convert-actions-right">
+                    <a id="convertFullFormLink" href="#" class="wl-convert-btn-link" title="Open comprehensive trade form to edit risk, psychology, or screenshots">
+                        Open Full Trade Form &rarr;
+                    </a>
+                    <button type="submit" id="btnSubmitConvertTrade" class="wl-convert-btn-submit">
+                        🚀 Insert Live Running Trade
+                    </button>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+let _convertTriggeringEl = null;
+
+function getTodayLocalDate() {
+    const d = new Date();
+    const year = d.getFullYear();
+    const month = String(d.getMonth() + 1).padStart(2, '0');
+    const day = String(d.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+}
+
+function getNowLocalTime() {
+    const d = new Date();
+    const hours = String(d.getHours()).padStart(2, '0');
+    const mins = String(d.getMinutes()).padStart(2, '0');
+    return `${hours}:${mins}`;
+}
+
+function autoSelectConvertSession(timeStr) {
+    if (!timeStr) return;
+    const parts = timeStr.split(':');
+    if (parts.length < 2) return;
+    const h = parseInt(parts[0], 10);
+    const m = parseInt(parts[1], 10);
+    const mins = h * 60 + m;
+
+    const select = document.getElementById('convertSessionSelect');
+    const hint = document.getElementById('convertSessionHint');
+    if (!select) return;
+
+    let targetName = '';
+    // Asian session: 07:00 - 15:00 PHT (420 - 900)
+    // London session: 15:00 - 20:00 PHT (900 - 1200)
+    // New York session: 20:00 - 04:00 PHT (>= 1200 or < 240)
+    if (mins >= 420 && mins < 900) {
+        targetName = 'Asian';
+    } else if (mins >= 900 && mins < 1200) {
+        targetName = 'London';
+    } else {
+        targetName = 'New York';
+    }
+
+    if (hint) hint.textContent = `Auto detected: ${targetName}`;
+
+    for (let i = 0; i < select.options.length; i++) {
+        const opt = select.options[i];
+        const name = (opt.dataset.name || opt.textContent || '').toLowerCase();
+        if (name.includes(targetName.toLowerCase())) {
+            select.selectedIndex = i;
+            break;
+        }
+    }
+}
+
+function openConvertModal(data, triggeringEl = null) {
+    _convertTriggeringEl = triggeringEl;
+    const modal = document.getElementById('wlConvertModal');
+    const form = document.getElementById('wlConvertForm');
+    if (!modal || !form) return;
+
+    form.action = `/watchlist/${data.id}/convert-to-trade`;
+    document.getElementById('convertIdeaId').value = data.id;
+
+    // Header context
+    document.getElementById('convertSetupTitle').textContent = data.title || 'Market Setup';
+    document.getElementById('convertBadgePair').textContent = data.instrument || 'Custom';
+    
+    const dirBadge = document.getElementById('convertBadgeDirection');
+    const isLong = (data.direction || 'LONG').toUpperCase() === 'LONG';
+    dirBadge.textContent = isLong ? 'LONG' : 'SHORT';
+    dirBadge.className = isLong ? 'wl-dir-badge dir-long' : 'wl-dir-badge dir-short';
+
+    const stratBadge = document.getElementById('convertBadgeStrategy');
+    if (data.strategy) {
+        stratBadge.textContent = data.strategy;
+        stratBadge.style.display = 'inline-block';
+    } else {
+        stratBadge.style.display = 'none';
+    }
+
+    document.getElementById('convertContextEntry').textContent = data.planned_entry || '—';
+    document.getElementById('convertContextSL').textContent = data.planned_sl || '—';
+    document.getElementById('convertContextTP').textContent = data.planned_tp || '—';
+    document.getElementById('convertContextRR').textContent = data.planned_rr ? (data.planned_rr + 'R') : '—';
+
+    // Inputs prefill
+    document.getElementById('convertEntryPrice').value = data.planned_entry || '';
+    document.getElementById('convertStopLoss').value = data.planned_sl || '';
+    document.getElementById('convertTakeProfit').value = data.planned_tp || '';
+    document.getElementById('convertComments').value = data.notes || '';
+
+    // Dates and Times (Always set to current)
+    const dateInput = document.getElementById('convertEntryDate');
+    const timeInput = document.getElementById('convertEntryTime');
+    dateInput.value = getTodayLocalDate();
+    timeInput.value = getNowLocalTime();
+
+    // Session selection
+    const sessionSelect = document.getElementById('convertSessionSelect');
+    if (data.session_id) {
+        sessionSelect.value = String(data.session_id);
+    } else {
+        autoSelectConvertSession(timeInput.value);
+    }
+
+    // Strategy selection
+    const stratSelect = document.getElementById('convertStrategySelect');
+    if (stratSelect) {
+        stratSelect.value = data.strategy_id ? String(data.strategy_id) : '';
+    }
+
+    // Probability selection
+    const probSelect = document.getElementById('convertProbabilitySelect');
+    if (probSelect) {
+        probSelect.value = data.probability_id ? String(data.probability_id) : '';
+    }
+
+    // Phase selection
+    const phaseSelect = document.getElementById('convertPhaseSelect');
+    if (phaseSelect) {
+        phaseSelect.value = data.phase_id ? String(data.phase_id) : '';
+    }
+
+    // Inline Target R Preview
+    const rrInline = document.getElementById('convertContextRRInline');
+    if (rrInline) {
+        rrInline.textContent = data.planned_rr ? ('+' + Number(data.planned_rr).toFixed(2) + 'R') : '—';
+    }
+
+    // Full form link
+    const fullFormLink = document.getElementById('convertFullFormLink');
+    if (fullFormLink) {
+        fullFormLink.href = `/watchlist/${data.id}/promote`;
+    }
+
+    modal.style.display = 'flex';
+    setTimeout(() => {
+        timeInput.focus();
+    }, 50);
+}
+
+function openConvertModalFromCard(el) {
+    const card = el.closest('[data-idea-id]');
+    if (!card) return;
+
+    const data = {
+        id: card.dataset.ideaId,
+        title: card.dataset.ideaTitle,
+        direction: card.dataset.ideaDirection,
+        instrument: card.dataset.ideaInstrument,
+        strategy: card.dataset.ideaStrategy,
+        strategy_id: card.dataset.ideaStrategyId,
+        probability_id: card.dataset.ideaProbabilityId,
+        phase_id: card.dataset.ideaPhaseId,
+        planned_entry: card.dataset.ideaEntry,
+        planned_sl: card.dataset.ideaSl,
+        planned_tp: card.dataset.ideaTp,
+        planned_rr: card.dataset.ideaRr,
+        session_id: card.dataset.ideaSessionId,
+        notes: card.dataset.ideaNotes,
+    };
+
+    openConvertModal(data, el);
+}
+
+function handleWatchlistStatusChange(selectEl) {
+    if (selectEl.value === 'EXECUTED') {
+        const card = selectEl.closest('[data-idea-id]');
+        if (card) {
+            const promotedId = card.dataset.promotedTradeId;
+            if (promotedId && promotedId !== 'None' && promotedId !== '') {
+                // Already linked to a trade, submit normally
+                selectEl.form.submit();
+                return;
+            }
+            // Prompt for required date/time to insert into trade
+            openConvertModalFromCard(selectEl);
+            return;
+        }
+    }
+
+    selectEl.dataset.prevStatus = selectEl.value;
+    selectEl.form.submit();
+}
+
+function closeConvertModal() {
+    const modal = document.getElementById('wlConvertModal');
+    if (modal) modal.style.display = 'none';
+
+    if (_convertTriggeringEl && _convertTriggeringEl.tagName === 'SELECT') {
+        _convertTriggeringEl.value = _convertTriggeringEl.dataset.prevStatus || 'WAITING';
+    }
+    _convertTriggeringEl = null;
+}
+
+function handleConvertOverlayClick(e) {
+    if (e.target.id === 'wlConvertModal') {
+        closeConvertModal();
+    }
+}
+
+function validateConvertForm(form) {
+    const d = form.entry_date.value;
+    const t = form.entry_time.value;
+    if (!d || !d.trim()) {
+        alert('Start Date is strictly required to insert into the Trade Log.');
+        form.entry_date.focus();
+        return false;
+    }
+    if (!t || !t.trim()) {
+        alert('Start Time is strictly required to insert into the Trade Log.');
+        form.entry_time.focus();
+        return false;
+    }
+    const btn = document.getElementById('btnSubmitConvertTrade');
+    if (btn) {
+        btn.disabled = true;
+        btn.textContent = 'Inserting Trade...';
+    }
+    return true;
+}
+
+// Auto open modal if convert_id was passed in URL query
+document.addEventListener('DOMContentLoaded', () => {
+    const params = new URLSearchParams(window.location.search);
+    const convertId = params.get('convert_id');
+    if (convertId) {
+        const targetCard = document.querySelector(`[data-idea-id="${convertId}"]`);
+        if (targetCard) {
+            openConvertModalFromCard(targetCard);
+        }
+    }
+});
+</script>
