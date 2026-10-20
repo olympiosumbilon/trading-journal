@@ -2,20 +2,19 @@
 /* Scoped Styles for Convert Watchlist to Live Trade Modal */
 .wl-convert-modal-overlay {
     position: fixed;
-    top: 0;
-    left: 0;
+    inset: 0;
     width: 100vw;
     height: 100vh;
-    background: rgba(15, 23, 42, 0.75);
-    backdrop-filter: blur(6px);
-    -webkit-backdrop-filter: blur(6px);
+    background: rgba(15, 23, 42, 0.65);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
     z-index: 999999;
     display: flex;
     align-items: center;
     justify-content: center;
     padding: 1.25rem;
     box-sizing: border-box;
-    animation: wlConvertFadeIn 0.18s ease-out;
+    animation: wlConvertFadeIn 0.18s cubic-bezier(0.23, 1, 0.32, 1);
 }
 
 @keyframes wlConvertFadeIn {
@@ -24,16 +23,22 @@
 }
 
 @keyframes wlConvertSlideUp {
-    from { opacity: 0; transform: translateY(14px) scale(0.98); }
-    to { opacity: 1; transform: translateY(0) scale(1); }
+    from { opacity: 0; transform: scale(0.96) translateY(12px); }
+    to { opacity: 1; transform: scale(1) translateY(0); }
+}
+
+@keyframes wlModalShake {
+    0%, 100% { transform: translateX(0); }
+    20%, 60% { transform: translateX(-6px); }
+    40%, 80% { transform: translateX(6px); }
 }
 
 .wl-convert-modal-card {
     background: #ffffff;
-    border-radius: 14px;
+    border-radius: 16px;
     width: 100%;
     max-width: 580px;
-    box-shadow: 0 25px 50px -12px rgba(15, 23, 42, 0.35), 0 0 0 1px rgba(226, 232, 240, 0.9);
+    box-shadow: 0 20px 40px -15px rgba(15, 23, 42, 0.25), 0 0 0 1px rgba(226, 232, 240, 0.9);
     padding: 1.5rem;
     display: flex;
     flex-direction: column;
@@ -42,6 +47,11 @@
     max-height: 92vh;
     overflow-y: auto;
     box-sizing: border-box;
+    position: relative;
+}
+
+.wl-convert-modal-card.shake {
+    animation: wlModalShake 0.35s ease;
 }
 
 .wl-convert-modal-header {
@@ -57,29 +67,37 @@
     display: flex;
     align-items: center;
     gap: 0.75rem;
+    min-width: 0;
 }
 
 .wl-convert-header-icon {
-    font-size: 1.6rem;
+    font-size: 1.4rem;
     line-height: 1;
     background: #ecfdf5;
     padding: 0.5rem;
     border-radius: 10px;
     border: 1px solid #a7f3d0;
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
 
 .wl-convert-title {
     margin: 0;
     font-size: 1.15rem;
-    font-weight: 800;
+    font-weight: 700;
+    font-family: 'Space Grotesk', system-ui, sans-serif;
     color: #0f172a;
     line-height: 1.25;
+    letter-spacing: -0.01em;
 }
 
 .wl-convert-subtitle {
     margin: 0.2rem 0 0;
     font-size: 0.8rem;
     color: #64748b;
+    line-height: 1.4;
 }
 
 .wl-convert-close-btn {
@@ -89,13 +107,14 @@
     line-height: 1;
     color: #64748b;
     cursor: pointer;
-    width: 32px;
-    height: 32px;
-    border-radius: 8px;
+    width: 36px;
+    height: 36px;
+    border-radius: 10px;
     display: flex;
     align-items: center;
     justify-content: center;
-    transition: all 0.15s ease;
+    flex-shrink: 0;
+    transition: background-color 0.15s ease, color 0.15s ease, transform 0.15s ease;
 }
 
 .wl-convert-close-btn:hover {
@@ -103,14 +122,33 @@
     color: #0f172a;
 }
 
+.wl-convert-close-btn:active {
+    transform: scale(0.92);
+}
+
+.wl-convert-error-banner {
+    display: none;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.65rem 0.85rem;
+    background: #fef2f2;
+    border: 1px solid #fecaca;
+    border-radius: 8px;
+    color: #b91c1c;
+    font-size: 0.8rem;
+    font-weight: 600;
+    animation: fadeInSlide 0.2s ease-out;
+}
+
 .wl-convert-context-card {
     background: #f8fafc;
     border: 1px solid #e2e8f0;
-    border-radius: 10px;
+    border-radius: 12px;
     padding: 0.85rem 1rem;
     display: flex;
     flex-direction: column;
     gap: 0.5rem;
+    min-width: 0;
 }
 
 .wl-convert-context-main {
@@ -118,13 +156,17 @@
     align-items: center;
     flex-wrap: wrap;
     gap: 0.45rem;
+    min-width: 0;
 }
 
 .wl-convert-context-title {
     font-size: 0.88rem;
     font-weight: 700;
+    font-family: 'Space Grotesk', system-ui, sans-serif;
     color: #1e293b;
     margin-left: 0.25rem;
+    overflow-wrap: anywhere;
+    word-break: break-word;
 }
 
 .wl-convert-context-levels {
@@ -148,6 +190,7 @@
     display: flex;
     flex-direction: column;
     gap: 0.35rem;
+    min-width: 0;
 }
 
 .wl-convert-label {
@@ -155,7 +198,7 @@
     align-items: center;
     justify-content: space-between;
     font-size: 0.78rem;
-    font-weight: 700;
+    font-weight: 600;
     color: #334155;
 }
 
@@ -179,7 +222,12 @@
 .wl-convert-textarea:focus {
     border-color: #10b981;
     outline: none;
-    box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.18);
+    box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.16);
+}
+
+.wl-convert-input.tabular-nums {
+    font-variant-numeric: tabular-nums;
+    font-family: 'JetBrains Mono', 'SF Mono', Consolas, monospace;
 }
 
 .wl-convert-actions {
@@ -203,11 +251,15 @@
     border: 1px solid #cbd5e1;
     color: #475569;
     font-size: 0.82rem;
-    font-weight: 700;
+    font-weight: 600;
     padding: 0.55rem 0.95rem;
     border-radius: 8px;
     cursor: pointer;
-    transition: all 0.15s ease;
+    min-height: 38px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    transition: background-color 0.15s ease, color 0.15s ease, transform 0.12s ease;
 }
 
 .wl-convert-btn-cancel:hover {
@@ -215,14 +267,22 @@
     color: #1e293b;
 }
 
+.wl-convert-btn-cancel:active {
+    transform: scale(0.96);
+}
+
 .wl-convert-btn-link {
     font-size: 0.8rem;
-    font-weight: 700;
+    font-weight: 600;
     color: #0284c7;
     text-decoration: none;
     padding: 0.55rem 0.85rem;
     border-radius: 8px;
-    transition: background 0.15s ease;
+    min-height: 38px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    transition: background-color 0.15s ease, color 0.15s ease;
 }
 
 .wl-convert-btn-link:hover {
@@ -231,25 +291,48 @@
 }
 
 .wl-convert-btn-submit {
-    background: linear-gradient(135deg, #10b981 0%, #059669 100%);
-    border: 1px solid #059669;
+    background: #0f172a;
+    border: 1px solid #0f172a;
     color: #ffffff;
     font-size: 0.86rem;
-    font-weight: 800;
+    font-weight: 600;
     padding: 0.6rem 1.15rem;
     border-radius: 8px;
     cursor: pointer;
     display: inline-flex;
     align-items: center;
+    justify-content: center;
     gap: 0.45rem;
-    box-shadow: 0 4px 12px rgba(16, 185, 129, 0.28);
-    transition: all 0.15s ease;
+    min-height: 38px;
+    box-shadow: 0 2px 6px rgba(15, 23, 42, 0.12);
+    transition: background-color 0.15s ease, transform 0.12s ease, box-shadow 0.15s ease;
 }
 
 .wl-convert-btn-submit:hover {
-    background: linear-gradient(135deg, #059669 0%, #047857 100%);
-    box-shadow: 0 6px 16px rgba(16, 185, 129, 0.38);
-    transform: translateY(-1px);
+    background: #1e293b;
+    box-shadow: 0 4px 12px rgba(15, 23, 42, 0.2);
+}
+
+.wl-convert-btn-submit:active {
+    transform: scale(0.96);
+}
+
+.wl-convert-btn-submit:disabled {
+    opacity: 0.65;
+    cursor: not-allowed;
+    transform: none;
+}
+
+@media (pointer: coarse) {
+    .wl-convert-close-btn {
+        width: 44px;
+        height: 44px;
+    }
+    .wl-convert-btn-cancel,
+    .wl-convert-btn-submit,
+    .wl-convert-btn-link {
+        min-height: 44px;
+    }
 }
 
 @media (max-width: 640px) {
@@ -271,33 +354,41 @@
 </style>
 
 <!-- Interactive Modal: Convert Watchlist Setup to Live Running Trade -->
-<div id="wlConvertModal" class="wl-convert-modal-overlay" style="display: none;" onclick="handleConvertOverlayClick(event)">
-    <div class="wl-convert-modal-card" role="dialog" aria-modal="true" aria-labelledby="convertModalTitle">
+<div id="wlConvertModal" class="wl-convert-modal-overlay" style="display: none;" onclick="handleConvertOverlayClick(event)" role="dialog" aria-modal="true" aria-labelledby="convertModalTitle">
+    <div class="wl-convert-modal-card">
         <!-- Header -->
         <div class="wl-convert-modal-header">
             <div class="wl-convert-header-title">
-                <div class="wl-convert-header-icon">🚀</div>
+                <div class="wl-convert-header-icon" aria-hidden="true">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#059669" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+                </div>
                 <div>
                     <h3 id="convertModalTitle" class="wl-convert-title">Convert Setup to Live Trade</h3>
-                    <p class="wl-convert-subtitle">Enter start date & time to officially insert into your Trade Log</p>
+                    <p class="wl-convert-subtitle">Enter start date &amp; time to officially log into your live trades</p>
                 </div>
             </div>
-            <button type="button" class="wl-convert-close-btn" onclick="closeConvertModal()" title="Close dialog">&times;</button>
+            <button type="button" class="wl-convert-close-btn" onclick="closeConvertModal()" title="Close dialog (Esc)" aria-label="Close dialog">&times;</button>
+        </div>
+
+        <!-- Inline Validation Error Banner -->
+        <div id="wlConvertErrorBanner" class="wl-convert-error-banner" role="alert">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+            <span id="wlConvertErrorMessage">Please check required fields.</span>
         </div>
 
         <!-- Setup Summary Context -->
         <div class="wl-convert-context-card">
             <div class="wl-convert-context-main">
-                <span id="convertBadgeDirection" class="wl-dir-badge dir-long">LONG</span>
-                <span id="convertBadgePair" class="wl-inst-badge font-bold">EURUSD</span>
-                <span id="convertBadgeStrategy" class="wl-tag tag-strat">Strategy</span>
+                <span id="convertBadgeDirection" class="wl-dir-badge dir-long flex-shrink-0">LONG</span>
+                <span id="convertBadgePair" class="wl-inst-badge font-grotesk font-bold flex-shrink-0">EURUSD</span>
+                <span id="convertBadgeStrategy" class="wl-tag tag-strat flex-shrink-0">Strategy</span>
                 <span id="convertSetupTitle" class="wl-convert-context-title">Market Setup</span>
             </div>
             <div class="wl-convert-context-levels">
-                <span class="geo-item">Planned Entry: <b id="convertContextEntry" class="font-mono">—</b></span>
-                <span class="geo-item">SL: <b id="convertContextSL" class="font-mono text-danger">—</b></span>
-                <span class="geo-item">TP: <b id="convertContextTP" class="font-mono text-success">—</b></span>
-                <span class="geo-item">Target R: <b id="convertContextRR" class="font-mono text-primary">—</b></span>
+                <span class="geo-item">Planned Entry: <b id="convertContextEntry" class="font-mono tabular-nums">—</b></span>
+                <span class="geo-item">SL: <b id="convertContextSL" class="font-mono tabular-nums text-danger">—</b></span>
+                <span class="geo-item">TP: <b id="convertContextTP" class="font-mono tabular-nums text-success">—</b></span>
+                <span class="geo-item">Target R: <b id="convertContextRR" class="font-mono tabular-nums text-primary font-bold">—</b></span>
             </div>
         </div>
 
@@ -312,22 +403,22 @@
                         <span>📅 Start Date <span style="color:#ef4444; font-weight:800;">*</span></span>
                         <small class="text-muted">Execution Date</small>
                     </label>
-                    <input type="date" name="entry_date" id="convertEntryDate" class="wl-convert-input" required>
+                    <input type="date" name="entry_date" id="convertEntryDate" class="wl-convert-input font-bold tabular-nums" required>
                 </div>
 
                 <!-- Start Time (REQUIRED) -->
                 <div class="wl-convert-field">
                     <label class="wl-convert-label" for="convertEntryTime">
-                        <span>🕒 Start Time (PH Time) <span style="color:#ef4444; font-weight:800;">*</span></span>
+                        <span>🕒 Start Time (PHT) <span style="color:#ef4444; font-weight:800;">*</span></span>
                         <small class="text-muted">Fill Timestamp</small>
                     </label>
-                    <input type="time" name="entry_time" id="convertEntryTime" class="wl-convert-input" required oninput="autoSelectConvertSession(this.value)">
+                    <input type="time" name="entry_time" id="convertEntryTime" class="wl-convert-input font-bold tabular-nums" required oninput="autoSelectConvertSession(this.value)">
                 </div>
 
                 <!-- Strategy / Setup Model -->
                 <div class="wl-convert-field">
                     <label class="wl-convert-label" for="convertStrategySelect">
-                        <span>⚡ Strategy / Setup Model</span>
+                        <span>⚡ Strategy / Model</span>
                         <small class="text-muted">Setup Model</small>
                     </label>
                     <select name="strategy_id" id="convertStrategySelect" class="wl-convert-select">
@@ -344,7 +435,7 @@
                 <div class="wl-convert-field">
                     <label class="wl-convert-label" for="convertSessionSelect">
                         <span>🌐 Session</span>
-                        <small id="convertSessionHint" style="font-size:0.75rem; color:#0284c7;"></small>
+                        <small id="convertSessionHint" style="font-size:0.75rem; color:#0284c7; font-weight:600;"></small>
                     </label>
                     <select name="session_id" id="convertSessionSelect" class="wl-convert-select">
                         <option value="">-- Select Session --</option>
@@ -394,7 +485,7 @@
                         <span>🎯 Entry Price</span>
                         <small class="text-muted">Actual Fill</small>
                     </label>
-                    <input type="number" step="any" name="entry_price" id="convertEntryPrice" class="wl-convert-input font-mono" placeholder="e.g. 1.08500">
+                    <input type="number" step="any" name="entry_price" id="convertEntryPrice" class="wl-convert-input font-mono tabular-nums" placeholder="e.g. 1.08500">
                 </div>
 
                 <!-- Stop Loss -->
@@ -403,7 +494,7 @@
                         <span>🛡️ Stop Loss</span>
                         <small class="text-muted">Invalidation Level</small>
                     </label>
-                    <input type="number" step="any" name="stop_loss" id="convertStopLoss" class="wl-convert-input font-mono" placeholder="e.g. 1.08200">
+                    <input type="number" step="any" name="stop_loss" id="convertStopLoss" class="wl-convert-input font-mono tabular-nums val-neg" placeholder="e.g. 1.08200">
                 </div>
 
                 <!-- Take Profit -->
@@ -412,7 +503,7 @@
                         <span>🎯 Take Profit</span>
                         <small class="text-muted">Target Level</small>
                     </label>
-                    <input type="number" step="any" name="take_profit" id="convertTakeProfit" class="wl-convert-input font-mono" placeholder="e.g. 1.09200">
+                    <input type="number" step="any" name="take_profit" id="convertTakeProfit" class="wl-convert-input font-mono tabular-nums val-pos" placeholder="e.g. 1.09200">
                 </div>
 
                 <!-- Planned Geometry Preview -->
@@ -422,7 +513,7 @@
                         <small class="text-muted">Geometry</small>
                     </label>
                     <div style="height: 38px; display: flex; align-items: center; padding: 0 0.75rem; background: #f8fafc; border: 1px solid #cbd5e1; border-radius: 8px; font-weight: 700; color: #059669; font-size: 0.88rem;">
-                        Target R: <span id="convertContextRRInline" style="margin-left: 0.4rem;">—</span>
+                        Target R: <span id="convertContextRRInline" class="tabular-nums" style="margin-left: 0.4rem;">—</span>
                     </div>
                 </div>
             </div>
@@ -432,7 +523,7 @@
                 <label class="wl-convert-label" for="convertComments">
                     <span>📝 Execution Notes / Trade Plan</span>
                 </label>
-                <textarea name="comments" id="convertComments" rows="2" class="wl-convert-textarea" placeholder="Merged from setup plan & layer notes..."></textarea>
+                <textarea name="comments" id="convertComments" rows="2" class="wl-convert-textarea break-anywhere" placeholder="Merged from setup plan &amp; layer notes..."></textarea>
             </div>
 
             <!-- Footer Buttons -->
@@ -445,7 +536,8 @@
                         Open Full Trade Form &rarr;
                     </a>
                     <button type="submit" id="btnSubmitConvertTrade" class="wl-convert-btn-submit">
-                        🚀 Insert Live Running Trade
+                        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+                        <span>Insert Live Running Trade</span>
                     </button>
                 </div>
             </div>
@@ -457,18 +549,26 @@
 let _convertTriggeringEl = null;
 
 function getTodayLocalDate() {
-    const d = new Date();
-    const year = d.getFullYear();
-    const month = String(d.getMonth() + 1).padStart(2, '0');
-    const day = String(d.getDate()).padStart(2, '0');
-    return `${year}-${month}-${day}`;
+    try {
+        return new Date().toLocaleDateString('en-CA', { timeZone: 'Asia/Manila' });
+    } catch(e) {
+        const d = new Date();
+        const year = d.getFullYear();
+        const month = String(d.getMonth() + 1).padStart(2, '0');
+        const day = String(d.getDate()).padStart(2, '0');
+        return `${year}-${month}-${day}`;
+    }
 }
 
 function getNowLocalTime() {
-    const d = new Date();
-    const hours = String(d.getHours()).padStart(2, '0');
-    const mins = String(d.getMinutes()).padStart(2, '0');
-    return `${hours}:${mins}`;
+    try {
+        return new Date().toLocaleTimeString('en-GB', { timeZone: 'Asia/Manila', hour: '2-digit', minute: '2-digit', hour12: false });
+    } catch(e) {
+        const d = new Date();
+        const hours = String(d.getHours()).padStart(2, '0');
+        const mins = String(d.getMinutes()).padStart(2, '0');
+        return `${hours}:${mins}`;
+    }
 }
 
 function autoSelectConvertSession(timeStr) {
@@ -495,7 +595,7 @@ function autoSelectConvertSession(timeStr) {
         targetName = 'New York';
     }
 
-    if (hint) hint.textContent = `Auto detected: ${targetName}`;
+    if (hint) hint.textContent = `Auto: ${targetName}`;
 
     for (let i = 0; i < select.options.length; i++) {
         const opt = select.options[i];
@@ -507,12 +607,33 @@ function autoSelectConvertSession(timeStr) {
     }
 }
 
+function showConvertError(msg) {
+    const banner = document.getElementById('wlConvertErrorBanner');
+    const text = document.getElementById('wlConvertErrorMessage');
+    const card = document.querySelector('.wl-convert-modal-card');
+    if (banner && text) {
+        text.textContent = msg;
+        banner.style.display = 'flex';
+    }
+    if (card) {
+        card.classList.remove('shake');
+        void card.offsetWidth; // trigger reflow
+        card.classList.add('shake');
+    }
+}
+
+function clearConvertError() {
+    const banner = document.getElementById('wlConvertErrorBanner');
+    if (banner) banner.style.display = 'none';
+}
+
 function openConvertModal(data, triggeringEl = null) {
     _convertTriggeringEl = triggeringEl;
     const modal = document.getElementById('wlConvertModal');
     const form = document.getElementById('wlConvertForm');
     if (!modal || !form) return;
 
+    clearConvertError();
     form.action = `/watchlist/${data.id}/convert-to-trade`;
     document.getElementById('convertIdeaId').value = data.id;
 
@@ -523,7 +644,7 @@ function openConvertModal(data, triggeringEl = null) {
     const dirBadge = document.getElementById('convertBadgeDirection');
     const isLong = (data.direction || 'LONG').toUpperCase() === 'LONG';
     dirBadge.textContent = isLong ? 'LONG' : 'SHORT';
-    dirBadge.className = isLong ? 'wl-dir-badge dir-long' : 'wl-dir-badge dir-short';
+    dirBadge.className = isLong ? 'wl-dir-badge dir-long flex-shrink-0' : 'wl-dir-badge dir-short flex-shrink-0';
 
     const stratBadge = document.getElementById('convertBadgeStrategy');
     if (data.strategy) {
@@ -588,10 +709,17 @@ function openConvertModal(data, triggeringEl = null) {
         fullFormLink.href = `/watchlist/${data.id}/promote`;
     }
 
+    // Reset submit button state
+    const btn = document.getElementById('btnSubmitConvertTrade');
+    if (btn) {
+        btn.disabled = false;
+        btn.innerHTML = `<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polygon points="5 3 19 12 5 21 5 3"/></svg><span>Insert Live Running Trade</span>`;
+    }
+
     modal.style.display = 'flex';
     setTimeout(() => {
         timeInput.focus();
-    }, 50);
+    }, 60);
 }
 
 function openConvertModalFromCard(el) {
@@ -646,6 +774,7 @@ function closeConvertModal() {
         _convertTriggeringEl.value = _convertTriggeringEl.dataset.prevStatus || 'WAITING';
     }
     _convertTriggeringEl = null;
+    clearConvertError();
 }
 
 function handleConvertOverlayClick(e) {
@@ -658,22 +787,34 @@ function validateConvertForm(form) {
     const d = form.entry_date.value;
     const t = form.entry_time.value;
     if (!d || !d.trim()) {
-        alert('Start Date is strictly required to insert into the Trade Log.');
+        showConvertError('Start Date is required to insert into the Trade Log.');
         form.entry_date.focus();
         return false;
     }
     if (!t || !t.trim()) {
-        alert('Start Time is strictly required to insert into the Trade Log.');
+        showConvertError('Start Time is required to insert into the Trade Log.');
         form.entry_time.focus();
         return false;
     }
+    clearConvertError();
     const btn = document.getElementById('btnSubmitConvertTrade');
     if (btn) {
         btn.disabled = true;
-        btn.textContent = 'Inserting Trade...';
+        btn.innerHTML = `<span class="wl-spinner"></span><span>Inserting Trade...</span>`;
     }
     return true;
 }
+
+// Global Escape Key Listener for Modals
+document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' || e.keyCode === 27) {
+        const convertModal = document.getElementById('wlConvertModal');
+        if (convertModal && convertModal.style.display !== 'none') {
+            closeConvertModal();
+            return;
+        }
+    }
+});
 
 // Auto open modal if convert_id was passed in URL query
 document.addEventListener('DOMContentLoaded', () => {

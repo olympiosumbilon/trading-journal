@@ -2,7 +2,7 @@
 
 {% block title %}{{ idea.title }} — Market Watchlist — Trading Journal{% endblock %}
 {% block extra_head %}
-<link rel="stylesheet" href="/static/watchlist.css?v=20261013e">
+<link rel="stylesheet" href="/static/watchlist.css?v=20261020-huge-roadmap">
 {% endblock %}
 
 {% block content %}
@@ -33,11 +33,11 @@
                 <span class="text-muted">{{ idea.title }}</span>
             </div>
             <div class="wl-detail-title-row">
-                <span class="wl-dir-badge dir-{{ idea.direction|lower }}" style="font-size: 0.85rem; padding: 0.35rem 0.75rem;">
+                <span class="wl-dir-badge dir-{{ idea.direction|lower }} flex-shrink-0" style="font-size: 0.85rem; padding: 0.35rem 0.75rem;">
                     {{ "LONG" if idea.direction == 'LONG' else "SHORT" }}
                 </span>
-                <h1 style="margin: 0; font-size: 1.6rem; color: #0f172a;">{{ idea.title }}</h1>
-                <span class="wl-status-pill status-pill-{{ idea.status|lower }}" style="font-size: 0.82rem; padding: 0.35rem 0.85rem;">
+                <h1 class="font-grotesk break-anywhere" style="margin: 0; font-size: 1.6rem; color: #0f172a;">{{ idea.title }}</h1>
+                <span class="wl-status-pill status-pill-{{ idea.status|lower }} flex-shrink-0" style="font-size: 0.82rem; padding: 0.35rem 0.85rem;">
                     {% if idea.status == 'WAITING' %}Waiting for POI
                     {% elif idea.status == 'MONITORING' %}Monitoring Trigger
                     {% elif idea.status == 'EXECUTED' %}Running Trade
@@ -50,8 +50,9 @@
 
         <div class="wl-header-actions" style="display: flex; align-items: center; gap: 8px;">
             {% if idea.status != 'EXECUTED' %}
-            <button type="button" class="btn-save-trade-submit" onclick="openConvertModalFromCard(this)" style="padding: 0.65rem 1.35rem; font-size: 0.9rem; cursor: pointer; border: none; display: inline-flex; align-items: center; gap: 0.4rem;">
-                Convert to Live Trade &rarr;
+            <button type="button" class="btn-save-trade-submit" onclick="openConvertModalFromCard(this)" style="padding: 0.65rem 1.35rem; font-size: 0.9rem; cursor: pointer; border: none; display: inline-flex; align-items: center; gap: 0.45rem;">
+                <span>Convert to Live Trade</span>
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
             </button>
             {% else %}
                 {% if idea.promoted_trade_id %}
@@ -78,18 +79,18 @@
                 {% for layer in layers %}
                 <div class="wl-chart-section-card">
                     <div class="wl-css-card-header">
-                        <div style="display: flex; align-items: center; gap: 0.5rem;">
-                            <span class="rm-badge" style="background: #0284c7; color: #fff;">#{{ loop.index }}</span>
-                            <h4>{{ layer.title }}</h4>
+                        <div style="display: flex; align-items: center; gap: 0.5rem; min-width: 0;">
+                            <span class="rm-badge flex-shrink-0" style="background: #0284c7; color: #fff;">#{{ loop.index }}</span>
+                            <h4 class="font-grotesk break-anywhere" style="margin: 0;">{{ layer.title }}</h4>
                         </div>
                         {% if layer.image_url %}
-                        <button type="button" class="btn-zoom" onclick="openChartModal('{{ layer.image_url }}', '{{ layer.title }} — {{ idea.title }}')">Full Screen</button>
+                        <button type="button" class="btn-zoom flex-shrink-0" onclick="openChartModal('{{ layer.image_url }}', '{{ layer.title }} — {{ idea.title }}')">Full Screen</button>
                         {% endif %}
                     </div>
 
                     {% if layer.image_url %}
                     <div class="wl-chart-img-wrap">
-                        <img src="{{ layer.image_url }}" alt="{{ layer.title }}" onclick="openChartModal('{{ layer.image_url }}', '{{ layer.title }} — {{ idea.title }}')">
+                        <img src="{{ layer.image_url }}" alt="{{ layer.title }}" onclick="openChartModal('{{ layer.image_url }}', '{{ layer.title }} — {{ idea.title }}')" loading="lazy">
                     </div>
                     {% endif %}
 
@@ -104,7 +105,7 @@
                     {% if layer.note %}
                     <div style="padding: 0.85rem 1rem; background: #ffffff; border-top: 1px solid #e2e8f0;">
                         <span style="font-size: 0.72rem; font-weight: 700; color: #64748b; text-transform: uppercase; display: block; margin-bottom: 0.2rem;">Timeframe Analysis Note:</span>
-                        <p style="margin: 0; color: #334155; font-size: 0.88rem; line-height: 1.45; white-space: pre-wrap;">{{ layer.note }}</p>
+                        <p class="break-anywhere" style="margin: 0; color: #334155; font-size: 0.88rem; line-height: 1.5; white-space: pre-wrap;">{{ layer.note }}</p>
                     </div>
                     {% endif %}
                 </div>
@@ -113,11 +114,11 @@
                 {% if idea.htf_image_url %}
                 <div class="wl-chart-section-card">
                     <div class="wl-css-card-header">
-                        <h4>Higher Timeframe (HTF) Analysis</h4>
-                        <button type="button" class="btn-zoom" onclick="openChartModal('{{ idea.htf_image_url }}', 'HTF Analysis — {{ idea.title }}')">Full Screen</button>
+                        <h4 class="font-grotesk">Higher Timeframe (HTF) Analysis</h4>
+                        <button type="button" class="btn-zoom flex-shrink-0" onclick="openChartModal('{{ idea.htf_image_url }}', 'HTF Analysis — {{ idea.title }}')">Full Screen</button>
                     </div>
                     <div class="wl-chart-img-wrap">
-                        <img src="{{ idea.htf_image_url }}" alt="HTF Analysis" onclick="openChartModal('{{ idea.htf_image_url }}', 'HTF Analysis — {{ idea.title }}')">
+                        <img src="{{ idea.htf_image_url }}" alt="HTF Analysis" onclick="openChartModal('{{ idea.htf_image_url }}', 'HTF Analysis — {{ idea.title }}')" loading="lazy">
                     </div>
                 </div>
                 {% endif %}
@@ -125,16 +126,17 @@
                 {% if idea.ltf_image_url %}
                 <div class="wl-chart-section-card">
                     <div class="wl-css-card-header">
-                        <h4>Lower Timeframe (LTF) Entry Trigger</h4>
-                        <button type="button" class="btn-zoom" onclick="openChartModal('{{ idea.ltf_image_url }}', 'LTF Trigger — {{ idea.title }}')">Full Screen</button>
+                        <h4 class="font-grotesk">Lower Timeframe (LTF) Entry Trigger</h4>
+                        <button type="button" class="btn-zoom flex-shrink-0" onclick="openChartModal('{{ idea.ltf_image_url }}', 'LTF Trigger — {{ idea.title }}')">Full Screen</button>
                     </div>
                     <div class="wl-chart-img-wrap">
-                        <img src="{{ idea.ltf_image_url }}" alt="LTF Trigger" onclick="openChartModal('{{ idea.ltf_image_url }}', 'LTF Trigger — {{ idea.title }}')">
+                        <img src="{{ idea.ltf_image_url }}" alt="LTF Trigger" onclick="openChartModal('{{ idea.ltf_image_url }}', 'LTF Trigger — {{ idea.title }}')" loading="lazy">
                     </div>
                 </div>
                 {% endif %}
             {% else %}
             <div class="wl-chart-section-card" style="padding: 3rem 1.5rem; text-align: center;">
+                <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="margin-bottom: 0.75rem;"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="m21 15-5-5L5 21"/></svg>
                 <h4 style="margin: 0.5rem 0; color: #64748b;">No Chart Breakdown Attached</h4>
                 <p class="text-muted" style="font-size: 0.85rem;">You can add timeframe layers by editing this trade idea.</p>
                 <a href="/watchlist/{{ idea.id }}/edit" class="btn-secondary" style="margin-top: 0.75rem; display: inline-block;">+ Add Timeframe Layers</a>
@@ -148,35 +150,35 @@
             
             <!-- Card 1: Setup Geometry -->
             <div class="form-section-block" style="margin-bottom: 1.25rem;">
-                <h4 class="form-section-title">Planned Execution Levels</h4>
+                <h4 class="form-section-title font-grotesk">Planned Execution Levels</h4>
                 <div class="wl-geo-details-grid">
                     <div class="wl-geo-card">
                         <span class="geo-card-label">Planned Entry</span>
-                        <span class="geo-card-val font-mono">{{ idea.planned_entry if idea.planned_entry is not none else "Market" }}</span>
+                        <span class="geo-card-val font-mono tabular-nums">{{ idea.planned_entry if idea.planned_entry is not none else "Market" }}</span>
                     </div>
                     <div class="wl-geo-card">
                         <span class="geo-card-label">Stop Loss (SL)</span>
-                        <span class="geo-card-val font-mono val-neg">{{ idea.planned_sl if idea.planned_sl is not none else "—" }}</span>
+                        <span class="geo-card-val font-mono tabular-nums val-neg">{{ idea.planned_sl if idea.planned_sl is not none else "—" }}</span>
                     </div>
                     <div class="wl-geo-card">
                         <span class="geo-card-label">Take Profit (TP)</span>
-                        <span class="geo-card-val font-mono val-pos">{{ idea.planned_tp if idea.planned_tp is not none else "—" }}</span>
+                        <span class="geo-card-val font-mono tabular-nums val-pos">{{ idea.planned_tp if idea.planned_tp is not none else "—" }}</span>
                     </div>
                     <div class="wl-geo-card wl-geo-card-rr">
                         <span class="geo-card-label">Estimated Target R</span>
-                        <span class="geo-card-val val-rr font-bold">{{ "+%.2f"|format(idea.planned_rr) ~ "R" if idea.planned_rr is not none else "—" }}</span>
+                        <span class="geo-card-val val-rr font-mono tabular-nums font-bold">{{ "+%.2f"|format(idea.planned_rr) ~ "R" if idea.planned_rr is not none else "—" }}</span>
                     </div>
                 </div>
             </div>
 
             <!-- Card 2: Strategy & Market Edge -->
             <div class="form-section-block" style="margin-bottom: 1.25rem;">
-                <h4 class="form-section-title">Strategy &amp; Context Tags</h4>
+                <h4 class="form-section-title font-grotesk">Strategy &amp; Context Tags</h4>
                 <table class="settings-table" style="margin-bottom: 0;">
                     <tbody>
                         <tr>
                             <td class="text-muted" style="width: 40%;">Instrument:</td>
-                            <td class="font-bold">{{ idea.instrument_obj.name if idea.instrument_obj else "—" }}</td>
+                            <td class="font-grotesk font-bold">{{ idea.instrument_obj.name if idea.instrument_obj else "—" }}</td>
                         </tr>
                         <tr>
                             <td class="text-muted">Market Session:</td>
@@ -204,26 +206,26 @@
 
             <!-- Card 3: Analysis & Waiting Game Notes -->
             <div class="form-section-block">
-                <h4 class="form-section-title">Analysis &amp; Execution Playbook</h4>
+                <h4 class="form-section-title font-grotesk">Analysis &amp; Execution Playbook</h4>
                 
                 {% if idea.htf_bias %}
                 <div style="margin-bottom: 0.75rem;">
                     <span class="font-bold" style="font-size: 0.78rem; color: #64748b; text-transform: uppercase; display: block;">HTF Structural Bias:</span>
-                    <p style="margin: 0.2rem 0 0 0; font-weight: 600; color: #0f172a;">{{ idea.htf_bias }}</p>
+                    <p class="break-anywhere" style="margin: 0.2rem 0 0 0; font-weight: 600; color: #0f172a;">{{ idea.htf_bias }}</p>
                 </div>
                 {% endif %}
 
                 {% if idea.ltf_confirmation %}
                 <div style="margin-bottom: 0.75rem;">
                     <span class="font-bold" style="font-size: 0.78rem; color: #64748b; text-transform: uppercase; display: block;">LTF Confirmation Trigger:</span>
-                    <p style="margin: 0.2rem 0 0 0; color: #334155;">{{ idea.ltf_confirmation }}</p>
+                    <p class="break-anywhere" style="margin: 0.2rem 0 0 0; color: #334155;">{{ idea.ltf_confirmation }}</p>
                 </div>
                 {% endif %}
 
                 {% if idea.notes %}
                 <div>
                     <span class="font-bold" style="font-size: 0.78rem; color: #64748b; text-transform: uppercase; display: block;">Pre-Trade Checklist &amp; Notes:</span>
-                    <div style="background: #f8fafc; padding: 0.85rem; border-radius: 6px; border: 1px solid #e2e8f0; margin-top: 0.35rem; font-size: 0.86rem; line-height: 1.5; white-space: pre-wrap;">{{ idea.notes }}</div>
+                    <div class="break-anywhere" style="background: #f8fafc; padding: 0.85rem; border-radius: 8px; border: 1px solid #e2e8f0; margin-top: 0.35rem; font-size: 0.86rem; line-height: 1.5; white-space: pre-wrap;">{{ idea.notes }}</div>
                 </div>
                 {% endif %}
 
@@ -239,14 +241,14 @@
 </div>
 
 <!-- Interactive Chart Modal / Lightbox -->
-<div id="wlChartModal" class="wl-chart-lightbox" style="display: none;" onclick="closeChartModal(event)">
+<div id="wlChartModal" class="wl-chart-lightbox" style="display: none;" onclick="closeChartModal(event)" role="dialog" aria-modal="true" aria-labelledby="wlLightboxTitle">
     <div class="wl-lightbox-box">
         <div class="wl-lightbox-header">
-            <span id="wlLightboxTitle" class="font-bold">Chart Preview</span>
-            <button type="button" class="wl-lightbox-close" onclick="closeChartModal(event)">&times;</button>
+            <span id="wlLightboxTitle" class="font-grotesk font-bold">Chart Preview</span>
+            <button type="button" class="wl-lightbox-close" onclick="closeChartModal(event)" title="Close (Esc)" aria-label="Close dialog">&times;</button>
         </div>
         <div class="wl-lightbox-img-wrap">
-            <img id="wlLightboxImg" src="" alt="Chart Preview">
+            <img id="wlLightboxImg" src="" alt="Chart Preview" loading="lazy">
         </div>
     </div>
 </div>
@@ -264,11 +266,21 @@ function openChartModal(src, title) {
 }
 
 function closeChartModal(e) {
-    if (e.target.id === 'wlChartModal' || e.target.classList.contains('wl-lightbox-close')) {
+    if (!e || e.target.id === 'wlChartModal' || e.target.classList.contains('wl-lightbox-close') || e.key === 'Escape') {
         const modal = document.getElementById('wlChartModal');
         if (modal) modal.style.display = 'none';
     }
 }
+
+// Escape key listener for detail lightbox
+document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' || e.keyCode === 27) {
+        const modal = document.getElementById('wlChartModal');
+        if (modal && modal.style.display !== 'none') {
+            closeChartModal(e);
+        }
+    }
+});
 </script>
 {% include "watchlist/_convert_modal.html" %}
 {% endblock %}

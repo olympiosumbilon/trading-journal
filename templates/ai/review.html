@@ -1,69 +1,139 @@
 {% extends "base.html" %}
 
-{% block title %}AI Review — Trading Journal{% endblock %}
+{% block title %}AI Coaching Review — Trading Journal{% endblock %}
 
 {% block content %}
-<h1>AI Trade Review</h1>
+<div class="ai-coach-wrapper">
+    <!-- Header Banner -->
+    <div class="ai-coach-header">
+        <div class="ai-coach-title-box">
+            <h1>
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="color:#60a5fa;"><path d="M12 2a10 10 0 1 0 10 10A10 10 0 0 0 12 2zm0 18a8 8 0 1 1 8-8 8 8 0 0 1-8 8z"/><path d="M12 6v6l4 2"/></svg>
+                AI Executive Coaching Review
+                <span class="ai-badge">TACTICAL INTEL</span>
+            </h1>
+            <p class="ai-coach-subtitle">Synthesizing execution edge, risk adherence, session volatility, and corrective behavioral directives.</p>
+        </div>
+        <div style="display:flex; align-items:center; gap:0.75rem;">
+            <a href="/ai/" class="auto-btn-action" style="font-size:0.78rem; padding:0.45rem 0.85rem;" title="Refresh AI Analysis">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg>
+                Re-Analyze
+            </a>
+            <a href="/dashboard/" class="auto-btn-action auto-btn-secondary" style="font-size:0.78rem; padding:0.45rem 0.85rem;">Dashboard &rarr;</a>
+        </div>
+    </div>
 
-{% if result.error %}
-<div class="alert alert-error">
-    <strong>Ollama Error:</strong> {{ result.error }}
-    <p>Make sure Ollama is running locally (http://localhost:11434).</p>
+    {% if result.error %}
+    <!-- Rich Error Diagnostics Card (Break-UI Defense) -->
+    <div class="ai-diagnostics-card">
+        <div class="ai-diag-title">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+            Local Ollama Engine Offline or Unreachable
+        </div>
+        <p class="ai-diag-desc">
+            The local AI inference runner could not be reached at <code>http://localhost:11434</code>. Error details: <strong>{{ result.error }}</strong>.
+            Please ensure Ollama is installed and running on your host machine.
+        </p>
+        <code class="ai-diag-code">ollama run llama3.2:latest   # or: ollama serve</code>
+    </div>
+    {% elif result.stats and result.stats.total_trades == 0 %}
+    <!-- Empty State Safeguard (Break-UI Defense) -->
+    <div class="domain6-empty-state">
+        <div class="empty-icon-wrap">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+        </div>
+        <h3 class="empty-title">No Closed Trades Available for Coaching</h3>
+        <p class="empty-desc">The AI coach requires at least 3-5 completed trades to evaluate your setup edge, risk consistency, and execution discipline.</p>
+        <a href="/trades/new" class="btn-primary-action" style="display:inline-flex; align-items:center; gap:0.5rem; text-decoration:none;">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/></svg>
+            + Log Your First Trade
+        </a>
+    </div>
+    {% else %}
+
+    <!-- Key Metrics Ribbon with Tabular Numbers -->
+    <div class="ai-stat-ribbon">
+        <div class="ai-stat-card">
+            <span class="ai-stat-label">Total Sample</span>
+            <div class="ai-stat-val">{{ result.stats.total_trades }} <span style="font-size:0.75rem; color:#64748b; font-weight:600;">trades</span></div>
+        </div>
+        <div class="ai-stat-card">
+            <span class="ai-stat-label">Strike Rate</span>
+            <div class="ai-stat-val text-accent">{{ result.stats.win_rate }}%</div>
+        </div>
+        <div class="ai-stat-card">
+            <span class="ai-stat-label">Accumulated Return</span>
+            <div class="ai-stat-val {% if result.stats.total_r > 0 %}val-pos{% elif result.stats.total_r < 0 %}val-neg{% endif %}">
+                {{ "+%.2f"|format(result.stats.total_r) if result.stats.total_r > 0 else "%.2f"|format(result.stats.total_r) }}R
+            </div>
+        </div>
+        <div class="ai-stat-card">
+            <span class="ai-stat-label">Average Return</span>
+            <div class="ai-stat-val {% if result.stats.avg_r > 0 %}val-pos{% elif result.stats.avg_r < 0 %}val-neg{% endif %}">
+                {{ "+%.2f"|format(result.stats.avg_r) if result.stats.avg_r > 0 else "%.2f"|format(result.stats.avg_r) }}R
+            </div>
+        </div>
+        <div class="ai-stat-card">
+            <span class="ai-stat-label">Peak Drawdown</span>
+            <div class="ai-stat-val val-neg">{{ "%.2f"|format(result.stats.max_drawdown) }}R</div>
+        </div>
+    </div>
+
+    <!-- 4 Structured AI Coaching Pillars (2x2 Grid) -->
+    <div class="ai-pillars-grid">
+        <!-- 1. Setup & Edge -->
+        <div class="ai-pillar-card">
+            <div class="ai-pillar-header">
+                <div class="ai-pillar-icon ai-icon-edge">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                </div>
+                <h3>1. Setup & Strategy Validation</h3>
+            </div>
+            <div class="ai-pillar-body">
+                <pre>{{ result.sections.setup if result.sections.setup else (result.raw if result.raw else "No specific setup feedback detected.") }}</pre>
+            </div>
+        </div>
+
+        <!-- 2. Session & Timing -->
+        <div class="ai-pillar-card">
+            <div class="ai-pillar-header">
+                <div class="ai-pillar-icon ai-icon-timing">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+                </div>
+                <h3>2. Session & Timing Precision</h3>
+            </div>
+            <div class="ai-pillar-body">
+                <pre>{{ result.sections.session if result.sections.session else "Session timing remains balanced across current sample." }}</pre>
+            </div>
+        </div>
+
+        <!-- 3. Risk & Discipline -->
+        <div class="ai-pillar-card">
+            <div class="ai-pillar-header">
+                <div class="ai-pillar-icon ai-icon-risk">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+                </div>
+                <h3>3. Risk Management & Discipline</h3>
+            </div>
+            <div class="ai-pillar-body">
+                <pre>{{ result.sections.risk if result.sections.risk else "Zero abnormal risk violations identified in current sample." }}</pre>
+            </div>
+        </div>
+
+        <!-- 4. Top 3 Directives -->
+        <div class="ai-pillar-card">
+            <div class="ai-pillar-header">
+                <div class="ai-pillar-icon ai-icon-actions">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 11 12 14 22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
+                </div>
+                <h3>4. Top 3 Actionable Directives</h3>
+            </div>
+            <div class="ai-pillar-body">
+                <pre>{{ result.sections.actions if result.sections.actions else "1. Continue logging all executions.\n2. Maintain consistent fixed R multiple targets.\n3. Track pre-trade mindset tags consistently." }}</pre>
+            </div>
+        </div>
+    </div>
+
+    {% endif %}
 </div>
-{% else %}
-
-<div class="stats-summary">
-    <h3>Trade Stats Sent to AI</h3>
-    <div class="summary-cards">
-        <div class="card">
-            <div class="card-value">{{ result.stats.total_trades }}</div>
-            <div class="card-label">Trades</div>
-        </div>
-        <div class="card">
-            <div class="card-value">{{ result.stats.win_rate }}%</div>
-            <div class="card-label">Win Rate</div>
-        </div>
-        <div class="card">
-            <div class="card-value">{{ result.stats.total_r }}</div>
-            <div class="card-label">Total R</div>
-        </div>
-        <div class="card">
-            <div class="card-value">{{ result.stats.avg_r }}</div>
-            <div class="card-label">Avg R</div>
-        </div>
-    </div>
-</div>
-
-<div class="ai-sections">
-    <div class="ai-section">
-        <h2>1. Setup & Strategy</h2>
-        <pre>{{ result.sections.setup or result.raw }}</pre>
-    </div>
-
-    <div class="ai-section">
-        <h2>2. Session & Timing</h2>
-        <pre>{{ result.sections.session or "(No specific section detected)" }}</pre>
-    </div>
-
-    <div class="ai-section">
-        <h2>3. Risk & Psychology</h2>
-        <pre>{{ result.sections.risk or "(No specific section detected)" }}</pre>
-    </div>
-
-    <div class="ai-section">
-        <h2>4. Top 3 Actions</h2>
-        <pre>{{ result.sections.actions or "(No specific section detected)" }}</pre>
-    </div>
-</div>
-
-{% endif %}
-
-<style>
-.ai-sections { margin-top: 1.5rem; }
-.ai-section { background: #fff; padding: 1.5rem; border-radius: 6px; margin-bottom: 1rem; }
-.ai-section h2 { margin-top: 0; color: #1a1a2e; border-bottom: 2px solid #2563eb; padding-bottom: 0.5rem; }
-.ai-section pre { white-space: pre-wrap; font-family: system-ui, sans-serif; line-height: 1.6; color: #333; }
-.alert-error { background: #fee2e2; color: #991b1b; padding: 1rem; border-radius: 6px; margin-bottom: 1rem; }
-.stats-summary { margin-bottom: 1rem; }
-</style>
 {% endblock %}

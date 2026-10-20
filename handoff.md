@@ -1,13 +1,51 @@
 # Project Handoff
 
 ## Current Objective
-Completed the **Watchlist Convert Modal & Classification Selectors**, **Watchlist Kanban & Card Toolbar Redesign**, and **3 Action Icon Buttons (View, Edit, Delete)** across Active Pipeline, Setup History, and Cards. The system is fully operational, thoroughly tested, and backwards-compatible with existing global stylesheets.
+Completed the **Full-System UI/UX Overhaul Across All Pages & Modals** utilizing the design principles from the Vault (`skills/human-crafted-uiux`, `apple-design`, `emil-design-eng`, and `break-ui`). All 20 templates and global stylesheets were audited, hardened against edge-case failures, and infused with Apple fluid physics, Emil Kowalski micro-interactions, left-aligned human-crafted layouts, and tabular numerals. 100% of unit tests and smoke tests pass (57/57).
 
 ---
 
 ## Current Status & Summary of Recent Implementations
 
-### 0. 📊 Market Analytics Terminal & Heatmap Refusal Fix (Latest)
+### 0. 🎨 Universal Human-Crafted UI/UX, Apple Physics & Break-UI Polish (Latest)
+- **Multi-Year Strategy Performance Matrix Unclipped Tooltip Portal & Dark TOTAL Row**:
+  - **Tooltip Clipping Fix**: Implemented a body-level floating portal element `<div id="globalFloatingTradePopover" class="trade-hover-popover global-floating-popover">` in `templates/base.html` styled with `position: fixed; z-index: 99999999;` and smart JS positioning, eliminating table scroll container clipping.
+  - **TOTAL Row Hover Dark Preservation**: Fixed a regression where `.matrix-table tbody tr:hover td` applied a light background (`#eff6ff !important`) to all `tbody` rows on hover, overriding the dark `#0f172a` total row styling. Added `:not(.matrix-total-row)` exclusion and dedicated dark hover rules (`#172554` navy / `#1e3a8a` sticky header) so the TOTAL row permanently stays dark and high-contrast upon hovering.
+- **Multi-Agent Fan-Out Execution**:
+  - Fanned out 6 specialized UI design engineering subagents across 6 non-overlapping domains:
+    - **Domain 1 (Global Shell & Modal System)**: `templates/base.html`, `static/style.css`
+    - **Domain 2 (Dashboard & Performance Matrix)**: `templates/dashboard/index.html`
+    - **Domain 3 (Trades Log & Detail View)**: `templates/trades/list.html`, `templates/trades/detail.html`
+    - **Domain 4 (Trade Form & Risk Calculator)**: `templates/trades/form.html`
+    - **Domain 5 (Watchlist Kanban & Modals)**: `templates/watchlist/*`, `static/watchlist.css`
+    - **Domain 6 (Terminal, Summary, AI, Automations, Settings)**: `templates/analysis/index.html`, `templates/summary/index.html`, `templates/ai/review.html`, `templates/automations/*`, `templates/settings/index.html`
+- **Core Design Enhancements Delivered**:
+  - **Apple Fluid Motion & Physics**:
+    - Added instant `:active { transform: scale(0.97); }` press feedback across all buttons, nav links, tabs, and action cards.
+    - Standardized transitions to sub-200ms with `--ease-spring: cubic-bezier(0.23, 1, 0.32, 1)` and drawers to `--ease-drawer: cubic-bezier(0.32, 0.72, 0, 1)`.
+    - Upgraded modals and lightboxes to 12px–16px backdrop blur, smooth spring entrance, outside-click dismiss, and keyboard `Escape` support.
+    - Mobile bottom sheet trade preview modal with top grab handle and touch containment.
+  - **Emil Kowalski Design Engineering & Typographic Precision**:
+    - Enforced `font-variant-numeric: tabular-nums` across all numeric metrics, prices, R-multiples, dates, badges, and year selectors to eliminate layout jitter.
+    - Replaced untargeted `transition: all` with explicit hardware-accelerated properties (`transform`, `opacity`, `background-color`).
+    - Right-aligned numeric columns in all tables (Price, SL, TP, PnL, R) and left-aligned categorical text.
+    - Sticky table headers with subtle `#f8fafc` zebra striping on summary matrices.
+  - **Refactoring UI Anti-AI Slop Standards**:
+    - Eliminated box-in-a-box border fatigue; used surface contrast (`#0f172a`, `#1e293b`, `#f8fafc`, `#ffffff`) with layered ambient+key shadows.
+    - Strict nested border-radius rule: `inner = outer - padding`.
+    - Removed colored left indicator bars (`border-left: 4px solid`) from trade list cards (`.trade-pro-row`), maintaining a clean, balanced, uniform 1px solid `#e2e8f0` border on all 4 sides.
+    - Removed bulky "Risk, Position Sizing & Exchange Fee Calculator" card and its toggle button from `templates/trades/form.html`, streamlining the trade logging flow directly into Section 0 (Execution Status) and Section 2 (Execution Price Geometry Triad).
+    - Polished `.btn-back` navigation button across `templates/trades/form.html` and `templates/watchlist/form.html`: calibrated height (38px), optical SVG back arrow with micro-hover translation (`translateX(-2px)`), soft `#334155` typography, layered shadow (`0 1px 2px rgba(15,23,42,0.05)`), and tactile `:active { transform: scale(0.97); }` press physics.
+    - Upgraded Setup Roadmap Modal (`_roadmap_modal.html` and `static/watchlist.css`) to **Huge Expansive View**: expanded dialog width to 98vw (max 1720px) and height to 96vh, removed image height limits, added 1-click Zoom In / Fit toggle on click, direct `Full Resolution ↗` link in header, and streamlined the 4-phase guide into a compact single-row horizontal strip.
+    - Left-aligned body copy, notes, and guidance text; replaced bare "No data" empty states with informative, action-oriented empty cards.
+  - **Break-UI Adversarial Edge-Case Hardening**:
+    - Nano-price precision: Form and calculator support up to 8/9 decimal places (`0.00000045`) with zero-division safeguards.
+    - High-equity sizing: Gracefully handles $10,000,000+ accounts with `overflow-wrap: anywhere; word-break: break-word;`.
+    - Flex squishing defenses: Enforced `flex-shrink: 0` on badges, status pills, icons, and table action buttons.
+    - Long strings & broken images: Ticker truncation (`title="..."`), image error fallback SVG URIs for TradingView snapshots.
+- **Verification & Test Suite**:
+  - 57/57 pytest tests passing (`.venv/Scripts/pytest tests/`).
+  - All HTTP routes (`/`, `/dashboard/`, `/trades/`, `/watchlist/`, `/analysis/`, `/summary/`, `/automations/`, `/settings/`, `/ai/`) verified with 200 OK.
 - **Root Cause Identified**:
   - `coinglass.com`, `forexfactory.com`, and `cryptocraft.com` enforce strict browser security headers (`X-Frame-Options: SAMEORIGIN` and `Content-Security-Policy: frame-ancestors 'self'`) and Cloudflare bot protection, causing browsers to refuse iframe embedding (`www.coinglass.com refused to connect`).
 - **Live TradingView Integration**:
@@ -145,18 +183,24 @@ Completed the **Watchlist Convert Modal & Classification Selectors**, **Watchlis
 ---
 
 ## Files Changed Recently
-- `models.py`: Added `adverse_wick_price` column to `Trade`.
-- `routers/trades.py`: Handled `adverse_wick_price` in create/update; transferred screenshot captions; updated prefill handling.
-- `routers/watchlist.py`: Scope filtering, `archive` and `restore` endpoints, merged notes formatting, robust prefill params.
-- `routers/dashboard.py`: Prepend `Start` baseline `0.0` to equity curve; decimal tick formatting.
-- `routers/summary.py`: Prepend `Start` baseline `0.0` to equity curve; decimal tick formatting.
-- `services/calculation_service.py`: Fixed `0.0000` MAE condition in `compute_max_r`.
-- `templates/trades/form.html`: Adverse Wick input with live calculation, mobile stacked layout, prefill price bindings.
-- `templates/trades/detail.html`: Displayed `ADVERSE WICK` metric and screenshot captions in gallery & lightbox.
-- `templates/watchlist/index.html`: Scope filter dropdown, column collapse toggles, archived pagination, scrollbox containers.
-- `templates/watchlist/_card.html`: Outcome pill badge (`+2.20R WIN`), 1-click `📦 Archive` / `♻️ Restore` actions.
-- `templates/base.html`: Smart upward hover popover listener, stylesheet version cache busting (`?v=20260818e`).
-- `static/style.css`: Column scrollboxes, collapse states, load-more buttons, mobile responsive screenshot headers, upward popovers.
+- `services/calculation_service.py`: Hardened numeric boundary edge-cases for fee/risk calculations.
+- `static/style.css`: Global design tokens, Apple fluid active-press states, unclipped floating popover portal styling, dark TOTAL row hover preservation, and comprehensive typography/border polish.
+- `static/watchlist.css`: Setup Roadmap huge modal expansion (98vw/96vh), zoom-toggle physics, clean 1px borders, and responsive grid layouts.
+- `templates/base.html`: Body-level `#globalFloatingTradePopover` portal element, desktop dynamic hovering JS bridge, CSS cache-buster `v=20261020-matrix-total-dark`.
+- `templates/dashboard/index.html`: Human-crafted typography, tabular numerals, clean outcome matrix, psychology cards.
+- `templates/trades/list.html`: Right-aligned numerical columns, removed left color bars, balanced 1px border.
+- `templates/trades/detail.html`: Apple-style fluid lightbox image modal with Escape/outside-click dismiss.
+- `templates/trades/form.html`: Polished `.btn-back` button, removed bulky calculator widget, streamlined trade entry geometry triad.
+- `templates/watchlist/index.html` & `_card.html`: Kanban column headers, clean badges, 3-icon actions, and balanced card elevation.
+- `templates/watchlist/_roadmap_modal.html`: Huge expansive view for setup roadmap with zoom toggles and direct full-res link.
+- `templates/watchlist/_convert_modal.html`: Start Date & Time validation with PHT prefill, 4 classification dropdowns.
+- `templates/watchlist/form.html` & `detail.html`: Normalized inputs, polished back button, and responsive layout.
+- `templates/summary/index.html`: Matrix table unclipped floating tooltip integration, dark TOTAL row preservation.
+- `templates/analysis/index.html`: Live TradingView widgets, external pro launchpads, responsive tabs.
+- `templates/ai/review.html`: Structured card layout for AI coaching feedback.
+- `templates/automations/index.html` & `weekly_report.html`: Systematic cards and toggle controls.
+- `templates/settings/index.html`: Clean settings cards and tabular numerals.
+- `handoff.md`: Updated with full system UI/UX overhaul, tooltip unclipped portal, and dark TOTAL row fixes.
 
 ---
 
@@ -171,10 +215,9 @@ Completed the **Watchlist Convert Modal & Classification Selectors**, **Watchlis
 ---
 
 ## Validation Status
-- ✅ Database migration executed (`adverse_wick_price` added to PostgreSQL).
-- ✅ Trade creation and editing with Adverse Wick Price tested and verified.
-- ✅ Watchlist promotion pre-fills all prices, directions, notes, and screenshot layers.
-- ✅ Equity curve float precision fixed on Dashboard and Summary.
-- ✅ Multi-Year Strategy Performance Matrix popovers flip upward when near bottom.
-- ✅ Mobile UI for screenshot cards and lightboxes verified responsive and clutter-free.
-- ✅ Git branch `main` clean and synchronized with origin remote (`main 33180cf`).
+- ✅ Full-system UI/UX overhaul executed across all 20 templates and global stylesheets.
+- ✅ All 57 pytest tests pass (`.venv/Scripts/pytest tests/`).
+- ✅ Multi-Year Strategy Performance Matrix tooltip unclipped floating portal functioning seamlessly.
+- ✅ Multi-Year Strategy Performance Matrix TOTAL row verified to stay dark (`#0f172a` -> `#172554`) on hover.
+- ✅ All application routes tested and verified with HTTP 200 OK.
+- ✅ Local uvicorn development server running healthy on `http://127.0.0.1:8000`.

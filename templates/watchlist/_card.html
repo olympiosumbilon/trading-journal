@@ -19,13 +19,13 @@
     <!-- Card Top Header -->
     <div class="wl-card-header">
         <div class="wl-card-title-row">
-            <span class="wl-dir-badge dir-{{ idea.direction|lower }}">
+            <span class="wl-dir-badge dir-{{ idea.direction|lower }} flex-shrink-0">
                 {{ "LONG" if idea.direction == 'LONG' else "SHORT" }}
             </span>
-            <span class="wl-inst-badge font-bold">
+            <span class="wl-inst-badge font-grotesk font-bold flex-shrink-0" title="{{ idea.instrument_obj.name if idea.instrument_obj else 'Custom' }}">
                 {{ idea.instrument_obj.name if idea.instrument_obj else "Custom" }}
             </span>
-            <span class="wl-status-pill status-pill-{{ idea.status|lower }}">
+            <span class="wl-status-pill status-pill-{{ idea.status|lower }} flex-shrink-0">
                 {% if idea.status == 'WAITING' %}Waiting
                 {% elif idea.status == 'MONITORING' %}Monitoring
                 {% elif idea.status == 'EXECUTED' %}Live
@@ -42,16 +42,16 @@
     <!-- Strategy & Context Tags -->
     <div class="wl-card-tags">
         {% if idea.strategy_obj %}
-        <span class="wl-tag tag-strat">{{ idea.strategy_obj.name }}</span>
+        <span class="wl-tag tag-strat flex-shrink-0">{{ idea.strategy_obj.name }}</span>
         {% endif %}
         {% if idea.session_obj %}
-        <span class="wl-tag tag-session">{{ idea.session_obj.name }}</span>
+        <span class="wl-tag tag-session flex-shrink-0">{{ idea.session_obj.name }}</span>
         {% endif %}
         {% if idea.mtf_phase_obj %}
-        <span class="wl-tag tag-phase">Phase: {{ idea.mtf_phase_obj.name }}</span>
+        <span class="wl-tag tag-phase flex-shrink-0">Phase: {{ idea.mtf_phase_obj.name }}</span>
         {% endif %}
         {% if idea.probability_level_obj %}
-        <span class="wl-tag tag-prob prob-{{ idea.probability_level_obj.name|lower }}">{{ idea.probability_level_obj.name }}</span>
+        <span class="wl-tag tag-prob prob-{{ idea.probability_level_obj.name|lower }} flex-shrink-0">{{ idea.probability_level_obj.name }}</span>
         {% endif %}
     </div>
 
@@ -61,36 +61,48 @@
         {% if idea.planned_entry is not none %}
         <div class="wl-geo-item">
             <span class="geo-label">Entry</span>
-            <span class="geo-val font-mono">{{ idea.planned_entry }}</span>
+            <span class="geo-val font-mono tabular-nums" title="{{ idea.planned_entry }}">{{ idea.planned_entry }}</span>
         </div>
         {% endif %}
         {% if idea.planned_sl is not none %}
         <div class="wl-geo-item">
             <span class="geo-label">SL</span>
-            <span class="geo-val font-mono val-neg">{{ idea.planned_sl }}</span>
+            <span class="geo-val font-mono tabular-nums val-neg" title="{{ idea.planned_sl }}">{{ idea.planned_sl }}</span>
         </div>
         {% endif %}
         {% if idea.planned_tp is not none %}
         <div class="wl-geo-item">
             <span class="geo-label">Target</span>
-            <span class="geo-val font-mono val-pos">{{ idea.planned_tp }}</span>
+            <span class="geo-val font-mono tabular-nums val-pos" title="{{ idea.planned_tp }}">{{ idea.planned_tp }}</span>
         </div>
         {% endif %}
         {% if idea.planned_rr is not none %}
         <div class="wl-geo-item wl-geo-rr">
             <span class="geo-label">Target R</span>
-            <span class="geo-val val-rr font-bold">+{{ "%.2f"|format(idea.planned_rr) }}R</span>
+            <span class="geo-val font-mono tabular-nums val-rr font-bold">+{{ "%.2f"|format(idea.planned_rr) }}R</span>
         </div>
         {% endif %}
     </div>
     {% endif %}
 
-    <!-- Multi-Timeframe Chart Previews & Links -->
+    <!-- Multi-Timeframe Checklist & Indicator -->
     {% set layers = idea.layers_list %}
+    {% if layers %}
+    <div class="wl-mtf-indicator-row" aria-label="Multi-timeframe layers checklist">
+        {% for layer in layers %}
+        <span class="wl-mtf-chip {% if layer.image_url or layer.tv_url %}wl-mtf-chip-active{% endif %}" title="{{ layer.title }}{% if layer.note %}: {{ layer.note|truncate(40) }}{% endif %}">
+            <span class="wl-mtf-chip-dot"></span>
+            {{ layer.title | replace('Timeframe', '') | replace('Time Frame', '') | replace('(', '') | replace(')', '') | truncate(14, True, '') }}
+        </span>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    <!-- Multi-Timeframe Chart Previews & Links -->
     {% if layers %}
     <div class="wl-card-charts">
         {% for layer in layers if layer.image_url %}
-        <div class="wl-chart-thumb" onclick="openChartModal('{{ layer.image_url }}', '{{ layer.title }} — {{ idea.title }}')">
+        <div class="wl-chart-thumb" onclick="openChartModal('{{ layer.image_url }}', '{{ layer.title }} — {{ idea.title }}')" role="button" tabindex="0" aria-label="Preview {{ layer.title }} chart">
             <img src="{{ layer.image_url }}" alt="{{ layer.title }}" loading="lazy">
             <span class="wl-chart-badge">{{ layer.title }}</span>
         </div>
@@ -105,14 +117,14 @@
     {% elif idea.htf_image_url or idea.ltf_image_url or idea.tradingview_url %}
     <div class="wl-card-charts">
         {% if idea.htf_image_url %}
-        <div class="wl-chart-thumb" onclick="openChartModal('{{ idea.htf_image_url }}', 'HTF Analysis — {{ idea.title }}')">
+        <div class="wl-chart-thumb" onclick="openChartModal('{{ idea.htf_image_url }}', 'HTF Analysis — {{ idea.title }}')" role="button" tabindex="0" aria-label="Preview HTF chart">
             <img src="{{ idea.htf_image_url }}" alt="HTF Chart" loading="lazy">
             <span class="wl-chart-badge">HTF Chart</span>
         </div>
         {% endif %}
 
         {% if idea.ltf_image_url %}
-        <div class="wl-chart-thumb" onclick="openChartModal('{{ idea.ltf_image_url }}', 'LTF Confirmation — {{ idea.title }}')">
+        <div class="wl-chart-thumb" onclick="openChartModal('{{ idea.ltf_image_url }}', 'LTF Confirmation — {{ idea.title }}')" role="button" tabindex="0" aria-label="Preview LTF chart">
             <img src="{{ idea.ltf_image_url }}" alt="LTF Chart" loading="lazy">
             <span class="wl-chart-badge">LTF Entry</span>
         </div>
@@ -131,49 +143,49 @@
     <div class="wl-card-notes">
         {% for layer in layers if layer.note %}
         <div class="wl-note-row">
-            <span class="note-key">{{ layer.title }}:</span>
-            <span class="note-text">{{ layer.note | truncate(95) }}</span>
+            <span class="note-key flex-shrink-0">{{ layer.title }}:</span>
+            <span class="note-text break-anywhere">{{ layer.note | truncate(95) }}</span>
         </div>
         {% endfor %}
         {% if idea.notes %}
-        <p class="wl-note-excerpt" style="margin-top: 0.2rem;">{{ idea.notes | truncate(95) }}</p>
+        <p class="wl-note-excerpt break-anywhere" style="margin-top: 0.2rem;">{{ idea.notes | truncate(95) }}</p>
         {% endif %}
     </div>
     {% elif idea.htf_bias or idea.ltf_confirmation or idea.notes %}
     <div class="wl-card-notes">
         {% if idea.htf_bias %}
         <div class="wl-note-row">
-            <span class="note-key">HTF Bias:</span>
-            <span class="note-text font-bold">{{ idea.htf_bias }}</span>
+            <span class="note-key flex-shrink-0">HTF Bias:</span>
+            <span class="note-text font-bold break-anywhere">{{ idea.htf_bias }}</span>
         </div>
         {% endif %}
         {% if idea.ltf_confirmation %}
         <div class="wl-note-row">
-            <span class="note-key">Trigger:</span>
-            <span class="note-text">{{ idea.ltf_confirmation }}</span>
+            <span class="note-key flex-shrink-0">Trigger:</span>
+            <span class="note-text break-anywhere">{{ idea.ltf_confirmation }}</span>
         </div>
         {% endif %}
         {% if idea.notes %}
-        <p class="wl-note-excerpt">{{ idea.notes | truncate(110) }}</p>
+        <p class="wl-note-excerpt break-anywhere">{{ idea.notes | truncate(110) }}</p>
         {% endif %}
     </div>
     {% endif %}
 
-    <!-- Card Action Bar (redesigned) -->
+    <!-- Card Action Bar -->
     <div class="wlx-actions">
         {% if idea.status == 'EXECUTED' and idea.promoted_trade_id %}
-        <a href="/trades/{{ idea.promoted_trade_id }}" class="wlx-linked">
+        <a href="/trades/{{ idea.promoted_trade_id }}" class="wlx-linked" title="Open Trade #{{ idea.promoted_trade_id }}">
             <span class="wlx-linked-label">
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>
-                Trade #{{ idea.promoted_trade_id }}
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="flex-shrink-0"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>
+                <span>Trade #{{ idea.promoted_trade_id }}</span>
             </span>
             {% if idea.promoted_trade_obj %}
                 {% if idea.promoted_trade_obj.is_win %}
-                <span class="wlx-chip wlx-chip-win">+{{ "%.2f"|format(idea.promoted_trade_obj.fixed_r_target or 0) }}R</span>
+                <span class="wlx-chip wlx-chip-win tabular-nums flex-shrink-0">+{{ "%.2f"|format(idea.promoted_trade_obj.fixed_r_target or 0) }}R</span>
                 {% elif idea.promoted_trade_obj.is_loss %}
-                <span class="wlx-chip wlx-chip-loss">{{ "%.2f"|format(idea.promoted_trade_obj.fixed_r_target or 0) }}R</span>
+                <span class="wlx-chip wlx-chip-loss tabular-nums flex-shrink-0">{{ "%.2f"|format(idea.promoted_trade_obj.fixed_r_target or 0) }}R</span>
                 {% else %}
-                <span class="wlx-chip wlx-chip-open">Open</span>
+                <span class="wlx-chip wlx-chip-open flex-shrink-0">Open</span>
                 {% endif %}
             {% endif %}
         </a>
@@ -184,13 +196,13 @@
         {% endif %}
         {% elif idea.status == 'EXECUTED' %}
         <button type="button" class="wlx-btn wlx-btn-success" onclick="openConvertModalFromCard(this)">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"/></svg>
-            Log in Trades
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" class="flex-shrink-0"><path d="M12 5v14M5 12h14"/></svg>
+            <span>Log in Trades</span>
         </button>
         {% elif idea.status in ['WAITING', 'MONITORING'] %}
         <button type="button" class="wlx-btn wlx-btn-primary" onclick="openConvertModalFromCard(this)">
-            Convert to Live Trade
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
+            <span>Convert to Live Trade</span>
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" class="flex-shrink-0"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
         </button>
         {% endif %}
 
@@ -205,25 +217,28 @@
                     <option value="RESOLVED" {% if idea.status == 'RESOLVED' %}selected{% endif %}>Archived</option>
                 </select>
             </form>
-            <div class="wlx-icons">
+            <div class="wlx-icons flex-shrink-0">
+                <a href="/watchlist/{{ idea.id }}" class="wlx-icon" title="View Details" aria-label="View Details">
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/></svg>
+                </a>
                 {% if idea.status not in ['RESOLVED', 'INVALIDATED'] %}
                 <form method="POST" action="/watchlist/{{ idea.id }}/archive">
-                    <button type="submit" class="wlx-icon" title="Archive" aria-label="Archive">
+                    <button type="submit" class="wlx-icon" title="Archive Setup" aria-label="Archive Setup">
                         <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="4" rx="1"/><path d="M5 8v11a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V8M10 12h4"/></svg>
                     </button>
                 </form>
                 {% else %}
                 <form method="POST" action="/watchlist/{{ idea.id }}/restore">
-                    <button type="submit" class="wlx-icon" title="Restore" aria-label="Restore">
+                    <button type="submit" class="wlx-icon" title="Restore Setup" aria-label="Restore Setup">
                         <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 3-6.7L3 8"/><path d="M3 3v5h5"/></svg>
                     </button>
                 </form>
                 {% endif %}
-                <a href="/watchlist/{{ idea.id }}/edit" class="wlx-icon" title="Edit" aria-label="Edit">
+                <a href="/watchlist/{{ idea.id }}/edit" class="wlx-icon" title="Edit Setup" aria-label="Edit Setup">
                     <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>
                 </a>
                 <form method="POST" action="/watchlist/{{ idea.id }}/delete" onsubmit="return confirm('Delete this trade idea?');">
-                    <button type="submit" class="wlx-icon wlx-icon-danger" title="Delete" aria-label="Delete">
+                    <button type="submit" class="wlx-icon wlx-icon-danger" title="Delete Setup" aria-label="Delete Setup">
                         <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18M8 6V4h8v2M19 6l-1 14H6L5 6"/></svg>
                     </button>
                 </form>

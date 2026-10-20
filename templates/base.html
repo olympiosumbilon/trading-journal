@@ -7,16 +7,16 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@300;400;500;600;700;800&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="/static/style.css?v=20260818j">
+    <link rel="stylesheet" href="/static/style.css?v=20261020-matrix-total-dark">
     {% block extra_head %}{% endblock %}
 </head>
 <body>
-    <nav class="main-nav">
+    <nav class="main-nav" aria-label="Main Navigation">
         <div class="nav-brand-bar">
-            <a href="/" class="nav-brand">TRADING JOURNAL</a>
+            <a href="/" class="nav-brand" aria-label="Trading Journal Home">TRADING JOURNAL</a>
             <div class="nav-mobile-controls">
                 <div class="global-year-picker mobile-year-picker">
-                    <select id="globalYearDropdownMobile" onchange="setGlobalActiveYear(this.value)" class="gy-select">
+                    <select id="globalYearDropdownMobile" onchange="setGlobalActiveYear(this.value)" class="gy-select" aria-label="Select active year">
                         <option value="all">All-Time</option>
                         <option value="2022">2022</option>
                         <option value="2023">2023</option>
@@ -25,7 +25,7 @@
                         <option value="2026">2026</option>
                     </select>
                 </div>
-                <button type="button" class="nav-hamburger-btn" onclick="toggleMobileNav()" aria-label="Toggle Menu">
+                <button type="button" class="nav-hamburger-btn" onclick="toggleMobileNav()" aria-label="Toggle Navigation Menu" aria-expanded="false" aria-controls="navLinksMenu">
                     <span class="nh-bar"></span>
                     <span class="nh-bar"></span>
                     <span class="nh-bar"></span>
@@ -33,7 +33,7 @@
             </div>
         </div>
 
-        <div class="nav-links-menu" id="navLinksMenu">
+        <div class="nav-links-menu" id="navLinksMenu" role="navigation">
             <a href="/dashboard/">Dashboard</a>
             <a href="/trades/">Trades</a>
             <a href="/watchlist/">Watchlist</a>
@@ -48,7 +48,7 @@
         <div class="nav-right desktop-year-picker">
             <div class="global-year-picker">
                 <span class="gy-label">ACTIVE YEAR:</span>
-                <select id="globalYearDropdown" onchange="setGlobalActiveYear(this.value)" class="gy-select">
+                <select id="globalYearDropdown" onchange="setGlobalActiveYear(this.value)" class="gy-select" aria-label="Select active year">
                     <option value="all">All-Time</option>
                     <option value="2022">2022</option>
                     <option value="2023">2023</option>
@@ -76,9 +76,26 @@
     function toggleMobileNav() {
         const menu = document.getElementById('navLinksMenu');
         const btn = document.querySelector('.nav-hamburger-btn');
-        if (menu) menu.classList.toggle('mobile-nav-open');
-        if (btn) btn.classList.toggle('active');
+        if (!menu) return;
+        const isOpen = menu.classList.toggle('mobile-nav-open');
+        if (btn) {
+            btn.classList.toggle('active', isOpen);
+            btn.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
+        }
     }
+
+    // Highlight active nav item based on current URL path
+    (function highlightActiveNav() {
+        const path = window.location.pathname;
+        const links = document.querySelectorAll('#navLinksMenu a');
+        links.forEach(link => {
+            const href = link.getAttribute('href');
+            if (href === path || (href !== '/' && path.startsWith(href))) {
+                link.classList.add('nav-link-active');
+                link.setAttribute('aria-current', 'page');
+            }
+        });
+    })();
 
     (function() {
         const getCookie = (name) => {
@@ -94,7 +111,7 @@
     })();
 
     function setGlobalActiveYear(year) {
-        document.cookie = "active_year=" + year + "; path=/; max-age=31536000";
+        document.cookie = "active_year=" + year + "; path=/; max-age=31536000; SameSite=Lax";
         const url = new URL(window.location.href);
         if (url.pathname.startsWith('/analysis/') || url.pathname.startsWith('/summary/') || url.pathname.startsWith('/trades/') || url.pathname.startsWith('/dashboard/')) {
             url.searchParams.set('year', year);
@@ -102,7 +119,7 @@
         window.location.href = url.toString();
     }
 
-    // Global Mobile Trade Preview Bottom Sheet Modal
+    // Global Mobile & Desktop Trade Preview Modal / Bottom Sheet
     function openTradePreviewModal(title, htmlContent, viewAllUrl) {
         const modal = document.getElementById('globalTradePreviewModal');
         const titleEl = document.getElementById('tpsModalTitle');
@@ -118,7 +135,6 @@
             } else if (viewAllEl) {
                 viewAllEl.style.display = 'none';
             }
-            modal.style.display = 'flex';
             modal.classList.add('active');
             document.body.style.overflow = 'hidden';
         }
@@ -129,32 +145,169 @@
             return;
         }
         const modal = document.getElementById('globalTradePreviewModal');
-        if (modal) {
+        if (modal && modal.classList.contains('active')) {
             modal.classList.remove('active');
-            modal.style.display = 'none';
             document.body.style.overflow = '';
         }
     }
 
-    // Global smart positioning for desktop hover popovers
-    document.addEventListener('mouseover', function(e) {
-        const wrapper = e.target.closest('.interactive-trade-wrapper');
-        if (wrapper && window.innerWidth > 768) {
-            const popover = wrapper.querySelector('.trade-hover-popover');
-            if (popover) {
-                const rect = wrapper.getBoundingClientRect();
-                const popoverHeight = 240;
-                const spaceBelow = window.innerHeight - rect.bottom;
-                const spaceAbove = rect.top;
-                
-                if (spaceBelow < popoverHeight && spaceAbove > spaceBelow) {
-                    popover.classList.add('popover-pos-up');
-                } else {
-                    popover.classList.remove('popover-pos-up');
+    // Keyboard dismissal for modal & hamburger menu
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape') {
+            closeTradePreviewModal();
+            const menu = document.getElementById('navLinksMenu');
+            const btn = document.querySelector('.nav-hamburger-btn');
+            if (menu && menu.classList.contains('mobile-nav-open')) {
+                menu.classList.remove('mobile-nav-open');
+                if (btn) {
+                    btn.classList.remove('active');
+                    btn.setAttribute('aria-expanded', 'false');
                 }
             }
         }
     });
+
+    // Close mobile nav on click outside
+    document.addEventListener('click', function(e) {
+        const menu = document.getElementById('navLinksMenu');
+        const btn = document.querySelector('.nav-hamburger-btn');
+        if (menu && menu.classList.contains('mobile-nav-open')) {
+            if (!menu.contains(e.target) && !btn.contains(e.target)) {
+                menu.classList.remove('mobile-nav-open');
+                if (btn) {
+                    btn.classList.remove('active');
+                    btn.setAttribute('aria-expanded', 'false');
+                }
+            }
+        }
+    });
+
+    // Global floating portal positioning for desktop hover popovers
+    (function() {
+        const floatingPopover = document.getElementById('globalFloatingTradePopover');
+        let hideTimer = null;
+        let activeWrapper = null;
+
+        function showPopoverForWrapper(wrapper) {
+            if (!wrapper || window.innerWidth <= 768) return;
+            const popoverEl = document.getElementById('globalFloatingTradePopover');
+            if (!popoverEl) return;
+            const sourcePopover = wrapper.querySelector('.trade-hover-popover');
+            const badge = wrapper.querySelector('.trade-count-badge') || wrapper;
+            if (!sourcePopover || !badge) return;
+
+            if (hideTimer) {
+                clearTimeout(hideTimer);
+                hideTimer = null;
+            }
+
+            activeWrapper = wrapper;
+            popoverEl.innerHTML = sourcePopover.innerHTML;
+            popoverEl.style.display = 'block';
+            popoverEl.setAttribute('aria-hidden', 'false');
+
+            const rect = badge.getBoundingClientRect();
+            const popoverWidth = popoverEl.offsetWidth || 280;
+            const popoverHeight = popoverEl.offsetHeight || 220;
+            const badgeCenterX = rect.left + rect.width / 2;
+
+            // Clamped horizontal alignment within viewport
+            const margin = 12;
+            let targetLeft = badgeCenterX - (popoverWidth / 2);
+            if (targetLeft < margin) targetLeft = margin;
+            if (targetLeft + popoverWidth > window.innerWidth - margin) {
+                targetLeft = window.innerWidth - margin - popoverWidth;
+            }
+
+            // Arrow pointing directly at badge center
+            const arrowLeft = Math.max(16, Math.min(popoverWidth - 16, badgeCenterX - targetLeft));
+            popoverEl.style.setProperty('--arrow-left', `${arrowLeft}px`);
+            popoverEl.style.left = `${targetLeft}px`;
+
+            // Smart vertical positioning
+            const spaceBelow = window.innerHeight - rect.bottom;
+            const spaceAbove = rect.top;
+            const gap = 8;
+
+            if (spaceBelow < (popoverHeight + gap + 10) && spaceAbove > spaceBelow) {
+                popoverEl.classList.add('popover-pos-up');
+                popoverEl.style.top = `${rect.top - popoverHeight - gap}px`;
+            } else {
+                popoverEl.classList.remove('popover-pos-up');
+                popoverEl.style.top = `${rect.bottom + gap}px`;
+            }
+
+            popoverEl.classList.add('is-visible');
+        }
+
+        function scheduleHidePopover() {
+            const popoverEl = document.getElementById('globalFloatingTradePopover');
+            if (!popoverEl) return;
+            if (hideTimer) clearTimeout(hideTimer);
+            hideTimer = setTimeout(() => {
+                popoverEl.classList.remove('is-visible');
+                popoverEl.setAttribute('aria-hidden', 'true');
+                setTimeout(() => {
+                    if (!popoverEl.classList.contains('is-visible')) {
+                        popoverEl.style.display = 'none';
+                        activeWrapper = null;
+                    }
+                }, 150);
+            }, 120);
+        }
+
+        document.addEventListener('mouseover', function(e) {
+            if (window.innerWidth <= 768) return;
+            const wrapper = e.target.closest('.interactive-trade-wrapper');
+            if (wrapper) {
+                showPopoverForWrapper(wrapper);
+                return;
+            }
+            if (e.target.closest('#globalFloatingTradePopover')) {
+                if (hideTimer) {
+                    clearTimeout(hideTimer);
+                    hideTimer = null;
+                }
+            }
+        });
+
+        document.addEventListener('mouseout', function(e) {
+            if (window.innerWidth <= 768) return;
+            const popoverEl = document.getElementById('globalFloatingTradePopover');
+            if (!popoverEl) return;
+            const wrapper = e.target.closest('.interactive-trade-wrapper');
+            if (wrapper) {
+                if (e.relatedTarget && (wrapper.contains(e.relatedTarget) || popoverEl.contains(e.relatedTarget))) {
+                    return;
+                }
+                scheduleHidePopover();
+                return;
+            }
+            if (e.target.closest('#globalFloatingTradePopover')) {
+                if (e.relatedTarget && (popoverEl.contains(e.relatedTarget) || (activeWrapper && activeWrapper.contains(e.relatedTarget)))) {
+                    return;
+                }
+                scheduleHidePopover();
+            }
+        });
+
+        window.addEventListener('scroll', function() {
+            const popoverEl = document.getElementById('globalFloatingTradePopover');
+            if (popoverEl && popoverEl.classList.contains('is-visible')) {
+                scheduleHidePopover();
+            }
+        }, { passive: true });
+
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape') {
+                const popoverEl = document.getElementById('globalFloatingTradePopover');
+                if (popoverEl && popoverEl.classList.contains('is-visible')) {
+                    popoverEl.classList.remove('is-visible');
+                    popoverEl.style.display = 'none';
+                }
+            }
+        });
+    })();
 
     // Global mobile delegate click listener for trade count badges
     document.addEventListener('click', function(e) {
@@ -177,11 +330,12 @@
     </script>
 
     <!-- Global Mobile Trade Preview Modal Overlay -->
-    <div id="globalTradePreviewModal" class="trade-preview-backdrop" style="display: none;" onclick="closeTradePreviewModal(event)">
+    <div id="globalTradePreviewModal" class="trade-preview-backdrop" onclick="closeTradePreviewModal(event)" role="dialog" aria-modal="true" aria-labelledby="tpsModalTitle">
         <div class="trade-preview-sheet" onclick="event.stopPropagation()">
+            <div class="tps-grab-handle" aria-hidden="true"></div>
             <div class="tps-header">
                 <span id="tpsModalTitle" class="tps-title">Trades List</span>
-                <button type="button" class="tps-close" onclick="closeTradePreviewModal()">&times;</button>
+                <button type="button" class="tps-close" onclick="closeTradePreviewModal()" aria-label="Close dialog">&times;</button>
             </div>
             <div id="tpsModalBody" class="tps-body">
                 <!-- Dynamically Populated -->
@@ -191,5 +345,8 @@
             </div>
         </div>
     </div>
+
+    <!-- Global Floating Trade Popover Portal for Desktop (never clipped by table overflow) -->
+    <div id="globalFloatingTradePopover" class="trade-hover-popover global-floating-popover" role="tooltip" aria-hidden="true" style="display: none;"></div>
 </body>
 </html>

@@ -9,7 +9,12 @@
         <h1>{% if trade %}Edit Trade #{{ trade.id }}{% else %}Log New Trade{% endif %}</h1>
     </div>
     <div class="header-actions">
-        <a href="/trades/" class="btn-back">&larr; Back to Trades</a>
+        <a href="/trades/" class="btn-back">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M19 12H5M12 19l-7-7 7-7"/>
+            </svg>
+            <span>Back to Trades</span>
+        </a>
     </div>
 </div>
 
@@ -19,164 +24,7 @@
 <form method="post" action="{% if trade %}/trades/{{ trade.id }}/edit{% else %}/trades/{% endif %}" class="trade-form-card">
     <input type="hidden" name="from_watchlist_id" value="{{ prefill.from_watchlist_id if prefill and prefill.from_watchlist_id else '' }}">
 
-<!-- ========================================================================= -->
-<!-- ⚡ LIVE RISK, POSITION SIZE & EXCHANGE FEE CALCULATOR (CRYPTO & FOREX) -->
-<!-- ========================================================================= -->
-<div class="calc-wrapper" id="riskCalculatorCard" style="display:none !important;">
-    <div class="calc-header">
-        <div class="calc-header-title">
-            <span class="calc-badge">LIVE PRE-TRADE TOOL</span>
-            <h3>Risk, Position Sizing & Exchange Fee Calculator</h3>
-            <p class="calc-subtext">Calculate exact position size, leverage margin, and exchange taker/maker fee impact before execution.</p>
-        </div>
-        <div class="calc-exchange-picker">
-            <label for="calcExchange">EXCHANGE / FEES:</label>
-            <select id="calcExchange" onchange="updateExchangeFees()">
-                <option value="mexc">MEXC Futures (0.00% / 0.020%)</option>
-                <option value="bybit">Bybit Futures (0.02% / 0.055%)</option>
-                <option value="binance" selected>Binance Futures (0.02% / 0.050%)</option>
-                <option value="okx">OKX Futures (0.02% / 0.050%)</option>
-                <option value="bitget">Bitget Futures (0.02% / 0.060%)</option>
-                <option value="zero">Forex / Zero Fee (0.00%)</option>
-                <option value="custom">Custom Fee %</option>
-            </select>
-        </div>
-    </div>
-
-    <div class="calc-body-grid">
-        <!-- Input Controls -->
-        <div class="calc-inputs-pane">
-            <div class="calc-field-row single-col">
-                <div class="calc-field">
-                    <div class="calc-label-row">
-                        <label class="calc-label-highlight">Coin / Instrument</label>
-                        <span class="calc-label-subtag">⚡ Auto-adds to DB</span>
-                    </div>
-                    <input type="text" id="calcCoinInput" placeholder="e.g. SOLUSD, BTCUSDT, DOGEUSDT, EURUSD" list="calcCoinSuggestions" class="form-input" style="background:#1e293b; color:#f8fafc; border:1px solid #334155; font-weight:700; text-transform:uppercase;" oninput="onCalcCoinChange(this.value)">
-                    <datalist id="calcCoinSuggestions">
-                        {% for i in instruments %}
-                        <option value="{{ i.name }}">{{ i.name }}</option>
-                        {% endfor %}
-                    </datalist>
-                </div>
-            </div>
-
-            <div class="calc-field-row three-col">
-                <div class="calc-field">
-                    <label>Account Balance ($)</label>
-                    <input type="number" id="calcBalance" value="10000" step="100" oninput="recalcPositionSize()">
-                </div>
-                <div class="calc-field">
-                    <label>Risk Per Trade</label>
-                    <div class="calc-input-group">
-                        <input type="number" id="calcRiskVal" value="1.0" step="0.1" oninput="recalcPositionSize()">
-                        <select id="calcRiskType" onchange="recalcPositionSize()">
-                            <option value="pct">% Risk</option>
-                            <option value="usd">$ USD</option>
-                        </select>
-                    </div>
-                </div>
-                <div class="calc-field">
-                    <label>Direction</label>
-                    <select id="calcDirection" onchange="recalcPositionSize(); recalcAdverseWick();">
-                        <option value="long" {% if prefill and (prefill.direction|upper == 'LONG') %}selected{% endif %}>LONG (Buy)</option>
-                        <option value="short" {% if prefill and (prefill.direction|upper == 'SHORT') %}selected{% endif %}>SHORT (Sell)</option>
-                    </select>
-                </div>
-            </div>
-
-            <div class="calc-field-row three-col">
-                <div class="calc-field">
-                    <label>Entry Price ($)</label>
-                    <input type="number" id="calcEntry" placeholder="e.g. 150.00" step="any" value="" oninput="recalcPositionSize(); recalcAdverseWick();">
-                </div>
-                <div class="calc-field">
-                    <div class="calc-label-row">
-                        <label>Stop Loss</label>
-                        <select id="calcSLMode" onchange="changeSLMode()" class="calc-mode-select">
-                            <option value="price">By Price ($)</option>
-                            <option value="pct">% Distance</option>
-                        </select>
-                    </div>
-                    <input type="number" id="calcSL" placeholder="e.g. 147.00" step="any" value="" oninput="recalcPositionSize(); recalcAdverseWick();">
-                </div>
-                <div class="calc-field">
-                    <label>Take Profit Price ($)</label>
-                    <input type="number" id="calcTP" placeholder="e.g. 160.00" step="any" value="" oninput="recalcPositionSize()">
-                </div>
-            </div>
-
-            <div class="calc-field-row two-col">
-                <div class="calc-field">
-                    <label>Leverage (<span id="calcLevLabel" style="color:#38bdf8; font-weight:800;">10x</span>)</label>
-                    <input type="range" id="calcLeverage" min="1" max="100" value="10" step="1" oninput="document.getElementById('calcLevLabel').textContent=this.value+'x'; recalcPositionSize();">
-                </div>
-                <div class="calc-field">
-                    <label>Order Type</label>
-                    <select id="calcOrderType" onchange="recalcPositionSize()">
-                        <option value="market">Market Entry (Taker) + Market Exit</option>
-                        <option value="limit">Limit Entry (Maker) + Limit TP</option>
-                    </select>
-                </div>
-                <div class="calc-field" id="customFeeBox" style="display:none;">
-                    <label>Custom Fee % (Roundtrip)</label>
-                    <input type="number" id="calcCustomFee" value="0.10" step="0.01" oninput="recalcPositionSize()">
-                </div>
-            </div>
-        </div>
-
-        <!-- Live Real-Time Output Pane -->
-        <div class="calc-outputs-pane">
-            <div class="calc-outputs-header">
-                <span>ESTIMATED POSITION & RISK BREAKDOWN</span>
-                <span class="calc-live-pill">• LIVE</span>
-            </div>
-
-            <div class="calc-metrics-grid">
-                <div class="calc-metric-box">
-                    <span class="cm-label">POSITION SIZE (UNITS)</span>
-                    <span class="cm-val mono" id="resUnits">0.00</span>
-                    <span class="cm-sub" id="resNotional">$0.00 Notional</span>
-                </div>
-                <div class="calc-metric-box">
-                    <span class="cm-label">MARGIN REQUIRED</span>
-                    <span class="cm-val mono" id="resMargin">$0.00</span>
-                    <span class="cm-sub" id="resMarginPct">0.0% of Balance</span>
-                </div>
-                <div class="calc-metric-box">
-                    <span class="cm-label">STOP LOSS DISTANCE</span>
-                    <span class="cm-val mono val-neg" id="resSLDist">0.00%</span>
-                    <span class="cm-sub" id="resRiskCash">-$0.00 (1.00R)</span>
-                </div>
-                <div class="calc-metric-box">
-                    <span class="cm-label">TAKE PROFIT DISTANCE</span>
-                    <span class="cm-val mono val-pos" id="resTPDist">0.00%</span>
-                    <span class="cm-sub" id="resProfitCash">+$0.00 Gross</span>
-                </div>
-            </div>
-
-            <div class="calc-fee-box">
-                <div class="calc-fee-row">
-                    <span class="cf-label">ESTIMATED EXCHANGE FEES</span>
-                    <span class="cf-val mono font-bold" id="resFees">-$0.00</span>
-                </div>
-                <span class="cf-sub" id="resFeePct">Entry + Exit Fees</span>
-            </div>
-
-            <div class="calc-rr-banner">
-                <div class="calc-rr-main">
-                    <span class="cm-label">REAL NET R:R (AFTER FEES)</span>
-                    <span class="cm-val val-pos font-bold" id="resNetR">0.00R</span>
-                    <span class="cm-sub" id="resNetCash">+$0.00 Net PnL</span>
-                </div>
-            </div>
-
-            <button type="button" class="btn-apply-calc" onclick="applyCalcToForm()">
-                📥 Apply Values to Trade Form Below
-            </button>
-        </div>
-    </div>
-</div>
+<div id="riskCalculatorCard" style="display:none !important;"></div>
 
 <!-- Main trade fields continue below the calculator. -->
     <!-- 0. Execution Status & Quality Tags Banner -->
@@ -306,26 +154,39 @@
                     <option value="SHORT" {% if (trade and trade.direction == 'SHORT') or (prefill and prefill.direction|upper == 'SHORT') %}selected{% endif %}>SHORT</option>
                 </select>
             </div>
-            <div class="form-group">
-                <label>Entry Price</label>
-                <input type="number" name="entry_price" id="setupEntry" step="any" value="{{ trade.entry_price if trade and trade.entry_price is not none else (prefill.entry_price if prefill and prefill.entry_price else (prefill.planned_entry if prefill and prefill.planned_entry else '')) }}" oninput="recalcGeometryFromSetup(); recalcAdverseWick();">
+        </div>
+
+        <!-- Grouped Execution Price Geometry Triad (Human-Crafted Sizing Cluster) -->
+        <div class="price-triad-container">
+            <div class="price-triad-header">
+                <div>
+                    <span class="price-triad-title">🎯 Execution Price Geometry</span>
+                    <span class="price-triad-sub"> — Planned Entry, Stop Loss &amp; Take Profit</span>
+                </div>
+                <span class="calc-label-subtag">⚡ Feeds Live Risk &amp; Wick Engines</span>
             </div>
-            <div class="form-group">
-                <label>Stop Loss</label>
-                <input type="number" name="stop_loss" id="setupStopLoss" step="any" value="{{ trade.stop_loss if trade and trade.stop_loss is not none else (prefill.stop_loss if prefill and prefill.stop_loss else (prefill.planned_sl if prefill and prefill.planned_sl else '')) }}" oninput="recalcGeometryFromSetup(); recalcAdverseWick();">
-            </div>
-            <div class="form-group">
-                <label>Take Profit</label>
-                <input type="number" name="take_profit" id="setupTakeProfit" step="any" value="{{ trade.take_profit if trade and trade.take_profit is not none else (prefill.tp_target if prefill and prefill.tp_target else (prefill.planned_tp if prefill and prefill.planned_tp else '')) }}" oninput="recalcGeometryFromSetup()">
+            <div class="price-triad-grid">
+                <div class="form-group price-field">
+                    <label for="setupEntry"><span class="price-dot dot-entry"></span> Entry Price ($)</label>
+                    <input type="number" name="entry_price" id="setupEntry" step="any" placeholder="e.g. 150.00" value="{{ trade.entry_price if trade and trade.entry_price is not none else (prefill.entry_price if prefill and prefill.entry_price else (prefill.planned_entry if prefill and prefill.planned_entry else '')) }}" oninput="recalcGeometryFromSetup(); recalcAdverseWick();">
+                </div>
+                <div class="form-group price-field">
+                    <label for="setupStopLoss"><span class="price-dot dot-sl"></span> Stop Loss ($)</label>
+                    <input type="number" name="stop_loss" id="setupStopLoss" step="any" placeholder="e.g. 147.00" value="{{ trade.stop_loss if trade and trade.stop_loss is not none else (prefill.stop_loss if prefill and prefill.stop_loss else (prefill.planned_sl if prefill and prefill.planned_sl else '')) }}" oninput="recalcGeometryFromSetup(); recalcAdverseWick();">
+                </div>
+                <div class="form-group price-field">
+                    <label for="setupTakeProfit"><span class="price-dot dot-tp"></span> Take Profit ($)</label>
+                    <input type="number" name="take_profit" id="setupTakeProfit" step="any" placeholder="e.g. 160.00" value="{{ trade.take_profit if trade and trade.take_profit is not none else (prefill.tp_target if prefill and prefill.tp_target else (prefill.planned_tp if prefill and prefill.planned_tp else '')) }}" oninput="recalcGeometryFromSetup()">
+                </div>
             </div>
         </div>
     </div>
 
     <!-- 3. Candle & Risk Geometry -->
     <div class="form-section-block">
-        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.5rem; flex-wrap:wrap; gap:0.5rem;">
-            <h4 class="form-section-title" style="margin-bottom:0;">📐 Candle Size &amp; R-Target Geometry</h4>
-            <span id="autoCalcGeometryHint" style="font-size:0.75rem; font-weight:700; color:#10b981; background:#ecfdf5; border:1px solid #a7f3d0; padding:0.2rem 0.55rem; border-radius:4px; display:none;">
+        <div class="section-title-row">
+            <h4 class="form-section-title">📐 Candle Size &amp; R-Target Geometry</h4>
+            <span id="autoCalcGeometryHint" class="auto-badge" style="display:none;">
                 ⚡ Auto-Calculated from Prices
             </span>
         </div>
@@ -334,10 +195,10 @@
                 <label>Entry Candle Size (pips / $)</label>
                 <input type="number" step="0.000000001" name="entry_candle_size" id="formCandleSize" value="{{ trade.entry_candle_size if trade else '' }}" placeholder="Auto from |Entry - SL|">
             </div>
-            <div class="form-group">
-                <div style="display:flex; justify-content:space-between; align-items:center;">
+            <div class="form-group adverse-wick-group">
+                <div class="label-with-hint">
                     <label>Adverse Wick Price (Extreme High/Low)</label>
-                    <span id="adverseWickHint" style="font-size:0.7rem; font-weight:700; padding:0.1rem 0.4rem; border-radius:4px; border:1px solid transparent; display:none;"></span>
+                    <span id="adverseWickHint" class="adverse-wick-badge" style="display:none;"></span>
                 </div>
                 <input type="number" step="0.000000001" name="adverse_wick_price" id="formAdverseWick" value="{{ trade.adverse_wick_price if trade else '' }}" placeholder="e.g. 63778.500000000" oninput="recalcAdverseWick()" onchange="recalcAdverseWick()">
             </div>
@@ -354,7 +215,16 @@
 
     <!-- 4. Trade Outcome & Realized Return (Actual Exit) -->
     <div class="form-section-block">
-        <h4 class="form-section-title">🎯 Trade Outcome & Realized Return (Actual Exit)</h4>
+        <h4 class="form-section-title">🎯 Trade Outcome &amp; Realized Return (Actual Exit)</h4>
+        <div class="outcome-presets-row">
+            <button type="button" class="btn-outcome-preset {% if not trade or trade.outcome_type == 'AUTO' %}active{% endif %}" onclick="setOutcomePreset('AUTO', '', this)">⚡ Auto Calculate</button>
+            <button type="button" class="btn-outcome-preset {% if trade and trade.outcome_type == 'FULL_TP' %}active{% endif %}" onclick="setOutcomePreset('FULL_TP', '3.30', this)">🎯 Full TP (+3.3R)</button>
+            <button type="button" class="btn-outcome-preset {% if trade and trade.outcome_type == 'RUNNER' %}active{% endif %}" onclick="setOutcomePreset('RUNNER', '5.00', this)">🚀 Runner</button>
+            <button type="button" class="btn-outcome-preset {% if trade and trade.outcome_type == 'BREAK_EVEN' %}active{% endif %}" onclick="setOutcomePreset('BREAK_EVEN', '0.00', this)">⚖️ Break Even</button>
+            <button type="button" class="btn-outcome-preset {% if trade and trade.outcome_type == 'TRAILING_STOP' %}active{% endif %}" onclick="setOutcomePreset('TRAILING_STOP', '1.50', this)">🛡️ Trailing Stop</button>
+            <button type="button" class="btn-outcome-preset {% if trade and trade.outcome_type == 'CUT_LOSS' %}active{% endif %}" onclick="setOutcomePreset('CUT_LOSS', '-0.50', this)">✂️ Cut Loss</button>
+            <button type="button" class="btn-outcome-preset {% if trade and trade.outcome_type == 'FULL_SL' %}active{% endif %}" onclick="setOutcomePreset('FULL_SL', '-1.00', this)">❌ Full SL (-1.0R)</button>
+        </div>
         <div class="outcome-selector-container">
             <div class="form-section-grid grid-outcome-inputs">
                 <div class="form-group">
@@ -372,7 +242,7 @@
                 <div class="form-group">
                     <div class="label-with-hint">
                         <label>Actual Realized R (Net Return)</label>
-                        <span id="realizedRHint" class="session-hint-text" style="color:#0284c7;"></span>
+                        <span id="realizedRHint" class="session-hint-text"></span>
                     </div>
                     <div class="input-with-suffix">
                         <input type="number" step="any" name="realized_r" id="realizedRInput" value="{{ trade.realized_r if trade and trade.realized_r is not none else '' }}" placeholder="Leave empty for Auto (e.g. 0.0, 5.2, -0.4)" class="form-input">
@@ -435,12 +305,12 @@
         <div class="form-group full-width">
             <div class="shots-manager-header">
                 <div>
-                    <label class="font-bold" style="font-size: 0.95rem; color: #0f172a;">Trade Screenshots & TradingView Links</label>
-                    <p class="field-subtext" style="margin: 0.15rem 0 0 0; font-size: 0.75rem; color: #64748b;">Attach unlimited chart screenshots (HTF bias, LTF entry, Trade Management, Multi-timeframe context, etc.).</p>
+                    <label class="shots-section-label">📸 Trade Screenshots &amp; TradingView Links</label>
+                    <p class="field-subtext">Attach unlimited chart screenshots (HTF bias, LTF entry, Trade Management, Multi-timeframe context).</p>
                 </div>
                 <div class="shots-header-actions">
                     <button type="button" class="btn-bulk-toggle" onclick="toggleBulkShots()">📋 Bulk Paste Links</button>
-                    <button type="button" class="btn-add-shot-row" onclick="addScreenshotRow()">+ Add Another Screenshot</button>
+                    <button type="button" class="btn-add-shot-row" onclick="addScreenshotRow()">+ Add Screenshot</button>
                 </div>
             </div>
 
@@ -448,7 +318,20 @@
             <div id="bulkShotsBox" class="bulk-shots-card" style="display:none;">
                 <label>Paste Multiple TradingView URLs (one per line):</label>
                 <textarea id="bulkShotsInput" rows="3" placeholder="https://www.tradingview.com/x/UY4u40uu/&#10;https://www.tradingview.com/x/27EVhM6N/&#10;https://www.tradingview.com/x/dajm3aMh/"></textarea>
-                <button type="button" class="btn-bulk-import" onclick="importBulkScreenshots()">📥 Insert All Links</button>
+                <div class="bulk-actions-row">
+                    <button type="button" class="btn-bulk-import" onclick="importBulkScreenshots()">📥 Insert All Links</button>
+                    <button type="button" class="btn-bulk-cancel" onclick="toggleBulkShots()">Cancel</button>
+                </div>
+            </div>
+
+            <!-- Empty State Card -->
+            <div id="screenshotsEmptyState" class="shots-empty-state" style="display:none;">
+                <div class="shots-empty-icon">🖼️</div>
+                <div class="shots-empty-content">
+                    <h4>No Screenshots Attached Yet</h4>
+                    <p>Visual context strengthens execution mastery. Paste a TradingView link or click below to attach your chart layers.</p>
+                    <button type="button" class="btn-add-shot-empty" onclick="addScreenshotRow()">+ Add Chart Screenshot</button>
+                </div>
             </div>
 
             <!-- Dynamic Screenshot Rows Container -->
@@ -614,18 +497,59 @@
 {% endif %}
 
 <script>
-// The legacy calculator is retained only for backward-compatible scripts; it
-// must not participate in the trade form now that Setup & Trade Edge owns the fields.
-function disableLegacyCalculator() {
+// ============================================================================
+// 0. Toggle Risk & Position Calculator Engine (Apple Fluid Drawers)
+// ============================================================================
+function toggleCalculator() {
     const card = document.getElementById('riskCalculatorCard');
+    const text = document.getElementById('calcToggleText');
+    const icon = document.getElementById('calcToggleIcon');
+    const btn = document.getElementById('calcToggleBtn');
     if (!card) return;
-    card.querySelectorAll('input, select, button, textarea').forEach(control => {
-        control.disabled = true;
-        control.removeAttribute('required');
-    });
+    
+    const isHidden = (card.style.display === 'none' || window.getComputedStyle(card).display === 'none');
+    if (isHidden) {
+        card.style.setProperty('display', 'block', 'important');
+        if (text) text.textContent = 'Hide Position Calculator';
+        if (icon) icon.textContent = '✕';
+        if (btn) btn.classList.add('active');
+        syncFormToCalcIfEmpty();
+        recalcPositionSize();
+        try {
+            card.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        } catch (e) {}
+    } else {
+        card.style.setProperty('display', 'none', 'important');
+        if (text) text.textContent = 'Position Calculator';
+        if (icon) icon.textContent = '📐';
+        if (btn) btn.classList.remove('active');
+    }
 }
 
-disableLegacyCalculator();
+function syncFormToCalcIfEmpty() {
+    const sEntry = document.getElementById('setupEntry')?.value;
+    const sSL = document.getElementById('setupStopLoss')?.value;
+    const sTP = document.getElementById('setupTakeProfit')?.value;
+    const sDir = document.getElementById('tradeDirection')?.value;
+
+    const cEntry = document.getElementById('calcEntry');
+    const cSL = document.getElementById('calcSL');
+    const cTP = document.getElementById('calcTP');
+    const cDir = document.getElementById('calcDirection');
+
+    if (cEntry && (!cEntry.value || cEntry.value === '') && sEntry) {
+        cEntry.value = sEntry;
+    }
+    if (cSL && (!cSL.value || cSL.value === '') && sSL) {
+        cSL.value = sSL;
+    }
+    if (cTP && (!cTP.value || cTP.value === '') && sTP) {
+        cTP.value = sTP;
+    }
+    if (cDir && sDir) {
+        cDir.value = sDir.toLowerCase();
+    }
+}
 
 // ============================================================================
 // 0. Toggle Risk Calculator
@@ -670,6 +594,32 @@ function updateExchangeFees() {
     recalcPositionSize();
 }
 
+function formatUnits(units) {
+
+    if (!Number.isFinite(units) || units <= 0) return '0.00';
+
+    if (units >= 1000) {
+
+        return units.toLocaleString('en-US', { minimumFractionDigits: 0, maximumFractionDigits: 2 });
+
+    } else if (units >= 1) {
+
+        return units.toFixed(2);
+
+    } else if (units >= 0.0001) {
+
+        return units.toFixed(4);
+
+    } else {
+
+        return units.toFixed(8).replace(/\.?0+$/, '');
+
+    }
+
+}
+
+
+
 function changeSLMode() {
     const mode = document.getElementById('calcSLMode').value;
     const slInput = document.getElementById('calcSL');
@@ -682,6 +632,8 @@ function changeSLMode() {
 }
 
 function recalcPositionSize() {
+    const entryEl = document.getElementById('calcEntry');
+    if (!entryEl) return;
     const balance = parseFloat(document.getElementById('calcBalance').value) || 0;
     const riskVal = parseFloat(document.getElementById('calcRiskVal').value) || 0;
     const riskType = document.getElementById('calcRiskType').value;
@@ -780,21 +732,21 @@ function recalcPositionSize() {
     const netProfit = grossProfit - totalFees;
     const netR = dollarRisk > 0 ? (netProfit / dollarRisk) : 0;
 
-    // 7. Update UI Elements
-    document.getElementById('resUnits').textContent = units < 1 ? units.toFixed(4) : units.toFixed(2);
+    // 7. Update UI Elements (Tabular-nums formatted with nano & micro precision safety)
+    document.getElementById('resUnits').textContent = formatUnits(units);
     document.getElementById('resNotional').textContent = '$' + notionalValue.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2}) + ' Notional';
     
     document.getElementById('resMargin').textContent = '$' + marginRequired.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2});
     document.getElementById('resMarginPct').textContent = marginPct.toFixed(1) + '% of Balance';
 
     document.getElementById('resSLDist').textContent = slPct.toFixed(2) + '%';
-    document.getElementById('resRiskCash').textContent = '-$' + dollarRisk.toFixed(2) + ' (1.00R)';
+    document.getElementById('resRiskCash').textContent = '-$' + dollarRisk.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2}) + ' (1.00R)';
 
     if (tp > 0) {
         document.getElementById('resTPDist').textContent = tpPct.toFixed(2) + '%';
-        document.getElementById('resProfitCash').textContent = '+$' + grossProfit.toFixed(2) + ' Gross';
-        document.getElementById('resNetR').textContent = '+' + netR.toFixed(2) + 'R';
-        document.getElementById('resNetCash').textContent = '+$' + netProfit.toFixed(2) + ' Net (Gross: ' + grossR.toFixed(2) + 'R)';
+        document.getElementById('resProfitCash').textContent = '+$' + grossProfit.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2}) + ' Gross';
+        document.getElementById('resNetR').textContent = (netR >= 0 ? '+' : '') + netR.toFixed(2) + 'R';
+        document.getElementById('resNetCash').textContent = (netProfit >= 0 ? '+$' : '-$') + Math.abs(netProfit).toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2}) + ' Net';
     } else {
         document.getElementById('resTPDist').textContent = '—';
         document.getElementById('resProfitCash').textContent = '—';
@@ -802,8 +754,8 @@ function recalcPositionSize() {
         document.getElementById('resNetCash').textContent = '—';
     }
 
-    document.getElementById('resFees').textContent = '-$' + totalFees.toFixed(2);
-    document.getElementById('resFeePct').textContent = ((totalFees / notionalValue) * 100).toFixed(3) + '% of Notional';
+    document.getElementById('resFees').textContent = '-$' + totalFees.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2});
+    document.getElementById('resFeePct').textContent = ((totalFees / (notionalValue || 1)) * 100).toFixed(3) + '% of Notional';
 
     // Auto-calculate Candle Size, MAE SL Buffer, and MFE in Section 3
     autoCalcGeometryFromPrices();
@@ -888,18 +840,36 @@ function applyCalcToForm() {
 
     const tpDist = tp > 0 ? (direction === 'long' ? (tp - entry) : (entry - tp)) : 0;
 
-    // Apply to Form fields
-    document.getElementById('formCandleSize').value = Math.abs(slDist).toFixed(9);
-    document.getElementById('formSLBuffer').value = '0.000000000';
+    // 1. Apply to Section 2 Setup fields
+    const setupEntryInput = document.getElementById('setupEntry');
+    const setupSLInput = document.getElementById('setupStopLoss');
+    const setupTPInput = document.getElementById('setupTakeProfit');
+    const dirSelect = document.getElementById('tradeDirection');
+
+    if (setupEntryInput) setupEntryInput.value = entry;
+    if (setupSLInput) setupSLInput.value = computedSLPrice;
+    if (setupTPInput && tp > 0) setupTPInput.value = tp;
+    if (dirSelect) dirSelect.value = direction.toUpperCase();
+
+    // 2. Apply to Section 3 Candle & Risk Geometry fields
+    const candleField = document.getElementById('formCandleSize');
+    if (candleField) candleField.value = Math.abs(slDist).toFixed(9);
+    const slBufField = document.getElementById('formSLBuffer');
+    if (slBufField) slBufField.value = '0.000000000';
     if (tp > 0) {
-        document.getElementById('formMFE').value = Math.abs(tpDist).toFixed(9);
+        const mfeField = document.getElementById('formMFE');
+        if (mfeField) mfeField.value = Math.abs(tpDist).toFixed(9);
     }
 
-    // 1. Sync Coin / Instrument
+    // 3. Sync Coin / Instrument
     const coinVal = document.getElementById('calcCoinInput').value;
     if (coinVal) {
         onCalcCoinChange(coinVal);
     }
+
+    // Re-run real-time geometry & adverse wick calculations
+    autoCalcGeometryFromPrices();
+    recalcAdverseWick();
 
     // Append summary to comments
     const commentField = document.getElementById('formComments');
@@ -909,14 +879,17 @@ function applyCalcToForm() {
         commentField.value = commentField.value ? commentField.value + '\n' + calcSummary : calcSummary;
     }
 
-    // Visual notification
+    // Visual notification with Apple spring animation
     const btn = document.querySelector('.btn-apply-calc');
-    btn.textContent = '✅ Applied to Form!';
-    btn.style.background = '#15803d';
-    setTimeout(() => {
-        btn.textContent = '📥 Apply Values to Trade Form Below';
-        btn.style.background = '';
-    }, 2000);
+    if (btn) {
+        const origText = btn.innerHTML;
+        btn.innerHTML = '✅ Applied to Trade Form!';
+        btn.classList.add('btn-applied-success');
+        setTimeout(() => {
+            btn.innerHTML = origText;
+            btn.classList.remove('btn-applied-success');
+        }, 2200);
+    }
 }
 
 function formatCalcPrice(value) {
@@ -967,20 +940,7 @@ function onInstrumentSelectChange(select) {
     }
 }
 
-function toggleCalculator() {
-    const card = document.getElementById('riskCalculatorCard');
-    const text = document.getElementById('calcToggleText');
-    const icon = document.getElementById('calcToggleIcon');
-    if (card.style.display === 'none') {
-        card.style.display = 'block';
-        text.textContent = 'Hide Risk Calculator';
-        icon.textContent = '⚡';
-    } else {
-        card.style.display = 'none';
-        text.textContent = 'Show Risk Calculator';
-        icon.textContent = '🧮';
-    }
-}
+// (Duplicate toggleCalculator removed in favor of canonical Apple Drawer toggle)
 
 function updateHoldingDuration() {
     const eDateInput = document.getElementById('entryDateInput');
@@ -1084,11 +1044,9 @@ function recalcAdverseWick() {
 
     if (isNaN(slVal) || slVal <= 0) {
         if (hint) {
-            hint.style.display = 'inline-block';
+            hint.removeAttribute('style');
+            hint.className = 'adverse-wick-badge warn';
             hint.textContent = '⚠️ Enter Stop Loss above';
-            hint.style.color = '#dc2626';
-            hint.style.background = '#fef2f2';
-            hint.style.borderColor = '#fecaca';
         }
         return;
     }
@@ -1105,17 +1063,14 @@ function recalcAdverseWick() {
         bufferInput.value = excess.toFixed(9);
 
         if (hint) {
-            hint.style.display = 'inline-block';
+            hint.style.display = 'inline-flex';
+            hint.removeAttribute('style');
             if (excess > 0) {
-                hint.textContent = `🪤 +${excess} over SL`;
-                hint.style.color = '#b45309';
-                hint.style.background = '#fef3c7';
-                hint.style.borderColor = '#fde68a';
+                hint.className = 'adverse-wick-badge over-sl';
+                hint.textContent = `🪤 +${formatCalcPrice(excess)} over SL`;
             } else {
-                hint.textContent = `✅ Clean (0.000000000)`;
-                hint.style.color = '#15803d';
-                hint.style.background = '#dcfce7';
-                hint.style.borderColor = '#bbf7d0';
+                hint.className = 'adverse-wick-badge clean';
+                hint.textContent = `✅ Clean (0.000000000 excess)`;
             }
         }
     } else if (hint) {
@@ -1342,12 +1297,25 @@ function closeTradeLightbox() {
     if (modal) modal.style.display = 'none';
 }
 
+function checkScreenshotsEmptyState() {
+    const container = document.getElementById('screenshotsContainer');
+    const emptyState = document.getElementById('screenshotsEmptyState');
+    if (!container || !emptyState) return;
+    const cards = container.querySelectorAll('.shot-input-card, .shot-input-row');
+    if (cards.length === 0) {
+        emptyState.style.display = 'flex';
+    } else {
+        emptyState.style.display = 'none';
+    }
+}
+
 function renumberScreenshots() {
     const rows = document.querySelectorAll('#screenshotsContainer .shot-input-card, #screenshotsContainer .shot-input-row');
     rows.forEach((row, idx) => {
         const numSpan = row.querySelector('.shot-row-num');
         if (numSpan) numSpan.textContent = '#' + (idx + 1);
     });
+    checkScreenshotsEmptyState();
 }
 
 function addScreenshotRow(initialVal = '', initialCaption = '') {
@@ -1381,14 +1349,7 @@ function addScreenshotRow(initialVal = '', initialCaption = '') {
 
 function removeScreenshotRow(btn) {
     const card = btn.closest('.shot-input-card') || btn.closest('.shot-input-row');
-    const container = document.getElementById('screenshotsContainer');
-    if (container.querySelectorAll('.shot-input-card, .shot-input-row').length <= 1) {
-        const inp = card.querySelector('.shot-url-input');
-        if (inp) {
-            inp.value = '';
-            updateShotPreview(inp);
-        }
-    } else {
+    if (card) {
         card.remove();
         renumberScreenshots();
     }
@@ -1442,12 +1403,15 @@ window.addEventListener('DOMContentLoaded', () => {
     if (typeof autoCalcGeometryFromPrices === 'function') {
         autoCalcGeometryFromPrices();
     }
-    // Initialize screenshot previews
+    // Initialize screenshot previews & empty state
     document.querySelectorAll('.shot-url-input').forEach(inp => {
         if (inp.value && inp.value.trim()) {
             updateShotPreview(inp);
         }
     });
+    if (typeof checkScreenshotsEmptyState === 'function') {
+        checkScreenshotsEmptyState();
+    }
 });
 </script>
 {% endblock %}

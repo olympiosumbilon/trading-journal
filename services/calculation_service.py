@@ -622,7 +622,7 @@ def compute_fear_greed_matrix(trades_list):
     # Sort trades by date
     sorted_trades = sorted(
         trades_list,
-        key=lambda x: (x.entry_date or x.id, x.entry_time or 0)
+        key=lambda x: (str(x.entry_date or x.id), str(x.entry_time or ''))
     )
 
     # 1. Overall

@@ -157,11 +157,100 @@
             <span class="trade-count-text">
                 Showing {{ (page - 1) * per_page + 1 }}&ndash;{{ [page * per_page, total_count] | min }} of <strong>{{ total_count }}</strong> trades
             </span>
-            {% if active_filter_label or filters.phase or filters.probability or filters.instrument or filters.strategy or filters.session or filters.tag or filters.outcome or filters.day_idx or filters.emotion_before or filters.emotion_after or (filters.year and filters.year != 'all') or filters.month %}
-            <span class="active-filter-pill">
-                🎯 {{ active_filter_label if active_filter_label else 'Filtered' }}
-                <a href="/trades/" class="af-remove-link" title="Clear filter">✕</a>
-            </span>
+
+            {% set month_names = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"] %}
+            {% set has_active = False %}
+            {% if (filters.year and filters.year != '' and filters.year != 'all') or (filters.month and filters.month != '') or (filters.session and filters.session != '') or (filters.instrument and filters.instrument != '') or (filters.strategy and filters.strategy != '') or (filters.probability and filters.probability != '') or (filters.phase and filters.phase != '') or (filters.tag and filters.tag != '') or (filters.outcome and filters.outcome != '') or (filters.day_idx and filters.day_idx != '') or (filters.emotion_before and filters.emotion_before != '') or (filters.emotion_after and filters.emotion_after != '') %}
+                {% set has_active = True %}
+            {% endif %}
+
+            {% if has_active %}
+            <div class="active-filter-chips-list">
+                {% if filters.year and filters.year != '' and filters.year != 'all' %}
+                <span class="filter-chip">
+                    <span class="chip-label">Year:</span> {{ filters.year }}
+                    <button type="button" class="chip-dismiss" onclick="removeFilterParam('year')" title="Remove year filter">&times;</button>
+                </span>
+                {% endif %}
+
+                {% if filters.month and filters.month != '' %}
+                <span class="filter-chip">
+                    <span class="chip-label">Month:</span> {{ month_names[filters.month|int - 1] if filters.month|int >= 1 and filters.month|int <= 12 else filters.month }}
+                    <button type="button" class="chip-dismiss" onclick="removeFilterParam('month')" title="Remove month filter">&times;</button>
+                </span>
+                {% endif %}
+
+                {% if filters.session and filters.session != '' %}
+                <span class="filter-chip">
+                    <span class="chip-label">Session:</span>
+                    {% for s in sessions %}{% if s.id|string == filters.session %}{{ s.name }}{% endif %}{% endfor %}
+                    <button type="button" class="chip-dismiss" onclick="removeFilterParam('session')" title="Remove session filter">&times;</button>
+                </span>
+                {% endif %}
+
+                {% if filters.instrument and filters.instrument != '' %}
+                <span class="filter-chip">
+                    <span class="chip-label">Pair:</span>
+                    {% for i in instruments %}{% if i.id|string == filters.instrument %}{{ i.name }}{% endif %}{% endfor %}
+                    <button type="button" class="chip-dismiss" onclick="removeFilterParam('instrument')" title="Remove instrument filter">&times;</button>
+                </span>
+                {% endif %}
+
+                {% if filters.strategy and filters.strategy != '' %}
+                <span class="filter-chip">
+                    <span class="chip-label">Setup:</span>
+                    {% for st in strategies %}{% if st.id|string == filters.strategy %}{{ st.name }}{% endif %}{% endfor %}
+                    <button type="button" class="chip-dismiss" onclick="removeFilterParam('strategy')" title="Remove setup filter">&times;</button>
+                </span>
+                {% endif %}
+
+                {% if filters.probability and filters.probability != '' %}
+                <span class="filter-chip">
+                    <span class="chip-label">Prob:</span>
+                    {% for p in probabilities %}{% if p.id|string == filters.probability %}{{ p.name }}{% endif %}{% endfor %}
+                    <button type="button" class="chip-dismiss" onclick="removeFilterParam('probability')" title="Remove probability filter">&times;</button>
+                </span>
+                {% endif %}
+
+                {% if filters.phase and filters.phase != '' %}
+                <span class="filter-chip">
+                    <span class="chip-label">Phase:</span>
+                    {% for ph in phases %}{% if ph.id|string == filters.phase %}{{ ph.name }}{% endif %}{% endfor %}
+                    <button type="button" class="chip-dismiss" onclick="removeFilterParam('phase')" title="Remove phase filter">&times;</button>
+                </span>
+                {% endif %}
+
+                {% if filters.tag and filters.tag != '' %}
+                <span class="filter-chip">
+                    <span class="chip-label">Tag:</span>
+                    {% if filters.tag == 'LIVE' %}🟢 Live{% elif filters.tag == 'FRONT_RUN' %}🟡 Front-Run{% elif filters.tag == 'MISSED' %}⚪ Missed{% elif filters.tag == 'SL_SWEPT' %}🪤 Swept{% else %}{{ filters.tag }}{% endif %}
+                    <button type="button" class="chip-dismiss" onclick="removeFilterParam('tag')" title="Remove tag filter">&times;</button>
+                </span>
+                {% endif %}
+
+                {% if filters.outcome and filters.outcome != '' %}
+                <span class="filter-chip">
+                    <span class="chip-label">Outcome:</span> {{ filters.outcome }}
+                    <button type="button" class="chip-dismiss" onclick="removeFilterParam('outcome')" title="Remove outcome filter">&times;</button>
+                </span>
+                {% endif %}
+
+                {% if filters.emotion_before and filters.emotion_before != '' %}
+                <span class="filter-chip">
+                    <span class="chip-label">Before:</span> {{ filters.emotion_before }}
+                    <button type="button" class="chip-dismiss" onclick="removeFilterParam('emotion_before')" title="Remove emotion filter">&times;</button>
+                </span>
+                {% endif %}
+
+                {% if filters.emotion_after and filters.emotion_after != '' %}
+                <span class="filter-chip">
+                    <span class="chip-label">After:</span> {{ filters.emotion_after }}
+                    <button type="button" class="chip-dismiss" onclick="removeFilterParam('emotion_after')" title="Remove emotion filter">&times;</button>
+                </span>
+                {% endif %}
+
+                <button type="button" class="filter-clear-all-btn" onclick="clearAllFilters(event)">Clear All</button>
+            </div>
             {% endif %}
         </div>
         <div class="tmb-right view-mode-switch">
@@ -240,16 +329,14 @@
                 <div class="tpr-pop-menu" id="tm-{{ trade.id }}">
                     <a href="/trades/{{ trade.id }}" class="tpm-item">👁️ View Details</a>
                     <a href="/trades/{{ trade.id }}/edit" class="tpm-item">✏️ Edit Trade</a>
-                    <form method="post" action="/trades/{{ trade.id }}/delete" onsubmit="return confirm('Sigurado ka nga gusto nimo i-delete kini nga Trade #{{ trade.id }}?')">
-                        <button type="submit" class="tpm-item tpm-delete">🗑️ Delete Trade</button>
-                    </form>
+                    <button type="button" class="tpm-item tpm-delete" onclick="confirmDeleteTrade({{ trade.id }}, '{{ trade.instrument_obj.name if trade.instrument_obj else '' }}', '{{ trade.entry_date }}')">🗑️ Delete Trade</button>
                 </div>
             </div>
         </div>
         {% else %}
         <div class="empty-state-card">
             <p>No trades found for the selected filters.</p>
-            <a href="/trades/" class="btn-secondary btn-sm">Clear All Filters</a>
+            <a href="/trades/" class="btn-secondary btn-sm" onclick="clearAllFilters(event)">Clear All Filters</a>
         </div>
         {% endfor %}
     </div>
@@ -259,33 +346,34 @@
         <table class="trades-full-table">
             <thead>
                 <tr>
-                    <th>Trade</th>
-                    <th>Date</th>
-                    <th>Time</th>
-                    <th>Instrument</th>
+                    <th class="th-text">Trade</th>
+                    <th class="th-text">Date</th>
+                    <th class="th-text">Time</th>
+                    <th class="th-text">Instrument</th>
                     <th>Direction</th>
-                    <th>Session</th>
-                    <th>Setup</th>
-                    <th>Prob</th>
-                    <th>Max R</th>
-                    <th>Fixed R</th>
-                    <th>Total R</th>
-                    <th style="text-align: right;">Actions</th>
+                    <th class="th-text">Session</th>
+                    <th class="th-text">Setup</th>
+                    <th class="th-text">Prob</th>
+                    <th class="th-num">Entry Price</th>
+                    <th class="th-num">Max R</th>
+                    <th class="th-num">Fixed R</th>
+                    <th class="th-num">Total R</th>
+                    <th class="th-actions">Actions</th>
                 </tr>
             </thead>
             <tbody>
                 {% for trade in trades %}
                 <tr>
-                    <td><a href="/trades/{{ trade.id }}" class="trade-id-link font-bold">#{{ trade.id }}</a></td>
-                    <td>{{ trade.entry_date }}</td>
-                    <td class="num-cell" style="white-space:nowrap;">
+                    <td class="td-text font-mono font-bold"><a href="/trades/{{ trade.id }}" class="trade-id-link">#{{ trade.id }}</a></td>
+                    <td class="td-text td-nowrap font-mono">{{ trade.entry_date }}</td>
+                    <td class="td-text td-nowrap font-mono">
                         <div>{{ trade.entry_time | time_12h }}</div>
                         {% if trade.holding_time_minutes %}
                         <span class="sub-pill-duration" title="Holding Time">{{ trade.holding_time_minutes | duration }}</span>
                         {% endif %}
                     </td>
-                    <td>
-                        <div class="font-bold text-accent">{{ trade.instrument_obj.name if trade.instrument_obj else "" }}</div>
+                    <td class="td-text">
+                        <div class="font-bold text-accent col-instrument-cell" title="{{ trade.instrument_obj.name if trade.instrument_obj else '' }}">{{ trade.instrument_obj.name if trade.instrument_obj else "—" }}</div>
                         {% if trade.execution_status == 'FRONT_RUN' %}
                         <span class="status-pill status-front-run">FRONT-RUN</span>
                         {% elif trade.execution_status == 'MISSED' %}
@@ -295,10 +383,10 @@
                         <span class="status-pill status-swept">SWEPT</span>
                         {% endif %}
                     </td>
-                    <td><span class="trade-direction-badge direction-{{ (trade.direction or 'LONG')|lower }}">{{ trade.direction or 'LONG' }}</span></td>
-                    <td>{{ trade.session_obj.name if trade.session_obj else "" }}</td>
-                    <td>
-                        <div>{{ trade.strategy_obj.name if trade.strategy_obj else "" }}</div>
+                    <td class="td-text"><span class="trade-direction-badge direction-{{ (trade.direction or 'LONG')|lower }}">{{ trade.direction or 'LONG' }}</span></td>
+                    <td class="td-text td-nowrap">{{ trade.session_obj.name if trade.session_obj else "—" }}</td>
+                    <td class="td-text">
+                        <div class="truncate-setup" title="{{ trade.strategy_obj.name if trade.strategy_obj else '' }}">{{ trade.strategy_obj.name if trade.strategy_obj else "—" }}</div>
                         {% if trade.emotion_before %}
                         <span class="sub-pill-duration" style="background:#f1f5f9; color:#475569;">
                             {% if trade.emotion_before == 'CALM' %}🧘 Calm
@@ -310,12 +398,29 @@
                         </span>
                         {% endif %}
                     </td>
-                    <td>{{ trade.probability_level_obj.name if trade.probability_level_obj else "" }}</td>
-                    <td class="{% if trade.max_r is not none and trade.max_r < 0 %}negative{% elif trade.max_r is not none and trade.max_r > 0 %}positive{% endif %}">
-                        {{ "%.2f"|format(trade.max_r) if trade.max_r is not none else "" }}
+                    <td class="td-text">
+                        {% if trade.probability_level_obj %}
+                        <span class="prob-pill prob-{{ (trade.probability_level_obj.name or '')|lower }}">{{ trade.probability_level_obj.name }}</span>
+                        {% else %}
+                        <span class="text-muted">—</span>
+                        {% endif %}
                     </td>
-                    <td class="{% if trade.fixed_r_target is not none and trade.fixed_r_target < 0 %}negative{% elif trade.fixed_r_target is not none and trade.fixed_r_target > 0 %}positive{% endif %}" style="white-space:nowrap;">
-                        <div class="font-bold">{{ "%.2f"|format(trade.fixed_r_target) if trade.fixed_r_target is not none else "" }}R</div>
+                    <td class="td-num font-mono">
+                        {% if trade.entry_price is not none %}
+                        {{ "%.4f"|format(trade.entry_price) if trade.entry_price < 1 else "%.2f"|format(trade.entry_price) }}
+                        {% else %}
+                        <span class="text-muted">—</span>
+                        {% endif %}
+                    </td>
+                    <td class="td-num font-mono {% if trade.max_r is not none and trade.max_r < 0 %}negative{% elif trade.max_r is not none and trade.max_r > 0 %}positive{% endif %}">
+                        {% if trade.max_r is not none %}
+                        {{ "%.2f"|format(trade.max_r) }}R
+                        {% else %}
+                        <span class="text-muted">—</span>
+                        {% endif %}
+                    </td>
+                    <td class="td-num font-mono {% if trade.fixed_r_target is not none and trade.fixed_r_target < 0 %}negative{% elif trade.fixed_r_target is not none and trade.fixed_r_target > 0 %}positive{% endif %}">
+                        <div class="font-bold">{% if trade.fixed_r_target is not none %}{{ "%.2f"|format(trade.fixed_r_target) }}R{% else %}—{% endif %}</div>
                         {% if trade.outcome_type == 'BREAK_EVEN' or (trade.fixed_r_target is not none and trade.fixed_r_target == 0) %}
                         <span class="outcome-pill outcome-be">BE</span>
                         {% elif trade.outcome_type == 'RUNNER' %}
@@ -326,22 +431,20 @@
                         <span class="outcome-pill outcome-cut">CUT</span>
                         {% endif %}
                     </td>
-                    <td class="{% if trade.total_r is not none and trade.total_r < 0 %}negative{% elif trade.total_r is not none and trade.total_r > 0 %}positive{% endif %} font-bold">
-                        {{ "%.2f"|format(trade.total_r) if trade.total_r is not none else "" }}R
+                    <td class="td-num font-mono font-bold {% if trade.total_r is not none and trade.total_r < 0 %}negative{% elif trade.total_r is not none and trade.total_r > 0 %}positive{% endif %}">
+                        {% if trade.total_r is not none %}{{ "%.2f"|format(trade.total_r) }}R{% else %}—{% endif %}
                     </td>
-                    <td style="white-space: nowrap; text-align: right;">
-                        <div style="display: inline-flex; gap: 0.35rem; align-items: center;">
+                    <td class="td-actions" style="white-space: nowrap; text-align: right;">
+                        <div style="display: inline-flex; gap: 0.35rem; align-items: center; justify-content: flex-end;">
                             <a href="/trades/{{ trade.id }}" class="tbl-action-btn btn-view-sm" title="View Trade">View</a>
                             <a href="/trades/{{ trade.id }}/edit" class="tbl-action-btn btn-edit-sm" title="Edit Trade">Edit</a>
-                            <form method="post" action="/trades/{{ trade.id }}/delete" onsubmit="return confirm('Sigurado ka nga gusto nimo i-delete kini nga Trade #{{ trade.id }}?')" style="display:inline; margin:0;">
-                                <button type="submit" class="tbl-action-btn btn-del-sm" title="Delete Trade">Del</button>
-                            </form>
+                            <button type="button" class="tbl-action-btn btn-del-sm" onclick="confirmDeleteTrade({{ trade.id }}, '{{ trade.instrument_obj.name if trade.instrument_obj else '' }}', '{{ trade.entry_date }}')" title="Delete Trade">Del</button>
                         </div>
                     </td>
                 </tr>
                 {% else %}
                 <tr>
-                    <td colspan="12" class="empty-state">No trades found for the selected filters.</td>
+                    <td colspan="13" class="empty-state">No trades found for the selected filters.</td>
                 </tr>
                 {% endfor %}
             </tbody>
@@ -379,6 +482,31 @@
     {% endif %}
 </div>
 
+<!-- Custom Apple-Design Delete Confirmation Modal -->
+<div id="deleteConfirmModal" class="apple-modal-overlay" onclick="handleDeleteModalBackdropClick(event)">
+    <div class="apple-modal-card">
+        <div class="apple-modal-icon danger">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M3 6h18m-2 0v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
+                <line x1="10" y1="11" x2="10" y2="17"/>
+                <line x1="14" y1="11" x2="14" y2="17"/>
+            </svg>
+        </div>
+        <div class="apple-modal-body">
+            <h3 class="apple-modal-title">Delete Trade <span id="delModalTradeId">#0</span>?</h3>
+            <p class="apple-modal-desc">
+                Are you sure you want to delete this trade <strong id="delModalTradeDetails"></strong>? This will permanently delete execution metrics, psychology notes, and chart attachments. This action cannot be undone.
+            </p>
+        </div>
+        <div class="apple-modal-actions">
+            <button type="button" class="btn-apple-secondary" onclick="closeDeleteModal()">Cancel</button>
+            <form id="deleteTradeForm" method="post" action="" style="display:inline; margin:0;">
+                <button type="submit" class="btn-apple-danger">Delete Trade</button>
+            </form>
+        </div>
+    </div>
+</div>
+
 <script>
 function toggleFiltersPanel() {
     const panel = document.getElementById('filtersPanel');
@@ -386,6 +514,58 @@ function toggleFiltersPanel() {
     if (panel) panel.classList.toggle('panel-open');
     if (btn) btn.classList.toggle('active');
 }
+
+function removeFilterParam(paramKey) {
+    const url = new URL(window.location.href);
+    url.searchParams.delete(paramKey);
+    url.searchParams.delete('page');
+    loadTradesPage(url.toString());
+}
+
+function clearAllFilters(e) {
+    if (e) e.preventDefault();
+    loadTradesPage('/trades/');
+}
+
+function confirmDeleteTrade(tradeId, pair, date) {
+    const modal = document.getElementById('deleteConfirmModal');
+    const idSpan = document.getElementById('delModalTradeId');
+    const detailsSpan = document.getElementById('delModalTradeDetails');
+    const form = document.getElementById('deleteTradeForm');
+    
+    if (modal && idSpan && form) {
+        idSpan.textContent = '#' + tradeId;
+        if (detailsSpan) {
+            let info = '';
+            if (pair) info += pair;
+            if (date) info += (info ? ' on ' : '') + date;
+            detailsSpan.textContent = info ? '(' + info + ')' : '';
+        }
+        form.action = '/trades/' + tradeId + '/delete';
+        modal.classList.add('open');
+        document.body.style.overflow = 'hidden';
+    }
+}
+
+function closeDeleteModal() {
+    const modal = document.getElementById('deleteConfirmModal');
+    if (modal) {
+        modal.classList.remove('open');
+        document.body.style.overflow = 'auto';
+    }
+}
+
+function handleDeleteModalBackdropClick(e) {
+    if (e.target.id === 'deleteConfirmModal') {
+        closeDeleteModal();
+    }
+}
+
+document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape') {
+        closeDeleteModal();
+    }
+});
 
 function toggleTradeMenu(e, menuId) {
     e.stopPropagation();

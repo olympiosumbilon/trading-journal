@@ -2,7 +2,7 @@
 
 {% block title %}{% if idea %}Edit Trade Idea — {{ idea.title }}{% else %}Log New Trade Idea{% endif %} — Trading Journal{% endblock %}
 {% block extra_head %}
-<link rel="stylesheet" href="/static/watchlist.css?v=20261013e">
+<link rel="stylesheet" href="/static/watchlist.css?v=20261020-huge-roadmap">
 {% endblock %}
 
 {% block content %}
@@ -12,10 +12,15 @@
     <div class="form-page-header">
         <div>
             <span class="brand-sub">FORWARD TESTING &amp; EXECUTION STAGING</span>
-            <h1>{% if idea %}Edit Trade Idea: {{ idea.title }}{% else %}Log Pre-Market Trade Idea{% endif %}</h1>
+            <h1 class="font-grotesk">{% if idea %}Edit Trade Idea: {{ idea.title }}{% else %}Log Pre-Market Trade Idea{% endif %}</h1>
         </div>
         <div class="header-actions">
-            <a href="/watchlist/" class="btn-back">&larr; Back to Watchlist</a>
+            <a href="/watchlist/" class="btn-back">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M19 12H5M12 19l-7-7 7-7"/>
+                </svg>
+                <span>Back to Watchlist</span>
+            </a>
         </div>
     </div>
 
@@ -26,7 +31,7 @@
 
         <!-- Section 1: Setup Identification & Direction -->
         <div class="form-section-block">
-            <h4 class="form-section-title">Setup Identification &amp; Direction</h4>
+            <h4 class="form-section-title font-grotesk">Setup Identification &amp; Direction</h4>
             
             <div class="form-section-grid" style="grid-template-columns: 1.2fr 1fr 1fr;">
                 <div class="form-group">
@@ -41,7 +46,7 @@
 
                 <div class="form-group">
                     <label>Trade Direction</label>
-                    <div class="direction-toggle-group">
+                    <div class="direction-toggle-group" role="radiogroup" aria-label="Trade direction">
                         <label class="dir-radio-btn dir-long-label">
                             <input type="radio" name="direction" value="LONG" {% if not idea or idea.direction == 'LONG' %}checked{% endif %}>
                             <span>▲ LONG</span>
@@ -68,18 +73,18 @@
             <!-- Dynamic Live Execution Timing Box (shown & required when Stage is Live / Executed) -->
             <div id="executedTimeBox" class="wl-executed-timing-panel" style="display: {% if idea and idea.status == 'EXECUTED' %}block{% else %}none{% endif %};">
                 <div class="wl-executed-timing-header">
-                    <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#059669" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                    <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#059669" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round" class="flex-shrink-0"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
                     <span><strong>Live Execution Timing:</strong> Start Time is required to insert and log this setup into Trades immediately.</span>
                 </div>
                 <div class="form-section-grid" style="grid-template-columns: 1fr 1fr; gap: 0.85rem; margin-top: 0.65rem;">
                     <div class="form-group" style="margin-bottom:0;">
                         <label for="executedEntryDate">Start Date <span style="color:#e11d48;">*</span></label>
-                        <input type="date" name="entry_date" id="executedEntryDate" class="form-input font-bold"
+                        <input type="date" name="entry_date" id="executedEntryDate" class="form-input font-bold tabular-nums"
                                value="{% if idea and idea.promoted_trade_obj and idea.promoted_trade_obj.entry_date %}{{ idea.promoted_trade_obj.entry_date.strftime('%Y-%m-%d') }}{% endif %}">
                     </div>
                     <div class="form-group" style="margin-bottom:0;">
                         <label for="executedEntryTime">Start Time (PHT) <span style="color:#e11d48;">*</span></label>
-                        <input type="time" name="entry_time" id="executedEntryTime" class="form-input font-bold"
+                        <input type="time" name="entry_time" id="executedEntryTime" class="form-input font-bold tabular-nums"
                                value="{% if idea and idea.promoted_trade_obj and idea.promoted_trade_obj.entry_time %}{{ idea.promoted_trade_obj.entry_time.strftime('%H:%M') }}{% endif %}">
                         <small class="text-muted" style="font-size: 0.73rem; display: block; margin-top: 3px;">Auto-detects session (Asia / London / NY)</small>
                     </div>
@@ -94,7 +99,7 @@
 
         <!-- Section 2: Strategy Edge & Confluence -->
         <div class="form-section-block">
-            <h4 class="form-section-title">Strategy Model &amp; Market Context</h4>
+            <h4 class="form-section-title font-grotesk">Strategy Model &amp; Market Context</h4>
             <div class="form-section-grid wl-form-grid-4">
                 <div class="form-group">
                     <label>Strategy / Setup Model</label>
@@ -151,28 +156,28 @@
 
         <!-- Section 3: Planned Levels & R:R Geometry -->
         <div class="form-section-block">
-            <h4 class="form-section-title">Planned Execution Levels &amp; Target R:R</h4>
+            <h4 class="form-section-title font-grotesk">Planned Execution Levels &amp; Target R:R</h4>
             <div class="form-section-grid wl-form-grid-4">
                 <div class="form-group">
                     <label>Planned Entry Price</label>
-                    <input type="number" step="any" name="planned_entry" id="plannedEntry" value="{{ idea.planned_entry if idea and idea.planned_entry is not none else '' }}" placeholder="e.g. 142.50" class="form-input" oninput="calcPlannedRR()">
+                    <input type="number" step="any" name="planned_entry" id="plannedEntry" value="{{ idea.planned_entry if idea and idea.planned_entry is not none else '' }}" placeholder="e.g. 142.50" class="form-input font-mono tabular-nums" oninput="calcPlannedRR()">
                 </div>
 
                 <div class="form-group">
                     <label>Planned Stop Loss (SL)</label>
-                    <input type="number" step="any" name="planned_sl" id="plannedSL" value="{{ idea.planned_sl if idea and idea.planned_sl is not none else '' }}" placeholder="e.g. 140.20" class="form-input" oninput="calcPlannedRR()">
+                    <input type="number" step="any" name="planned_sl" id="plannedSL" value="{{ idea.planned_sl if idea and idea.planned_sl is not none else '' }}" placeholder="e.g. 140.20" class="form-input font-mono tabular-nums val-neg" oninput="calcPlannedRR()">
                 </div>
 
                 <div class="form-group">
                     <label>Planned Take Profit (TP)</label>
-                    <input type="number" step="any" name="planned_tp" id="plannedTP" value="{{ idea.planned_tp if idea and idea.planned_tp is not none else '' }}" placeholder="e.g. 151.70" class="form-input" oninput="calcPlannedRR()">
+                    <input type="number" step="any" name="planned_tp" id="plannedTP" value="{{ idea.planned_tp if idea and idea.planned_tp is not none else '' }}" placeholder="e.g. 151.70" class="form-input font-mono tabular-nums val-pos" oninput="calcPlannedRR()">
                 </div>
 
                 <div class="form-group">
                     <label>Estimated Target R:R (+R)</label>
                     <div style="display: flex; gap: 0.5rem; align-items: center;">
-                        <input type="number" step="0.01" name="planned_rr" id="plannedRR" value="{{ idea.planned_rr if idea and idea.planned_rr is not none else '' }}" placeholder="e.g. 4.00" class="form-input font-bold" style="color: #10b981;">
-                        <span id="rrBadge" class="wl-rr-calc-badge">Auto</span>
+                        <input type="number" step="0.01" name="planned_rr" id="plannedRR" value="{{ idea.planned_rr if idea and idea.planned_rr is not none else '' }}" placeholder="e.g. 4.00" class="form-input font-bold font-mono tabular-nums" style="color: #10b981;">
+                        <span id="rrBadge" class="wl-rr-calc-badge tabular-nums">Auto</span>
                     </div>
                 </div>
             </div>
@@ -182,8 +187,8 @@
         <div class="form-section-block">
             <div class="wl-tf-builder-header">
                 <div>
-                    <h4 class="form-section-title" style="margin-bottom: 0.2rem;">Multi-Timeframe Analysis Breakdown</h4>
-                    <p class="text-muted" style="font-size: 0.8rem; margin: 0;">Add your top-down analysis layers. Paste TradingView links or image screenshots (<strong>Ctrl + V</strong>) to see real-time chart previews.</p>
+                    <h4 class="form-section-title font-grotesk" style="margin-bottom: 0.2rem;">Multi-Timeframe Analysis Breakdown</h4>
+                    <p class="text-muted" style="font-size: 0.8rem; margin: 0;">Add top-down analysis layers. Paste TradingView links or image screenshots (<strong>Ctrl + V</strong>) to see real-time chart previews.</p>
                 </div>
                 <button type="button" class="btn-secondary" onclick="addTimeframeLayerRow()" style="padding: 0.45rem 0.95rem; font-size: 0.82rem; font-weight: 700;">
                     + Add Timeframe Layer
@@ -198,9 +203,9 @@
 
         <!-- Section 5: Overall Pre-Trade Plan & Management -->
         <div class="form-section-block">
-            <h4 class="form-section-title">General Trade Plan &amp; Waiting Game Notes</h4>
+            <h4 class="form-section-title font-grotesk">General Trade Plan &amp; Waiting Game Notes</h4>
             <div class="form-group">
-                <textarea name="notes" rows="3" placeholder="Overall trade management plan, invalidation criteria, news events..." class="form-input" style="resize: vertical;">{{ idea.notes if idea and idea.notes else '' }}</textarea>
+                <textarea name="notes" rows="3" placeholder="Overall trade management plan, invalidation criteria, news events..." class="form-input break-anywhere" style="resize: vertical;">{{ idea.notes if idea and idea.notes else '' }}</textarea>
             </div>
         </div>
 
@@ -311,7 +316,7 @@ function renderLayerRow(data) {
     card.innerHTML = `
         <div class="wl-tf-layer-header">
             <div class="wl-tf-title-box">
-                <span class="wl-tf-num font-bold">#${document.querySelectorAll('.wl-tf-layer-card').length + 1}</span>
+                <span class="wl-tf-num font-bold tabular-nums">#${document.querySelectorAll('.wl-tf-layer-card').length + 1}</span>
                 <input type="text" class="form-input tf-layer-title font-bold" value="${escapeHtml(currentTitle)}" placeholder="Timeframe Title (e.g. Weekly, 4H, 15M, 1M)">
             </div>
             <button type="button" class="wl-tf-btn-del" onclick="removeLayerRow('${layerId}')" title="Remove Layer">✕ Remove</button>
@@ -353,7 +358,7 @@ function renderLayerRow(data) {
             <!-- Right: Timeframe Note & Analysis -->
             <div class="wl-tf-note-col">
                 <label style="font-size: 0.75rem; font-weight: 700; color: #64748b; text-transform: uppercase;">Timeframe Analysis &amp; Bias Note</label>
-                <textarea class="form-input tf-layer-note" rows="5" placeholder="e.g. I think the overall is bearish, rejected from supply zone, looking for short after sweep...">${escapeHtml(currentNote)}</textarea>
+                <textarea class="form-input tf-layer-note break-anywhere" rows="5" placeholder="e.g. I think the overall is bearish, rejected from supply zone, looking for short after sweep...">${escapeHtml(currentNote)}</textarea>
             </div>
         </div>
     `;
@@ -422,7 +427,7 @@ window.addEventListener('paste', function(e) {
         return;
     }
 
-    // If currently typing/pasting text into an input or textarea, let the input handle it naturally!
+    // If currently typing/pasting text into an input or textarea, let the input handle it naturally
     if (isInputFocused) {
         return;
     }
@@ -663,22 +668,32 @@ function openChartModal(src, title) {
 }
 
 function closeChartModal(e) {
-    if (e.target.id === 'wlChartModal' || e.target.classList.contains('wl-lightbox-close')) {
+    if (!e || e.target.id === 'wlChartModal' || e.target.classList.contains('wl-lightbox-close') || e.key === 'Escape') {
         const modal = document.getElementById('wlChartModal');
         if (modal) modal.style.display = 'none';
     }
 }
+
+// Global Esc listener for lightbox in form
+document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' || e.keyCode === 27) {
+        const modal = document.getElementById('wlChartModal');
+        if (modal && modal.style.display !== 'none') {
+            closeChartModal(e);
+        }
+    }
+});
 </script>
 
 <!-- Interactive Chart Modal / Lightbox for Fullscreen Viewing -->
-<div id="wlChartModal" class="wl-chart-lightbox" style="display: none;" onclick="closeChartModal(event)">
+<div id="wlChartModal" class="wl-chart-lightbox" style="display: none;" onclick="closeChartModal(event)" role="dialog" aria-modal="true" aria-labelledby="wlLightboxTitle">
     <div class="wl-lightbox-box">
         <div class="wl-lightbox-header">
-            <span id="wlLightboxTitle" class="font-bold">Chart Preview</span>
-            <button type="button" class="wl-lightbox-close" onclick="closeChartModal(event)">&times;</button>
+            <span id="wlLightboxTitle" class="font-grotesk font-bold">Chart Preview</span>
+            <button type="button" class="wl-lightbox-close" onclick="closeChartModal(event)" title="Close (Esc)" aria-label="Close dialog">&times;</button>
         </div>
         <div class="wl-lightbox-img-wrap">
-            <img id="wlLightboxImg" src="" alt="Chart Preview">
+            <img id="wlLightboxImg" src="" alt="Chart Preview" loading="lazy">
         </div>
     </div>
 </div>

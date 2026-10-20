@@ -99,7 +99,7 @@
                                     </div>
                                 </td>
                                 <td>
-                                    <span class="status-badge {% if inst.trade_count > 0 %}active-usage{% else %}zero-usage{% endif %}">
+                                    <span class="status-badge tabular-nums {% if inst.trade_count > 0 %}active-usage{% else %}zero-usage{% endif %}">
                                         {{ inst.trade_count }} trade{{ 's' if inst.trade_count != 1 else '' }}
                                     </span>
                                 </td>
@@ -112,6 +112,10 @@
                                         </form>
                                     </div>
                                 </td>
+                        </tr>
+                        {% else %}
+                        <tr>
+                            <td colspan="5" style="text-align:center; padding:1.5rem; color:#94a3b8;">No instruments configured. Add a new pair below.</td>
                         </tr>
                         {% endfor %}
                     </tbody>
@@ -172,7 +176,7 @@
                                         <input type="text" name="name" value="{{ s.name }}" required class="form-input">
                                     </td>
                                     <td>
-                                        <span class="status-badge {% if s.trade_count > 0 %}active-usage{% else %}zero-usage{% endif %}">
+                                        <span class="status-badge tabular-nums {% if s.trade_count > 0 %}active-usage{% else %}zero-usage{% endif %}">
                                             {{ s.trade_count }}
                                         </span>
                                     </td>
@@ -185,6 +189,10 @@
                                             </form>
                                         </div>
                                     </td>
+                            </tr>
+                            {% else %}
+                            <tr>
+                                <td colspan="3" style="text-align:center; padding:1.5rem; color:#94a3b8;">No sessions configured. Add a new session below.</td>
                             </tr>
                             {% endfor %}
                         </tbody>
@@ -234,7 +242,7 @@
                                         </button>
                                     </td>
                                     <td>
-                                        <span class="status-badge {% if st.trade_count > 0 %}active-usage{% else %}zero-usage{% endif %}">
+                                        <span class="status-badge tabular-nums {% if st.trade_count > 0 %}active-usage{% else %}zero-usage{% endif %}">
                                             {{ st.trade_count }}
                                         </span>
                                     </td>
@@ -250,6 +258,10 @@
                                             </form>
                                         </div>
                                     </td>
+                            </tr>
+                            {% else %}
+                            <tr>
+                                <td colspan="4" style="text-align:center; padding:1.5rem; color:#94a3b8;">No strategies configured. Add a new setup below.</td>
                             </tr>
                             {% endfor %}
                         </tbody>
@@ -296,7 +308,7 @@
                                         </div>
                                     </td>
                                     <td>
-                                        <span class="status-badge {% if p.trade_count > 0 %}active-usage{% else %}zero-usage{% endif %}">
+                                        <span class="status-badge tabular-nums {% if p.trade_count > 0 %}active-usage{% else %}zero-usage{% endif %}">
                                             {{ p.trade_count }}
                                         </span>
                                     </td>
@@ -309,6 +321,10 @@
                                             </form>
                                         </div>
                                     </td>
+                            </tr>
+                            {% else %}
+                            <tr>
+                                <td colspan="3" style="text-align:center; padding:1.5rem; color:#94a3b8;">No probability tiers configured. Add a new level below.</td>
                             </tr>
                             {% endfor %}
                         </tbody>
@@ -355,7 +371,7 @@
                                         </div>
                                     </td>
                                     <td>
-                                        <span class="status-badge {% if ph.trade_count > 0 %}active-usage{% else %}zero-usage{% endif %}">
+                                        <span class="status-badge tabular-nums {% if ph.trade_count > 0 %}active-usage{% else %}zero-usage{% endif %}">
                                             {{ ph.trade_count }}
                                         </span>
                                     </td>
@@ -368,6 +384,10 @@
                                             </form>
                                         </div>
                                     </td>
+                            </tr>
+                            {% else %}
+                            <tr>
+                                <td colspan="3" style="text-align:center; padding:1.5rem; color:#94a3b8;">No MTF phases configured. Add a new phase below.</td>
                             </tr>
                             {% endfor %}
                         </tbody>

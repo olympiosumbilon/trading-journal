@@ -39,36 +39,43 @@
         </div>
         <div class="header-actions">
             <a href="/trades/{{ trade.id }}/edit" class="btn-action btn-edit">✏️ Edit Trade</a>
-            <form method="post" action="/trades/{{ trade.id }}/delete" onsubmit="return confirm('Are you sure you want to delete Trade #{{ trade.id }}?')" style="display:inline;">
-                <button type="submit" class="btn-action btn-delete">🗑️ Delete</button>
-            </form>
+            <button type="button" class="btn-action btn-delete" onclick="confirmDeleteTrade({{ trade.id }}, '{{ trade.instrument_obj.name if trade.instrument_obj else '' }}', '{{ trade.entry_date }}')">🗑️ Delete</button>
         </div>
     </div>
 
     <!-- Trade Core Metrics Grid -->
     <div class="detail-metrics-card">
+        <!-- 1. Execution & Timing Cluster -->
         <div class="metric-item">
-            <span class="m-label">ENTRY DATE & TIME</span>
-            <span class="m-val">{{ trade.entry_date }} &bull; {{ trade.entry_time | time_12h }}</span>
+            <span class="m-label">ENTRY DATE &amp; TIME</span>
+            <span class="m-val mono">{{ trade.entry_date }} &bull; {{ trade.entry_time | time_12h }}</span>
         </div>
         <div class="metric-item">
             <span class="m-label">CLOSE TIME</span>
-            <span class="m-val">{{ (trade.exit_date ~ ' • ' if trade.exit_date and trade.exit_date != trade.entry_date else '') ~ (trade.exit_time | time_12h) if trade.exit_time else "—" }}</span>
+            <span class="m-val mono">{{ (trade.exit_date ~ ' • ' if trade.exit_date and trade.exit_date != trade.entry_date else '') ~ (trade.exit_time | time_12h) if trade.exit_time else "—" }}</span>
         </div>
         <div class="metric-item highlight-metric">
             <span class="m-label">HOLDING DURATION</span>
             <span class="m-val mono" style="color:#38bdf8; font-weight:800;">{{ trade.holding_time_minutes | duration if trade.holding_time_minutes is not none else "—" }}</span>
         </div>
         <div class="metric-item">
+            <span class="m-label">SESSION</span>
+            <span class="m-val font-bold">{{ trade.session_obj.name if trade.session_obj else "—" }}</span>
+        </div>
+
+        <!-- 2. Asset & Strategy Cluster -->
+        <div class="metric-item">
             <span class="m-label">INSTRUMENT</span>
             <span class="m-val font-bold text-accent">{{ trade.instrument_obj.name if trade.instrument_obj else "—" }}</span>
         </div>
         <div class="metric-item">
-            <span class="m-label">SESSION</span>
-            <span class="m-val font-bold">{{ trade.session_obj.name if trade.session_obj else "—" }}</span>
+            <span class="m-label">DIRECTION</span>
+            <span class="m-val">
+                <span class="trade-direction-badge direction-{{ (trade.direction or 'LONG')|lower }}">{{ trade.direction or 'LONG' }}</span>
+            </span>
         </div>
         <div class="metric-item">
-            <span class="m-label">SETUP</span>
+            <span class="m-label">SETUP / STRATEGY</span>
             <span class="m-val font-bold">{{ trade.strategy_obj.name if trade.strategy_obj else "—" }}</span>
         </div>
         <div class="metric-item">
@@ -84,6 +91,32 @@
             <span class="m-val">
                 {% if trade.mtf_phase_obj %}
                 <span class="phase-pill-badge">{{ trade.mtf_phase_obj.name }}</span>
+                {% else %}—{% endif %}
+            </span>
+        </div>
+
+        <!-- 3. Price Geometry Cluster (Defensive numeric tabular alignment) -->
+        <div class="metric-item">
+            <span class="m-label">ENTRY PRICE</span>
+            <span class="m-val mono">
+                {% if trade.entry_price is not none %}
+                {{ "%.4f"|format(trade.entry_price) if trade.entry_price < 1 else "%.2f"|format(trade.entry_price) }}
+                {% else %}—{% endif %}
+            </span>
+        </div>
+        <div class="metric-item">
+            <span class="m-label">STOP LOSS</span>
+            <span class="m-val mono" style="color: #f87171;">
+                {% if trade.stop_loss is not none %}
+                {{ "%.4f"|format(trade.stop_loss) if trade.stop_loss < 1 else "%.2f"|format(trade.stop_loss) }}
+                {% else %}—{% endif %}
+            </span>
+        </div>
+        <div class="metric-item">
+            <span class="m-label">TAKE PROFIT</span>
+            <span class="m-val mono" style="color: #4ade80;">
+                {% if trade.take_profit is not none %}
+                {{ "%.4f"|format(trade.take_profit) if trade.take_profit < 1 else "%.2f"|format(trade.take_profit) }}
                 {% else %}—{% endif %}
             </span>
         </div>
@@ -103,9 +136,13 @@
             <span class="m-label">MFE</span>
             <span class="m-val mono">{{ trade.mfe or "—" }}</span>
         </div>
+
+        <!-- 4. Performance & Return Cluster -->
         <div class="metric-item">
             <span class="m-label">MAX R</span>
-            <span class="m-val mono">{{ "%.2f"|format(trade.max_r) if trade.max_r is not none else "—" }}</span>
+            <span class="m-val mono {% if trade.max_r is not none and trade.max_r < 0 %}val-neg{% elif trade.max_r is not none and trade.max_r > 0 %}val-pos{% endif %}">
+                {{ "%.2f"|format(trade.max_r) if trade.max_r is not none else "—" }}R
+            </span>
         </div>
         <div class="metric-item highlight-metric">
             <span class="m-label">FIXED R TARGET</span>
@@ -162,7 +199,7 @@
                 <p>{{ trade.management_news or "No management news specified." }}</p>
             </div>
             <div class="note-box full-span">
-                <h4>TRADE COMMENTS & ANALYSIS</h4>
+                <h4>TRADE COMMENTS &amp; ANALYSIS</h4>
                 <p class="comments-text">{{ trade.comments or "No trade comments recorded." }}</p>
             </div>
         </div>
@@ -172,8 +209,8 @@
     <div class="screenshots-section">
         <div class="section-title-bar">
             <div>
-                <h3>TRADE SCREENSHOTS & TRADINGVIEW CHARTS</h3>
-                <p style="margin:0.2rem 0 0 0; font-size:0.75rem; color:#94a3b8;">High-resolution chart snapshots & multi-timeframe analysis ({{ all_screenshots|length }} attached).</p>
+                <h3>TRADE SCREENSHOTS &amp; TRADINGVIEW CHARTS</h3>
+                <p style="margin:0.2rem 0 0 0; font-size:0.75rem; color:#94a3b8;">High-resolution chart snapshots &amp; multi-timeframe analysis ({{ all_screenshots|length }} attached).</p>
             </div>
             <button type="button" class="btn-attach-shot" onclick="toggleAttachForm('attach-new-shot-box')">+ Add Another Screenshot</button>
         </div>
@@ -196,7 +233,7 @@
                 <div class="card-top-bar">
                     <span class="slot-badge">#{{ loop.index }}{% if s.caption %}: {{ s.caption }}{% else %} Screenshot{% endif %}</span>
                     {% if s.is_tv %}
-                    <a href="{{ s.link_url }}" target="_blank" class="tv-source-btn" title="Open on TradingView">
+                    <a href="{{ s.link_url }}" target="_blank" rel="noopener" class="tv-source-btn" title="Open on TradingView">
                         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
                         TradingView
                     </a>
@@ -204,8 +241,12 @@
                 </div>
 
                 <div class="screenshot-img-wrapper">
-                    <img src="{{ s.img_src }}" alt="{{ s.caption or ('Screenshot #' ~ loop.index) }}" onclick="openLightbox('{{ s.img_src }}', '{{ s.caption or ('Screenshot #' ~ loop.index) }}')" class="clickable-chart">
-                    <div class="img-hover-overlay" onclick="openLightbox('{{ s.img_src }}', '{{ s.caption or ('Screenshot #' ~ loop.index) }}')">
+                    <img src="{{ s.img_src }}" 
+                         alt="{{ s.caption or ('Screenshot #' ~ loop.index) }}" 
+                         onclick="openLightbox('{{ s.img_src }}', '{{ s.caption or ('Screenshot #' ~ loop.index) }}', '{{ s.link_url if s.is_tv else '' }}')" 
+                         onerror="this.onerror=null; this.src='data:image/svg+xml;utf8,<svg xmlns=\'http://www.w3.org/2000/svg\' width=\'300\' height=\'200\' viewBox=\'0 0 300 200\'><rect width=\'300\' height=\'200\' fill=\'%23090d16\'/><text x=\'50%25\' y=\'50%25\' fill=\'%2364748b\' font-family=\'sans-serif\' font-size=\'13\' text-anchor=\'middle\' dy=\'.3em\'>Image unavailable</text></svg>';"
+                         class="clickable-chart">
+                    <div class="img-hover-overlay" onclick="openLightbox('{{ s.img_src }}', '{{ s.caption or ('Screenshot #' ~ loop.index) }}', '{{ s.link_url if s.is_tv else '' }}')">
                         <span>🔍 Click to Enlarge</span>
                     </div>
                 </div>
@@ -222,7 +263,7 @@
                         <button type="submit" class="btn-remove-shot">Remove</button>
                     </form>
                     {% endif %}
-                    <a href="{{ s.link_url }}" target="_blank" class="btn-view-ext">Open Link &nearr;</a>
+                    <a href="{{ s.link_url }}" target="_blank" rel="noopener" class="btn-view-ext">Open Link &nearr;</a>
                 </div>
             </div>
             {% else %}
@@ -237,15 +278,46 @@
 
 </div>
 
-<!-- Fullscreen Lightbox Modal -->
+<!-- Fluid Apple Lightbox Modal -->
 <div id="lightboxModal" class="lightbox-modal" onclick="closeLightbox(event)">
     <div class="lightbox-content">
         <div class="lightbox-header">
-            <span id="lightboxTitle">Screenshot View</span>
-            <button type="button" class="lightbox-close-btn" onclick="closeLightboxDirect()">&times;</button>
+            <div class="lh-left">
+                <span id="lightboxTitle">Screenshot View</span>
+                <a id="lightboxTvLink" href="#" target="_blank" rel="noopener" class="tv-source-btn" style="display:none; margin-left:0.5rem;">
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+                    TradingView
+                </a>
+            </div>
+            <button type="button" class="lightbox-close-btn" onclick="closeLightboxDirect()" title="Close (Esc)">&times;</button>
         </div>
-        <div class="lightbox-img-container">
+        <div class="lightbox-img-container" onclick="handleImgContainerClick(event)">
             <img id="lightboxImg" src="" alt="Enlarged Chart">
+        </div>
+    </div>
+</div>
+
+<!-- Custom Apple-Design Delete Confirmation Modal -->
+<div id="deleteConfirmModal" class="apple-modal-overlay" onclick="handleDeleteModalBackdropClick(event)">
+    <div class="apple-modal-card">
+        <div class="apple-modal-icon danger">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M3 6h18m-2 0v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
+                <line x1="10" y1="11" x2="10" y2="17"/>
+                <line x1="14" y1="11" x2="14" y2="17"/>
+            </svg>
+        </div>
+        <div class="apple-modal-body">
+            <h3 class="apple-modal-title">Delete Trade <span id="delModalTradeId">#{{ trade.id }}</span>?</h3>
+            <p class="apple-modal-desc">
+                Are you sure you want to delete this trade <strong id="delModalTradeDetails">({{ trade.instrument_obj.name if trade.instrument_obj else '' }}{% if trade.entry_date %} on {{ trade.entry_date }}{% endif %})</strong>? This will permanently delete execution metrics, psychology notes, and chart attachments. This action cannot be undone.
+            </p>
+        </div>
+        <div class="apple-modal-actions">
+            <button type="button" class="btn-apple-secondary" onclick="closeDeleteModal()">Cancel</button>
+            <form id="deleteTradeForm" method="post" action="/trades/{{ trade.id }}/delete" style="display:inline; margin:0;">
+                <button type="submit" class="btn-apple-danger">Delete Trade</button>
+            </form>
         </div>
     </div>
 </div>
@@ -258,11 +330,32 @@ function toggleAttachForm(formId) {
     }
 }
 
-function openLightbox(src, title) {
-    document.getElementById('lightboxImg').src = src;
-    document.getElementById('lightboxTitle').textContent = title || 'Chart View';
-    document.getElementById('lightboxModal').classList.add('open');
-    document.body.style.overflow = 'hidden';
+function openLightbox(src, title, tvUrl) {
+    const img = document.getElementById('lightboxImg');
+    const titleEl = document.getElementById('lightboxTitle');
+    const tvLink = document.getElementById('lightboxTvLink');
+    const modal = document.getElementById('lightboxModal');
+    
+    if (img) img.src = src;
+    if (titleEl) titleEl.textContent = title || 'Chart View';
+    if (tvLink) {
+        if (tvUrl) {
+            tvLink.href = tvUrl;
+            tvLink.style.display = 'inline-flex';
+        } else {
+            tvLink.style.display = 'none';
+        }
+    }
+    if (modal) {
+        modal.classList.add('open');
+        document.body.style.overflow = 'hidden';
+    }
+}
+
+function handleImgContainerClick(event) {
+    // If clicking outside the img, close
+    if (event.target.id === 'lightboxImg') return;
+    closeLightboxDirect();
 }
 
 function closeLightbox(event) {
@@ -272,13 +365,51 @@ function closeLightbox(event) {
 }
 
 function closeLightboxDirect() {
-    document.getElementById('lightboxModal').classList.remove('open');
-    document.body.style.overflow = 'auto';
+    const modal = document.getElementById('lightboxModal');
+    if (modal) {
+        modal.classList.remove('open');
+        document.body.style.overflow = 'auto';
+    }
+}
+
+function confirmDeleteTrade(tradeId, pair, date) {
+    const modal = document.getElementById('deleteConfirmModal');
+    const idSpan = document.getElementById('delModalTradeId');
+    const detailsSpan = document.getElementById('delModalTradeDetails');
+    const form = document.getElementById('deleteTradeForm');
+    
+    if (modal && idSpan && form) {
+        idSpan.textContent = '#' + tradeId;
+        if (detailsSpan) {
+            let info = '';
+            if (pair) info += pair;
+            if (date) info += (info ? ' on ' : '') + date;
+            detailsSpan.textContent = info ? '(' + info + ')' : '';
+        }
+        form.action = '/trades/' + tradeId + '/delete';
+        modal.classList.add('open');
+        document.body.style.overflow = 'hidden';
+    }
+}
+
+function closeDeleteModal() {
+    const modal = document.getElementById('deleteConfirmModal');
+    if (modal) {
+        modal.classList.remove('open');
+        document.body.style.overflow = 'auto';
+    }
+}
+
+function handleDeleteModalBackdropClick(e) {
+    if (e.target.id === 'deleteConfirmModal') {
+        closeDeleteModal();
+    }
 }
 
 document.addEventListener('keydown', function(e) {
     if (e.key === 'Escape') {
         closeLightboxDirect();
+        closeDeleteModal();
     }
 });
 </script>

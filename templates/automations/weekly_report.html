@@ -1,64 +1,146 @@
 {% extends "base.html" %}
 
-{% block title %}Weekly Report — Trading Journal{% endblock %}
+{% block title %}Weekly Performance Digest — Trading Journal{% endblock %}
 
 {% block content %}
-<h1>Weekly Report</h1>
-<p><strong>Period:</strong> {{ report.period }}</p>
-
-<div class="summary-cards">
-    <div class="card">
-        <div class="card-value">{{ report.total_trades }}</div>
-        <div class="card-label">Trades</div>
+<div class="analysis-header" style="margin-bottom: 1.5rem;">
+    <div class="header-left">
+        <span class="brand-sub">AUTOMATED PERFORMANCE DIGEST</span>
+        <h1>Weekly Performance Report</h1>
+        <p style="margin: 0.25rem 0 0 0; font-size: 0.85rem; color: #64748b;">
+            Trailing 7-Day Performance Window: <strong style="color: #0f172a;">{{ report.period }}</strong>
+        </p>
     </div>
-    <div class="card">
-        <div class="card-value">{{ report.win_rate }}%</div>
-        <div class="card-label">Win Rate</div>
-    </div>
-    <div class="card">
-        <div class="card-value">{{ report.total_r }}</div>
-        <div class="card-label">Total R</div>
-    </div>
-    <div class="card">
-        <div class="card-value">{{ report.avg_r }}</div>
-        <div class="card-label">Avg R/Trade</div>
+    <div class="header-right">
+        <a href="/automations/" class="auto-btn-action auto-btn-secondary" style="font-size:0.8rem; padding:0.5rem 0.9rem;">
+            &larr; Back to Automations
+        </a>
     </div>
 </div>
 
-<h2>Per Instrument</h2>
-<table>
-    <thead>
-        <tr><th>Instrument</th><th>Trades</th><th>Wins</th><th>Total R</th></tr>
-    </thead>
-    <tbody>
-        {% for name, stats in report.per_instrument.items() %}
-        <tr>
-            <td>{{ name }}</td>
-            <td>{{ stats.trades }}</td>
-            <td>{{ stats.wins }}</td>
-            <td>{{ "%.2f"|format(stats.total_r) }}</td>
-        </tr>
-        {% endfor %}
-    </tbody>
-</table>
+{% if report.total_trades == 0 %}
+<!-- Empty State (Break-UI Defense) -->
+<div class="domain6-empty-state">
+    <div class="empty-icon-wrap">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+    </div>
+    <h3 class="empty-title">Zero Trades Recorded in Current 7-Day Window</h3>
+    <p class="empty-desc">No trade executions took place between {{ report.period }}. Log executions in the trades portal to compile weekly statistics.</p>
+    <a href="/trades/new" class="btn-primary-action" style="display:inline-flex; align-items:center; gap:0.5rem; text-decoration:none;">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/></svg>
+        + Log New Trade
+    </a>
+</div>
+{% else %}
 
-<h2>Trade Log</h2>
-<table>
-    <thead>
-        <tr><th>Date</th><th>Instrument</th><th>Setup</th><th>Result</th><th>R</th></tr>
-    </thead>
-    <tbody>
-        {% for trade in report.trades %}
-        <tr>
-            <td>{{ trade.entry_date }}</td>
-            <td>{{ trade.instrument }}</td>
-            <td>{{ trade.strategy }}</td>
-            <td class="{% if trade.is_win %}positive{% elif trade.is_loss %}negative{% endif %}">
-                {% if trade.is_win %}Win{% elif trade.is_loss %}Loss{% else %}—{% endif %}
-            </td>
-            <td>{{ trade.fixed_r_target or 0 }}</td>
-        </tr>
-        {% endfor %}
-    </tbody>
-</table>
+<!-- KPI Metric Ribbon with Tabular Numbers -->
+<div class="ai-stat-ribbon" style="margin-bottom: 2rem;">
+    <div class="ai-stat-card">
+        <span class="ai-stat-label">Total Trades</span>
+        <div class="ai-stat-val">{{ report.total_trades }}</div>
+    </div>
+    <div class="ai-stat-card">
+        <span class="ai-stat-label">Win Rate</span>
+        <div class="ai-stat-val text-accent">{{ report.win_rate }}%</div>
+    </div>
+    <div class="ai-stat-card">
+        <span class="ai-stat-label">Total Return</span>
+        <div class="ai-stat-val {% if report.total_r > 0 %}val-pos{% elif report.total_r < 0 %}val-neg{% endif %}">
+            {{ "+%.2f"|format(report.total_r) if report.total_r > 0 else "%.2f"|format(report.total_r) }}R
+        </div>
+    </div>
+    <div class="ai-stat-card">
+        <span class="ai-stat-label">Avg Return / Trade</span>
+        <div class="ai-stat-val {% if report.avg_r > 0 %}val-pos{% elif report.avg_r < 0 %}val-neg{% endif %}">
+            {{ "+%.2f"|format(report.avg_r) if report.avg_r > 0 else "%.2f"|format(report.avg_r) }}R
+        </div>
+    </div>
+</div>
+
+<!-- Per-Instrument Breakdown -->
+<div style="margin-bottom: 2rem;">
+    <h3 style="font-size:0.85rem; font-weight:800; color:#64748b; text-transform:uppercase; letter-spacing:0.05em; margin-bottom:0.75rem;">
+        Performance Per Instrument
+    </h3>
+    <div class="report-table-container">
+        <table class="report-table">
+            <thead>
+                <tr>
+                    <th>Instrument</th>
+                    <th style="text-align:right;"># Trades</th>
+                    <th style="text-align:right;">Wins</th>
+                    <th style="text-align:right;">Total Return (R)</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for name, stats in report.per_instrument.items() %}
+                <tr>
+                    <td class="font-bold">{{ name }}</td>
+                    <td class="tabular-nums" style="text-align:right;">{{ stats.trades }}</td>
+                    <td class="tabular-nums" style="text-align:right;">{{ stats.wins }}</td>
+                    <td class="tabular-nums font-bold {% if stats.total_r > 0 %}val-pos{% elif stats.total_r < 0 %}val-neg{% endif %}" style="text-align:right;">
+                        {{ "+%.2f"|format(stats.total_r) if stats.total_r > 0 else "%.2f"|format(stats.total_r) }}R
+                    </td>
+                </tr>
+                {% else %}
+                <tr>
+                    <td colspan="4" style="text-align:center; padding:1.5rem; color:#94a3b8;">No instrument data recorded this week.</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- Trade Log Table -->
+<div>
+    <h3 style="font-size:0.85rem; font-weight:800; color:#64748b; text-transform:uppercase; letter-spacing:0.05em; margin-bottom:0.75rem;">
+        Weekly Execution Chronology
+    </h3>
+    <div class="report-table-container">
+        <table class="report-table">
+            <thead>
+                <tr>
+                    <th>Date</th>
+                    <th>Time</th>
+                    <th>Instrument</th>
+                    <th>Setup / Strategy</th>
+                    <th style="text-align:center;">Outcome</th>
+                    <th style="text-align:right;">Realized R</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for trade in report.trades %}
+                <tr>
+                    <td>{{ trade.entry_date }}</td>
+                    <td class="text-muted" style="font-size:0.75rem;">{{ trade.entry_time or '—' }}</td>
+                    <td class="font-bold">{{ trade.instrument or '—' }}</td>
+                    <td>{{ trade.strategy or '—' }}</td>
+                    <td style="text-align:center;">
+                        {% if trade.is_win %}
+                        <span class="status-pill status-live">🟢 Win</span>
+                        {% elif trade.is_loss %}
+                        <span class="status-pill status-swept">🔴 Loss</span>
+                        {% else %}
+                        <span class="status-pill status-missed">⚪ BE / Open</span>
+                        {% endif %}
+                    </td>
+                    <td class="tabular-nums font-bold {% if trade.fixed_r_target and trade.fixed_r_target > 0 %}val-pos{% elif trade.fixed_r_target and trade.fixed_r_target < 0 %}val-neg{% endif %}" style="text-align:right;">
+                        {% if trade.fixed_r_target is not none %}
+                            {{ "+%.2f"|format(trade.fixed_r_target) if trade.fixed_r_target > 0 else "%.2f"|format(trade.fixed_r_target) }}R
+                        {% else %}
+                            0.00R
+                        {% endif %}
+                    </td>
+                </tr>
+                {% else %}
+                <tr>
+                    <td colspan="6" style="text-align:center; padding:1.5rem; color:#94a3b8;">No execution log entries for this period.</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endif %}
 {% endblock %}

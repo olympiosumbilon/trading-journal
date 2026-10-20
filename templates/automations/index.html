@@ -1,32 +1,153 @@
 {% extends "base.html" %}
 
-{% block title %}Automations — Trading Journal{% endblock %}
+{% block title %}Automations & Risk Circuit Breakers — Trading Journal{% endblock %}
 
 {% block content %}
-<h1>Automations</h1>
-
-<h2>Active Alerts</h2>
-{% if alerts %}
-<div class="alerts">
-    {% for alert in alerts %}
-    <div class="alert alert-warning">{{ alert }}</div>
-    {% endfor %}
-</div>
-{% else %}
-<p class="alert alert-success">No alerts. All systems normal.</p>
-{% endif %}
-
-<h2>Available Actions</h2>
-<div class="automation-actions">
-    <a href="/automations/export/csv" class="btn-primary">Download CSV Export</a>
-    <a href="/automations/weekly-report" class="btn-primary">View Weekly Report</a>
-    <a href="/automations/alerts" class="btn-primary">Check Alerts (JSON)</a>
+<div class="analysis-header" style="margin-bottom: 1.5rem;">
+    <div class="header-left">
+        <span class="brand-sub">OPERATIONAL INTELLIGENCE</span>
+        <h1>Automations & Risk Guards</h1>
+    </div>
+    <div class="header-right">
+        <div class="terminal-badge-pulse" style="background:rgba(16,185,129,0.12); border-color:rgba(16,185,129,0.3); color:#10b981; padding:0.4rem 0.85rem;">
+            <span class="pulse-dot"></span> 4 MONITORS ACTIVE
+        </div>
+    </div>
 </div>
 
-<style>
-.alerts { margin-bottom: 1.5rem; }
-.alert-warning { background: #fef3c7; color: #92400e; padding: 0.75rem; border-radius: 4px; margin-bottom: 0.5rem; }
-.alert-success { background: #dcfce7; color: #166534; padding: 0.75rem; border-radius: 4px; }
-.automation-actions { display: flex; gap: 1rem; flex-wrap: wrap; }
-</style>
+<!-- Active Alerts Section -->
+<div style="margin-bottom: 2rem;">
+    <h3 style="font-size:0.85rem; font-weight:800; color:#64748b; text-transform:uppercase; letter-spacing:0.05em; margin-bottom:0.75rem;">
+        Active Circuit Breakers & Alerts
+    </h3>
+    {% if alerts %}
+    <div class="alerts" style="display:flex; flex-direction:column; gap:0.75rem;">
+        {% for alert in alerts %}
+        <div class="dash-alert alert-warning" style="display:flex; align-items:center; gap:0.75rem; padding:0.85rem 1.25rem; border-radius:8px; background:#fffbeb; border:1px solid #fde68a; color:#92400e;">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="flex-shrink:0;"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+            <span style="font-size:0.85rem; font-weight:600; line-height:1.4;">{{ alert }}</span>
+        </div>
+        {% endfor %}
+    </div>
+    {% else %}
+    <div style="display:flex; align-items:center; gap:0.75rem; padding:0.9rem 1.25rem; border-radius:8px; background:#f0fdf4; border:1px solid #bbf7d0; color:#166534;">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="flex-shrink:0;"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><polyline points="9 12 11 14 15 10"/></svg>
+        <div style="font-size:0.85rem;">
+            <strong style="font-weight:700;">All Systems Nominal:</strong> Zero risk circuit-breaker alerts. Account metrics within calibrated drawdown tolerance.
+        </div>
+    </div>
+    {% endif %}
+</div>
+
+<!-- Systematic Automation Rule Cards Grid -->
+<div style="margin-bottom: 2rem;">
+    <h3 style="font-size:0.85rem; font-weight:800; color:#64748b; text-transform:uppercase; letter-spacing:0.05em; margin-bottom:0.75rem;">
+        Systematic Automation Rules
+    </h3>
+    <div class="automations-grid">
+        <!-- Rule 1: Drawdown Guard -->
+        <div class="automation-rule-card">
+            <div class="auto-rule-top">
+                <div class="auto-rule-info">
+                    <h3>Max Drawdown Guard (-3.0R)</h3>
+                    <p>Monitors peak-to-trough equity. Automatically triggers risk alert if cumulative drawdown breaches -3R.</p>
+                </div>
+                <label class="apple-toggle" aria-label="Toggle Drawdown Guard">
+                    <input type="checkbox" checked onchange="toggleAutomationRule(this)">
+                    <span class="apple-toggle-slider"></span>
+                </label>
+            </div>
+            <div class="auto-rule-meta">
+                <span class="status-pill status-live" style="background:#f0fdf4; color:#166534; font-size:0.7rem;">● Monitoring Active</span>
+                <span>Threshold: -3.00R</span>
+            </div>
+        </div>
+
+        <!-- Rule 2: Weekly Performance Digest -->
+        <div class="automation-rule-card">
+            <div class="auto-rule-top">
+                <div class="auto-rule-info">
+                    <h3>Weekly Digest Generator</h3>
+                    <p>Rolls up trailing 7-day volume, win rates, per-instrument yields, and execution trade logs every Sunday.</p>
+                </div>
+                <label class="apple-toggle" aria-label="Toggle Weekly Digest">
+                    <input type="checkbox" checked onchange="toggleAutomationRule(this)">
+                    <span class="apple-toggle-slider"></span>
+                </label>
+            </div>
+            <div class="auto-rule-meta">
+                <span class="status-pill status-front-run" style="background:#eff6ff; color:#1e40af; font-size:0.7rem;">● Automated Weekly</span>
+                <span>Sunday 23:59 UTC</span>
+            </div>
+        </div>
+
+        <!-- Rule 3: Trade Data CSV Backup -->
+        <div class="automation-rule-card">
+            <div class="auto-rule-top">
+                <div class="auto-rule-info">
+                    <h3>Automated Ledger Export</h3>
+                    <p>Complete trade ledger serialization with timestamps, news flags, MAE/MFE metrics, and outcomes.</p>
+                </div>
+                <label class="apple-toggle" aria-label="Toggle Ledger Export">
+                    <input type="checkbox" checked onchange="toggleAutomationRule(this)">
+                    <span class="apple-toggle-slider"></span>
+                </label>
+            </div>
+            <div class="auto-rule-meta">
+                <span class="status-pill status-live" style="background:#f0fdf4; color:#166534; font-size:0.7rem;">● Ready on Demand</span>
+                <span>Format: RFC 4180 CSV</span>
+            </div>
+        </div>
+
+        <!-- Rule 4: Execution Leakage Auditor -->
+        <div class="automation-rule-card">
+            <div class="auto-rule-top">
+                <div class="auto-rule-info">
+                    <h3>Execution Leakage Auditor</h3>
+                    <p>Identifies front-run orders, missed entries, and stop-loss hunts to quantify theoretical edge recapture.</p>
+                </div>
+                <label class="apple-toggle" aria-label="Toggle Leakage Auditor">
+                    <input type="checkbox" checked onchange="toggleAutomationRule(this)">
+                    <span class="apple-toggle-slider"></span>
+                </label>
+            </div>
+            <div class="auto-rule-meta">
+                <span class="status-pill status-swept" style="background:#fdf2f8; color:#9d174d; font-size:0.7rem;">● Continuous</span>
+                <span>Behavioral Edge</span>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Fast Action Hub -->
+<div>
+    <h3 style="font-size:0.85rem; font-weight:800; color:#64748b; text-transform:uppercase; letter-spacing:0.05em; margin-bottom:0.75rem;">
+        Operational Actions Hub
+    </h3>
+    <div class="auto-actions-strip">
+        <a href="/automations/export/csv" class="auto-btn-action">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+            Download CSV Export
+        </a>
+        <a href="/automations/weekly-report" class="auto-btn-action auto-btn-secondary">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
+            View Weekly Report
+        </a>
+        <a href="/automations/alerts" target="_blank" class="auto-btn-action auto-btn-secondary">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
+            Alerts JSON Stream
+        </a>
+    </div>
+</div>
+
+<script>
+function toggleAutomationRule(el) {
+    const card = el.closest('.automation-rule-card');
+    if (!el.checked) {
+        card.style.opacity = '0.65';
+    } else {
+        card.style.opacity = '1';
+    }
+}
+</script>
 {% endblock %}
